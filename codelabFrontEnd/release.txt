@@ -1,0 +1,14 @@
+docker buildx build --platform linux/amd64 -t codelaberp:latest . --load
+
+docker run -d -p 4173:4173 --name codelaberp-container codelaberp:latest
+
+
+Por si toca hacer despliegue en la nube con Azure ACR
+az login
+az acr login --name "nombre del app service plan"
+
+docker tag codelaberp:latest acrpokequequepcaiiidev.azurecr.io/codelaberp:latest
+docker tag codelaberp:latest acrpokequequepcaiiidev.azurecr.io/codelaberp:0.3.0
+
+docker push acrpokequequepcaiiidev.azurecr.io/codelaberp:latest
+docker push acrpokequequepcaiiidev.azurecr.io/codelaberp:0.3.0
