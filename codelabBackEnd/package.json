@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "ERPSIMM",
   "main": "index.js",
+  "type": "module",
   "dependencies": {
     "accepts": "^2.0.0",
     "body-parser": "^2.2.2",
@@ -15,6 +16,7 @@
     "cookie-signature": "^1.2.2",
     "debug": "^4.4.3",
     "depd": "^2.0.0",
+    "dotenv": "^17.3.1",
     "dunder-proto": "^1.0.1",
     "ee-first": "^1.1.1",
     "encodeurl": "^2.0.0",
