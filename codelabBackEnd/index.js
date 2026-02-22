@@ -1,11 +1,17 @@
-const express = require('express')
-const app = express()
-const port = 3000
+import dotenv from "dotenv";
+import express, { request } from "express";
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+dotenv.config();
+
+/* Crear instancia de express */
+
+const app = express();
+const port = process.env.PORT
+
+app.get("/", (req, res)=>{
+    res.send('<h1>Hola mundo</h1>')
+});
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+    console.log(`Escuchando en el puerto ${port}`);
+});
