@@ -1,0 +1,5 @@
+Ejecutar en linea de comandos para correr en docker:
+docker-compose up -d 
+
+Ver configuracion:
+docker-compose config
