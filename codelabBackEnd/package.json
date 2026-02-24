@@ -5,6 +5,8 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.4.1",
+    "@prisma/client": "^7.4.1",
     "accepts": "^2.0.0",
     "body-parser": "^2.2.2",
     "bytes": "^3.1.2",
@@ -47,11 +49,14 @@
     "mime-types": "^3.0.2",
     "ms": "^2.1.3",
     "negotiator": "^1.0.0",
+    "nodemon": "^3.1.14",
     "object-inspect": "^1.13.4",
     "on-finished": "^2.4.1",
     "once": "^1.4.0",
     "parseurl": "^1.3.3",
     "path-to-regexp": "^8.3.0",
+    "pg": "^8.18.0",
+    "prisma": "^7.4.1",
     "proxy-addr": "^2.0.7",
     "qs": "^6.15.0",
     "range-parser": "^1.2.1",
@@ -73,7 +78,8 @@
     "wrappy": "^1.0.2"
   },
   "scripts": {
-    "test": "dev"
+    "test": "dev",
+    "start": "nodemon src/app.js"
   },
   "author": "",
   "license": "ISC"
