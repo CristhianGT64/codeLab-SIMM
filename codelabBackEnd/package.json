@@ -56,7 +56,6 @@
     "parseurl": "^1.3.3",
     "path-to-regexp": "^8.3.0",
     "pg": "^8.18.0",
-    "prisma": "^7.4.1",
     "proxy-addr": "^2.0.7",
     "qs": "^6.15.0",
     "range-parser": "^1.2.1",
@@ -82,5 +81,8 @@
     "start": "nodemon src/app.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "prisma": "^7.4.1"
+  }
 }

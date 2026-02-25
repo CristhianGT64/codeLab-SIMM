@@ -1,22 +1,339 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  price       Float
-  stock       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// ENUMS
+
+enum EstadoUsuario {
+  activo
+  inactivo
 }
 
+enum EstadoProducto {
+  activo
+  inactivo
+}
+
+enum EstadoVenta {
+  completada
+  anulada
+}
+
+enum TipoMovimientoInventario {
+  entrada
+  salida
+}
+
+enum MetodoValuacion {
+  FIFO
+  PROMEDIO_PONDERADO
+}
+
+// SEGURIDAD
+
+model Rol {
+  id          BigInt    @id @default(autoincrement())
+  nombre      String    @unique @db.VarChar(100)
+  descripcion String?   @db.VarChar(255)
+  disponible  Boolean   @default(true)
+  createdAt   DateTime? @map("created_at")
+
+  usuarios Usuario[]
+  permisos Permiso[] @relation("RolPermiso")
+}
+
+model Permiso {
+  id          BigInt    @id @default(autoincrement())
+  nombre      String    @unique @db.VarChar(100)
+  descripcion String?   @db.VarChar(255)
+  disponible  Boolean   @default(true)
+  createdAt   DateTime? @map("created_at")
+
+  roles Rol[] @relation("RolPermiso")
+}
+
+// ORGANIZACIÓN
+
+model Sucursal {
+  id        BigInt    @id @default(autoincrement())
+  nombre    String    @db.VarChar(150)
+  direccion String?   @db.VarChar(255)
+  telefono  String?   @db.VarChar(50)
+  gerente   String?   @db.VarChar(150)
+  activa    Boolean   @default(true)
+  createdAt DateTime? @map("created_at")
+
+  usuarios         Usuario[]
+  inventarios      Inventario[]
+  ventas           Venta[]
+  establecimientos Establecimiento[]
+
+  movimientosInventario MovimientoInventario[]
+  facturas              Factura[]
+}
+
+model Usuario {
+  id             BigInt        @id @default(autoincrement())
+  nombreCompleto String        @map("nombre_completo") @db.VarChar(150)
+  correo         String        @unique @db.VarChar(150)
+  password       String        @db.VarChar(255)
+  estado         EstadoUsuario @default(activo)
+  createdAt      DateTime?     @map("created_at")
+  updatedAt      DateTime?     @map("updated_at")
+
+  sucursalId BigInt?
+  rolId      BigInt?
+
+  sucursal Sucursal? @relation(fields: [sucursalId], references: [id])
+  rol      Rol?      @relation(fields: [rolId], references: [id])
+
+  ventas   Venta[]
+  facturas Factura[]
+
+  movimientosInventario MovimientoInventario[]
+}
+
+// INVENTARIO
+
+model Categoria {
+  id          BigInt  @id @default(autoincrement())
+  nombre      String  @db.VarChar(150)
+  descripcion String? @db.VarChar(255)
+  disponible  Boolean @default(true)
+
+  productos Producto[]
+}
+
+model Proveedor {
+  id         BigInt  @id @default(autoincrement())
+  nombre     String  @db.VarChar(150)
+  telefono   String? @db.VarChar(50)
+  correo     String? @db.VarChar(150)
+  direccion  String? @db.VarChar(255)
+  disponible Boolean @default(true)
+
+  productos Producto[] @relation("ProductoProveedor")
+}
+
+model Producto {
+  id           BigInt         @id @default(autoincrement())
+  nombre       String         @db.VarChar(150)
+  sku          String         @unique @db.VarChar(100)
+  costo        Decimal        @db.Decimal(10, 2)
+  precioVenta  Decimal        @map("precio_venta") @db.Decimal(10, 2)
+  unidadMedida String?        @map("unidad_medida") @db.VarChar(50)
+  estado       EstadoProducto @default(activo)
+  createdAt    DateTime?      @map("created_at")
+  updatedAt    DateTime?      @map("updated_at")
+
+  categoriaId BigInt?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
+
+  proveedores Proveedor[]            @relation("ProductoProveedor")
+  inventarios Inventario[]
+  movimientos MovimientoInventario[]
+  detalles    DetalleVenta[]
+}
+
+model Inventario {
+  id          BigInt @id @default(autoincrement())
+  stockActual Int    @default(0) @map("stock_actual")
+
+  productoId BigInt
+  sucursalId BigInt
+
+  producto Producto @relation(fields: [productoId], references: [id])
+  sucursal Sucursal @relation(fields: [sucursalId], references: [id])
+
+  @@unique([productoId, sucursalId])
+}
+
+model MovimientoInventario {
+  id             BigInt                   @id @default(autoincrement())
+  tipo           TipoMovimientoInventario
+  cantidad       Int
+  referenciaTipo String?                  @map("referencia_tipo") @db.VarChar(50)
+  referenciaId   BigInt?                  @map("referencia_id")
+  createdAt      DateTime?                @map("created_at")
+
+  productoId BigInt
+  sucursalId BigInt
+  usuarioId  BigInt?
+
+  producto Producto @relation(fields: [productoId], references: [id])
+  sucursal Sucursal @relation(fields: [sucursalId], references: [id])
+  usuario  Usuario? @relation(fields: [usuarioId], references: [id])
+}
+
+// CLIENTES
+
+model TipoCliente {
+  id     BigInt @id @default(autoincrement())
+  nombre String @db.VarChar(100)
+
+  clientes Cliente[]
+}
+
+model Cliente {
+  id             BigInt  @id @default(autoincrement())
+  nombreCompleto String? @map("nombre_completo") @db.VarChar(150)
+  identificacion String? @unique @db.VarChar(50)
+  telefono       String? @db.VarChar(50)
+  correo         String? @db.VarChar(150)
+  direccion      String? @db.VarChar(255)
+
+  tipoClienteId BigInt?
+  tipoCliente   TipoCliente? @relation(fields: [tipoClienteId], references: [id])
+
+  ventas   Venta[]
+  facturas Factura[]
+}
+
+// FACTURACIÓN
+
+model TipoDocumento {
+  id         BigInt  @id @default(autoincrement())
+  numero     Int     @unique
+  nombre     String  @unique @db.VarChar(150)
+  disponible Boolean
+
+  establecimientos Establecimiento[]
+  puntosEmision    PuntoEmision[]
+  numerosFactura   NumeroFactura[]
+}
+
+model Establecimiento {
+  id     BigInt @id @default(autoincrement())
+  numero Int
+
+  tipoDocumentoId BigInt
+  sucursalId      BigInt
+
+  tipoDocumento TipoDocumento @relation(fields: [tipoDocumentoId], references: [id])
+  sucursal      Sucursal      @relation(fields: [sucursalId], references: [id])
+
+  puntosEmision  PuntoEmision[]
+  numerosFactura NumeroFactura[]
+
+  @@unique([numero, tipoDocumentoId])
+}
+
+model RangoEmision {
+  id     BigInt @id @default(autoincrement())
+  inicio Int
+  fin    Int
+
+  puntosEmision PuntoEmision[]
+}
+
+model PuntoEmision {
+  id     BigInt @id @default(autoincrement())
+  numero Int
+
+  tipoDocumentoId   BigInt
+  establecimientoId BigInt
+  rangoEmisionId    BigInt?
+
+  tipoDocumento   TipoDocumento   @relation(fields: [tipoDocumentoId], references: [id])
+  establecimiento Establecimiento @relation(fields: [establecimientoId], references: [id])
+  rangoEmision    RangoEmision?   @relation(fields: [rangoEmisionId], references: [id])
+
+  numerosFactura NumeroFactura[]
+
+  @@unique([numero, establecimientoId])
+}
+
+model Cai {
+  id          BigInt    @id @default(autoincrement())
+  codigo      String    @unique @db.VarChar(100)
+  fechaInicio DateTime? @map("fecha_inicio")
+  fechaFin    DateTime? @map("fecha_fin")
+  activo      Boolean
+
+  numerosFactura NumeroFactura[]
+}
+
+model NumeroFactura {
+  id               BigInt  @id @default(autoincrement())
+  numeroFormateado String? @unique @map("numero_formateado") @db.VarChar(50)
+  correlativo      Int
+  usado            Boolean @default(false)
+
+  tipoDocumentoId   BigInt
+  establecimientoId BigInt
+  puntoEmisionId    BigInt
+  caiId             BigInt?
+
+  tipoDocumento   TipoDocumento   @relation(fields: [tipoDocumentoId], references: [id])
+  establecimiento Establecimiento @relation(fields: [establecimientoId], references: [id])
+  puntoEmision    PuntoEmision    @relation(fields: [puntoEmisionId], references: [id])
+  cai             Cai?            @relation(fields: [caiId], references: [id])
+
+  factura Factura?
+
+  @@unique([tipoDocumentoId, establecimientoId, puntoEmisionId, correlativo])
+}
+
+model Venta {
+  id        BigInt      @id @default(autoincrement())
+  total     Decimal     @db.Decimal(10, 2)
+  estado    EstadoVenta
+  createdAt DateTime?   @map("created_at")
+
+  clienteId  BigInt?
+  usuarioId  BigInt?
+  sucursalId BigInt?
+
+  cliente  Cliente?  @relation(fields: [clienteId], references: [id])
+  usuario  Usuario?  @relation(fields: [usuarioId], references: [id])
+  sucursal Sucursal? @relation(fields: [sucursalId], references: [id])
+
+  detalles DetalleVenta[]
+  factura  Factura?
+}
+
+model DetalleVenta {
+  id             BigInt  @id @default(autoincrement())
+  cantidad       Int
+  precioUnitario Decimal @map("precio_unitario") @db.Decimal(10, 2)
+  subtotal       Decimal @db.Decimal(10, 2)
+
+  ventaId    BigInt
+  productoId BigInt
+
+  venta    Venta    @relation(fields: [ventaId], references: [id])
+  producto Producto @relation(fields: [productoId], references: [id])
+}
+
+model Factura {
+  id           BigInt   @id @default(autoincrement())
+  subtotal     Decimal  @db.Decimal(10, 2)
+  impuesto     Decimal  @db.Decimal(10, 2)
+  total        Decimal  @db.Decimal(10, 2)
+  fechaEmision DateTime @map("fecha_emision")
+
+  numeroFacturaId BigInt  @unique
+  ventaId         BigInt? @unique
+
+  clienteId  BigInt?
+  usuarioId  BigInt?
+  sucursalId BigInt?
+
+  numeroFactura NumeroFactura @relation(fields: [numeroFacturaId], references: [id])
+  venta         Venta?        @relation(fields: [ventaId], references: [id])
+  cliente       Cliente?      @relation(fields: [clienteId], references: [id])
+  usuario       Usuario?      @relation(fields: [usuarioId], references: [id])
+  sucursal      Sucursal?     @relation(fields: [sucursalId], references: [id])
+}
+
+// CONFIGURACIÓN CONTABLE
+
+model ConfiguracionContable {
+  id              BigInt          @id @default(autoincrement())
+  metodoValuacion MetodoValuacion @map("metodo_valuacion")
+  monedaFuncional String          @map("moneda_funcional") @db.VarChar(10)
+}
