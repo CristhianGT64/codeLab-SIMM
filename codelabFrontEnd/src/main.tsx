@@ -1,24 +1,16 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router'
-import './index.css'
-import App from './App.tsx'
-import HomePage from './pages/HomePage.tsx'
-import AboutPage from './pages/AboutPage.tsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import './index.css'; 
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <App />,
-    children: [
-      { index: true, element: <HomePage /> },
-      { path: 'about', element: <AboutPage /> },
-    ],
-  },
-])
+// Crear una instancia del cliente de React Query
+const queryClient = new QueryClient();
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>,
-)
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
+  </React.StrictMode>
+);
