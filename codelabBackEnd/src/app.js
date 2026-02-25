@@ -16,6 +16,7 @@ app.get('/products/:id', productController.getProductById);
 app.post('/products/create', productController.createProduct);
 app.put('/products/:id', productController.updateProduct);
 app.delete('/products/:id', productController.deleteProduct);
+app.delete('/productsDelete/:id', productController.deleteProduct);
 
 // Middleware de manejo de errores (debe estar al final)
 app.use(errorHandler);
