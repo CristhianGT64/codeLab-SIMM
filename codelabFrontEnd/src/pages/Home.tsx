@@ -9,7 +9,7 @@ const Home = () => {
 
   return (
     <div>
-      <h1>Home Page</h1>
+      <h1>Home</h1>
       <ul>
         {data?.results?.map((item) => (
           <li key={item.name}>{item.name}</li>
