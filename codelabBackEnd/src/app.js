@@ -1,16 +1,30 @@
 import express from 'express';
+
 import productController from './controllers/productController.js';
+import authController from './controllers/authController.js';
+import rolController from './controllers/rolController.js';
+import sucursalController from './controllers/sucursalController.js';
+import usuarioController from './controllers/usuarioController.js';
+
 import errorHandler from './shared/middlewares/errorHandler.js';
 
 const app = express();
 
-// Middleware para parsear JSON
-app.use(express.json());
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
 
-// Middleware para parsear URL-encoded bodies
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas de productos
+app.get('/', (req, res) => {
+  res.json({ ok: true, service: 'SIMM API' });
+});
+
+// LOGIN
+app.post('/auth/login', authController.login);
+
+// PRODUCTOS
 app.get('/products', productController.getAllProducts);
 app.get('/products/:id', productController.getProductById);
 app.post('/products/create', productController.createProduct);
@@ -18,14 +32,22 @@ app.put('/products/:id', productController.updateProduct);
 app.delete('/products/:id', productController.deleteProduct);
 app.delete('/productsDelete/:id', productController.deleteProduct);
 
-// Middleware de manejo de errores (debe estar al final)
+// ROLES / SUCURSALES
+app.get('/roles', rolController.getAll);
+app.post('/roles', rolController.create);
+
+app.get('/sucursales', sucursalController.getAll);
+app.post('/sucursales', sucursalController.create);
+
+// USUARIOS
+app.post('/usuarios', usuarioController.create);
+app.get('/usuarios', usuarioController.getAll);
+app.put('/usuarios/:id', usuarioController.update);
+app.delete('/usuarios/:id', usuarioController.remove);
+
 app.use(errorHandler);
 
-// Configuración de puerto
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 export default app;
