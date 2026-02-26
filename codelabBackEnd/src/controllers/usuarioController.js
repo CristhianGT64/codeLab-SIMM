@@ -5,9 +5,6 @@ const usuarioController = {
     try {
       const data = await usuarioService.create(req.body);
 
-      // Si restauró, el service devuelve el usuario igual.
-      // Mantengo tu comportamiento: si restauró debería ser 200; aquí no lo distinguimos.
-      // Si quieres distinguir restauración, se puede retornar un flag desde el service.
       res.status(201).json({ success: true, data });
     } catch (e) {
       if (e?.code === 'P2002') {
