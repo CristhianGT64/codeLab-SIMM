@@ -1,4 +1,3 @@
-import React from 'react';
 import useFetchData from '../hooks/usePokeApi';
 
 const Home = () => {
