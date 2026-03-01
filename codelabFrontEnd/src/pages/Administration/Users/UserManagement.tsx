@@ -7,59 +7,29 @@ import {
 	faTrashCan,
 } from '@fortawesome/free-solid-svg-icons';
 import CardTtoalComponent from '../../../components/cardTotalComponent/CardTotalComponent';
+import useUsers from '../../../hooks/UsersHooks/useUsers';
+import { useNavigate } from 'react-router';
+import useDeleteUser from '../../../hooks/UsersHooks/useDeleteUser';
+import useInactiveUser from '../../../hooks/UsersHooks/useInactiveUser';
+import useActiveUser from '../../../hooks/UsersHooks/useActiveUser';
 
-type UserRole = 'Administrador' | 'Editor' | 'Visualizador';
-
-interface User {
-	id: number;
-	fullName: string;
-	username: string;
-	email: string;
-	role: UserRole;
-	branch: string;
-	status: 'Activo' | 'Inactivo';
-}
-
-const users: User[] = [
-	{
-		id: 1,
-		fullName: 'Juan Pérez',
-		username: 'jperez',
-		email: 'juan.perez@example.com',
-		role: 'Administrador',
-		branch: 'Sucursal Central',
-		status: 'Activo',
-	},
-	{
-		id: 2,
-		fullName: 'María González',
-		username: 'mgonzalez',
-		email: 'maria.gonzalez@example.com',
-		role: 'Editor',
-		branch: 'Sucursal Norte',
-		status: 'Activo',
-	},
-	{
-		id: 3,
-		fullName: 'Carlos Rodríguez',
-		username: 'crodriguez',
-		email: 'carlos.rodriguez@example.com',
-		role: 'Visualizador',
-		branch: 'Sucursal Sur',
-		status: 'Activo',
-	},
-];
-
-const roleStyles: Record<UserRole, string> = {
-	Administrador: 'bg-[#104f78] text-white',
-	Editor: 'bg-[#0aa6a2] text-white',
-	Visualizador: 'bg-[#9dd8df] text-[#0a4d76]',
+const roleStyles: Record<string, string> = {
+	ADMIN: 'bg-[#104f78] text-white',
+	EDITOR: 'bg-[#0aa6a2] text-white',
+	VISUALIZADOR: 'bg-[#9dd8df] text-[#0a4d76]',
 };
 
 export default function UserManagement() {
+	const navigate = useNavigate();
+	const deleteUserMutation = useDeleteUser();
+	const inactiveUser = useInactiveUser();
+	const activeUser = useActiveUser();
+	const { data, isLoading, isError, error } = useUsers();
+	const users = data?.data ?? [];
+
 	const totalUsers = users.length;
-	const activeUsers = users.filter((user) => user.status === 'Activo').length;
-	const inactiveUsers = users.filter((user) => user.status === 'Inactivo').length;
+	const activeUsers = users.filter((user) => user.estado.toLowerCase() === 'activo').length;
+	const inactiveUsers = users.filter((user) => user.estado.toLowerCase() === 'inactivo').length;
 
 	return (
 		<section className="w-full px-4 py-5 md:px-6">
@@ -84,12 +54,15 @@ export default function UserManagement() {
                         typeButton='button'
                         className='cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg'
                         icon="fa-solid fa-plus"
-                        onClick={() => console.log('Creando nuevo usuario')}
+						onClick={() => navigate('/Users-Management/Create-User')}
+						disabled={false}
                     />
 				</div>
 			</div>
 
 			<div className="mt-6 overflow-hidden rounded-2xl bg-white shadow-[0_8px_18px_rgba(0,0,0,0.08)]">
+				{isLoading && <p className="px-6 py-4 text-[#4661b0]">Cargando usuarios...</p>}
+				{isError && <p className="px-6 py-4 text-[#c20000]">{error instanceof Error ? error.message : 'Error cargando usuarios'}</p>}
 				<table className="w-full border-collapse">
 					<thead>
 						<tr className="bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-left text-white">
@@ -105,29 +78,42 @@ export default function UserManagement() {
 					<tbody>
 						{users.map((user) => (
 							<tr key={user.id} className="border-b border-[#9adce2] last:border-b-0">
-								<td className="px-6 py-4 text-base font-semibold text-[#0a4d76] md:text-xl">{user.fullName}</td>
-								<td className="px-4 py-4 text-sm text-[#4661b0] md:text-lg">{user.username}</td>
-								<td className="px-4 py-4 text-sm text-[#4661b0] md:text-lg">{user.email}</td>
+								<td className="px-6 py-4 text-base font-semibold text-[#0a4d76] md:text-xl">{user.nombreCompleto}</td>
+								<td className="px-4 py-4 text-sm text-[#4661b0] md:text-lg">{user.usuario}</td>
+								<td className="px-4 py-4 text-sm text-[#4661b0] md:text-lg">{user.correo}</td>
 								<td className="px-4 py-4">
-									<span className={`inline-flex rounded-full px-4 py-1 text-sm font-semibold md:text-base ${roleStyles[user.role]}`}>
-										{user.role}
+									<span className={`inline-flex rounded-full px-4 py-1 text-sm font-semibold md:text-base ${roleStyles[user.rol.nombre] ?? 'bg-[#9dd8df] text-[#0a4d76]'}`}>
+										{user.rol.nombre}
 									</span>
 								</td>
-								<td className="px-4 py-4 text-sm text-[#4661b0] md:text-lg">{user.branch}</td>
+								<td className="px-4 py-4 text-sm text-[#4661b0] md:text-lg">{user.sucursal.nombre}</td>
 								<td className="px-4 py-4">
-									<span className="inline-flex rounded-full bg-[#b7e4ca] px-4 py-1 text-sm font-semibold text-[#008444] md:text-base">
-										{user.status}
+									<span className="inline-flex rounded-full bg-[#b7e4ca] text-[#008444] px-4 py-1 text-sm font-semibold  md:text-base">
+										{user.estado === 'activo' ? 'Activo' : 'Inactivo'}
 									</span>
 								</td>
 								<td className="px-4 py-4">
 									<div className="flex items-center gap-4 text-lg md:text-xl">
-										<button type="button" className="text-[#ff5e00]" aria-label={`Cambiar estado de ${user.fullName}`}>
+										<button type="button" className= {`cursor-pointer ${user.estado === 'activo' ? 'text-[#ff5e00] hover:text-[#b64402]' :'text-[#24e775] hover:text-[#008444]' } `}
+										aria-label={`Cambiar estado de ${user.nombreCompleto}`}
+										onClick={user.estado === 'activo' ? () => inactiveUser.mutate(user.id) : () => activeUser.mutate(user.id)}
+										>
 											<FontAwesomeIcon icon={faPowerOff} />
 										</button>
-										<button type="button" className="text-[#00a3b8]" aria-label={`Editar ${user.fullName}`}>
+										<button
+											type="button"
+											onClick={() => navigate(`/Users-Management/Update-User/${user.id}`)}
+											className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
+											aria-label={`Editar ${user.nombreCompleto}`}
+										>
 											<FontAwesomeIcon icon={faPenToSquare} />
 										</button>
-										<button type="button" className="text-[#ff0000]" aria-label={`Eliminar ${user.fullName}`}>
+										<button
+											type="button"
+											onClick={() => deleteUserMutation.mutate(user.id)}
+											className="cursor-pointer text-[#ff0000] hover:text-[#7d0202] "
+											aria-label={`Eliminar ${user.nombreCompleto}`}
+										>
 											<FontAwesomeIcon icon={faTrashCan} />
 										</button>
 									</div>

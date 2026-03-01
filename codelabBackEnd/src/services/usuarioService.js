@@ -70,6 +70,28 @@ const usuarioService = {
     return usuarioRepository.getAllNotDeleted();
   },
 
+  async getById(idParam) {
+    let id;
+
+    try {
+      id = BigInt(idParam);
+    } catch {
+      const error = new Error('El id de usuario no es válido.');
+      error.status = 400;
+      throw error;
+    }
+
+    const data = await usuarioRepository.getNotDeletedById(id);
+
+    if (!data) {
+      const error = new Error('Usuario no encontrado.');
+      error.status = 404;
+      throw error;
+    }
+
+    return data;
+  },
+
   async update(idParam, { nombreCompleto, correo, usuario, password, rolId, sucursalId, estado }) {
     const id = BigInt(idParam);
 
@@ -146,6 +168,48 @@ const usuarioService = {
 
     await usuarioRepository.softDelete(id);
     return true;
+  },
+
+  async activate(idParam) {
+    let id;
+
+    try {
+      id = BigInt(idParam);
+    } catch {
+      const error = new Error('El id de usuario no es válido.');
+      error.status = 400;
+      throw error;
+    }
+
+    const current = await usuarioRepository.findNotDeletedById(id);
+    if (!current) {
+      const error = new Error('Usuario no encontrado (o eliminado).');
+      error.status = 404;
+      throw error;
+    }
+
+    return usuarioRepository.updateEstadoById(id, 'activo');
+  },
+
+  async deactivate(idParam) {
+    let id;
+
+    try {
+      id = BigInt(idParam);
+    } catch {
+      const error = new Error('El id de usuario no es válido.');
+      error.status = 400;
+      throw error;
+    }
+
+    const current = await usuarioRepository.findNotDeletedById(id);
+    if (!current) {
+      const error = new Error('Usuario no encontrado (o eliminado).');
+      error.status = 404;
+      throw error;
+    }
+
+    return usuarioRepository.updateEstadoById(id, 'inactivo');
   },
 };
 

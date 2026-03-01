@@ -79,6 +79,44 @@ const productController = {
   },
 
   /**
+   * Activa un producto (solo cambia su estado)
+   * @param {Object} req - Request de Express
+   * @param {Object} res - Response de Express
+   * @param {Function} next - Función next de Express
+   */
+  async activateProduct(req, res, next) {
+    try {
+      const { id } = req.params;
+      const product = await productService.activate(Number.parseInt(id, 10));
+      res.json({
+        success: true,
+        data: product,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Inactiva un producto (solo cambia su estado)
+   * @param {Object} req - Request de Express
+   * @param {Object} res - Response de Express
+   * @param {Function} next - Función next de Express
+   */
+  async deactivateProduct(req, res, next) {
+    try {
+      const { id } = req.params;
+      const product = await productService.deactivate(Number.parseInt(id, 10));
+      res.json({
+        success: true,
+        data: product,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * Elimina un producto
    * @param {Object} req - Request de Express
    * @param {Object} res - Response de Express

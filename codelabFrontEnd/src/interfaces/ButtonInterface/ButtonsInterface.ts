@@ -11,4 +11,5 @@ export interface ButtonsInterface {
     className : string;
     icon : string;
     onClick : () => void;
+    disabled : boolean;
 }
