@@ -49,6 +49,26 @@ const productService = {
   },
 
   /**
+   * Cambia el estado de un producto a activo
+   * @param {number} id - ID del producto
+   * @returns {Promise<Object>} Producto actualizado
+   */
+  async activate(id) {
+    await this.getById(id);
+    return await productRepository.updateProductStatus(id, 'activo');
+  },
+
+  /**
+   * Cambia el estado de un producto a inactivo
+   * @param {number} id - ID del producto
+   * @returns {Promise<Object>} Producto actualizado
+   */
+  async deactivate(id) {
+    await this.getById(id);
+    return await productRepository.updateProductStatus(id, 'inactivo');
+  },
+
+  /**
    * Elimina un producto
    * @param {number} id - ID del producto
    * @returns {Promise<Object>} Producto eliminado

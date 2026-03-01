@@ -1,14 +1,6 @@
 import settings from "../lib/settings";
+import type ContestTypeResponse from "../interfaces/ReponseApi";
 
-export interface ContestType {
-  name: string;
-  url: string;
-}
-
-export interface ContestTypeResponse {
-  count: number;
-  results: ContestType[];
-}
 
 export const fetchData = async (): Promise<ContestTypeResponse> => {
   const response = await fetch(`${settings.prueba}/contest-type`);
