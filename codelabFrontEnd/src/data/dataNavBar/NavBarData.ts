@@ -6,12 +6,14 @@ const navBarData: NavBarInterface = {
     {
       text: "Usuario",
       icon: "fa-solid fa-users",
-      url : "/Users-Management"
+      url : "/Users-Management",
+      disable : false
     },
     {
       text: "Sucursales",
       icon: "fa-solid fa-building-flag",
-      url : "/Branches-Management"
+      url : "/Branches-Management",
+      disable : false
     },
   ],
   nameUser : 'Administrador'

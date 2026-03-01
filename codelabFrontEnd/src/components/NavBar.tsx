@@ -32,6 +32,7 @@ export default function NavBar(navBarData : NavBarInterface) {
 							className="cursor-pointer mx-1 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-2 text-[16px] font-semibold text-[#0f9daa] hover:text-[#075961] shadow-[0_4px_10px_rgba(14,83,124,0.15)]"
 							icon={module.icon}
                             onClick={() => redirect(module.url)}
+							disabled={module.disable}
 						/>
 					))}
 				</div>
