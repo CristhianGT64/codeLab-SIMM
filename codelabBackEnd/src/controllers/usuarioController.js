@@ -23,6 +23,15 @@ const usuarioController = {
     }
   },
 
+  async getById(req, res, next) {
+    try {
+      const data = await usuarioService.getById(req.params.id);
+      res.json({ success: true, data });
+    } catch (e) {
+      next(e);
+    }
+  },
+
   async update(req, res, next) {
     try {
       const data = await usuarioService.update(req.params.id, req.body);
@@ -39,6 +48,24 @@ const usuarioController = {
     try {
       await usuarioService.remove(req.params.id);
       res.json({ success: true, message: 'Usuario eliminado correctamente.' });
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async activate(req, res, next) {
+    try {
+      const data = await usuarioService.activate(req.params.id);
+      res.json({ success: true, data });
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async deactivate(req, res, next) {
+    try {
+      const data = await usuarioService.deactivate(req.params.id);
+      res.json({ success: true, data });
     } catch (e) {
       next(e);
     }

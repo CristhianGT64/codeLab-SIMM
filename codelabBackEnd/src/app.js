@@ -15,7 +15,7 @@ BigInt.prototype.toJSON = function() {
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:5173'];
+const allowedOrigins = process.env.allowedOrigins;
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -25,7 +25,7 @@ app.use((req, res, next) => {
   }
 
   res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
@@ -54,6 +54,8 @@ app.get('/products', productController.getAllProducts);
 app.get('/products/:id', productController.getProductById);
 app.post('/products/create', productController.createProduct);
 app.put('/products/:id', productController.updateProduct);
+app.patch('/products/:id/activo', productController.activateProduct);
+app.patch('/products/:id/inactivo', productController.deactivateProduct);
 app.delete('/products/:id', productController.deleteProduct);
 app.delete('/productsDelete/:id', productController.deleteProduct);
 
@@ -71,7 +73,10 @@ app.post('/roles', rolController.create);
 // Rutas de usuarios
 app.post('/usuarios', usuarioController.create);
 app.get('/usuarios', usuarioController.getAll);
+app.get('/usuarios/:id', usuarioController.getById);
 app.put('/usuarios/:id', usuarioController.update);
+app.patch('/usuarios/:id/activo', usuarioController.activate);
+app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
 
 

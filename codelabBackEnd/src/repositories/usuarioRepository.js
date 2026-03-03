@@ -76,6 +76,23 @@ const usuarioRepository = {
     });
   },
 
+  getNotDeletedById(id) {
+    return prisma.usuario.findFirst({
+      where: { id, eliminado: false },
+      select: {
+        id: true,
+        nombreCompleto: true,
+        correo: true,
+        usuario: true,
+        estado: true,
+        rol: { select: { id: true, nombre: true } },
+        sucursal: { select: { id: true, nombre: true } },
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  },
+
   findNotDeletedById(id) {
     return prisma.usuario.findFirst({
       where: { id, eliminado: false },
@@ -114,6 +131,25 @@ const usuarioRepository = {
     return prisma.usuario.update({
       where: { id },
       data,
+      select: {
+        id: true,
+        nombreCompleto: true,
+        correo: true,
+        usuario: true,
+        estado: true,
+        eliminado: true,
+        rol: { select: { id: true, nombre: true } },
+        sucursal: { select: { id: true, nombre: true } },
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  },
+
+  updateEstadoById(id, estado) {
+    return prisma.usuario.update({
+      where: { id },
+      data: { estado },
       select: {
         id: true,
         nombreCompleto: true,

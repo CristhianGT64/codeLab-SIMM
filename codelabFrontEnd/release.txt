@@ -1,4 +1,6 @@
 docker buildx build --platform linux/amd64 -t codelaberp:latest . --load
+docker buildx build --platform linux/amd64 -t codelaberp:1.0.1 . --load
+
 
 docker run -d -p 4173:4173 --name codelaberp-container codelaberp:latest
 

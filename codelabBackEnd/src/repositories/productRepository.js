@@ -48,6 +48,19 @@ const productRepository = {
   },
 
   /**
+   * Actualiza únicamente el estado de un producto
+   * @param {number} id - ID del producto
+   * @param {'activo' | 'inactivo'} estado - Nuevo estado del producto
+   * @returns {Promise<Object>} Producto actualizado
+   */
+  async updateProductStatus(id, estado) {
+    return await prisma.product.update({
+      where: { id },
+      data: { estado },
+    });
+  },
+
+  /**
    * Elimina un producto
    * @param {number} id - ID del producto
    * @returns {Promise<Object>} Producto eliminado
