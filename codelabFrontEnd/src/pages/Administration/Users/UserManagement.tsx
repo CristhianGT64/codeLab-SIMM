@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import {
@@ -28,22 +28,33 @@ export default function UserManagement() {
   const activeUser = useActiveUser();
   const { data, isLoading, isError, error } = useUsers();
   const users = data?.data ?? [];
-  let filtredUser : User[] =  users;
-  
-  const totalUsers = users.length;
-  const activeUsers = users.filter(
-    (user) => user.estado.toLowerCase() === "activo",
-  ).length;
-  const inactiveUsers = users.filter(
-    (user) => user.estado.toLowerCase() === "inactivo",
-  ).length;
 
-  const [searchUser,setSearchUser] = useState<string>('');
+  const { totalUsers, activeUsers, inactiveUsers } = useMemo(
+    () => ({
+      totalUsers: users.length,
+      activeUsers: users.filter((u) => u.estado.toLowerCase() === "activo")
+        .length,
+      inactiveUsers: users.filter((u) => u.estado.toLowerCase() === "inactivo")
+        .length,
+    }),
+    [users],
+  );
+
+  const [searchUser, setSearchUser] = useState<string>("");
+
+  const filtredUser = useMemo(() => {
+    if (!searchUser.trim()) return users;
+
+    const searchLower = searchUser.toLocaleLowerCase();
+    return users.filter(
+      (user) =>
+        user.usuario.toLowerCase().includes(searchLower) ||
+        user.nombreCompleto.toLowerCase().includes(searchLower) ||
+        user.correo.toLowerCase().includes(searchLower),
+    );
+  }, [users, searchUser]);
 
   /* Generar nuevo arreglo en base a nueva busqueda */
-
-    filtredUser = users.filter((user) =>
-    user.usuario.toLowerCase().includes(searchUser.toLowerCase()));
 
   return (
     <section className="w-full px-4 py-5 md:px-6">
@@ -66,7 +77,7 @@ export default function UserManagement() {
             <input
               type="text"
               placeholder="Buscar usuarios..."
-              onChange={(event) => setSearchUser(event.target.value) }
+              onChange={(event) => setSearchUser(event.target.value)}
               className="w-full bg-transparent text-base text-[#6a758f] placeholder:text-[#8891a7] outline-none md:text-lg"
             />
           </label>
@@ -143,7 +154,9 @@ export default function UserManagement() {
                   {user.sucursal.nombre}
                 </td>
                 <td className="px-4 py-4">
-                  <span className={`inline-flex rounded-full ${user.estado === "activo" ? "bg-[#b7e4ca] text-[#008444]" : "bg-[#86817f] text-[#efeeee]" } px-4 py-1 text-sm font-semibold  md:text-base`}>
+                  <span
+                    className={`inline-flex rounded-full ${user.estado === "activo" ? "bg-[#b7e4ca] text-[#008444]" : "bg-[#86817f] text-[#efeeee]"} px-4 py-1 text-sm font-semibold  md:text-base`}
+                  >
                     {user.estado === "activo" ? "Activo" : "Inactivo"}
                   </span>
                 </td>
