@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16
+    container_name: postgres_db # Se le añadió nombre fijo para evitar confusiones.
     restart: always
     ports:
       - "${PORT_POSTGRES}:5432"
@@ -12,11 +13,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   pgadmin:
-    image: dpage/pgadmin4:snapshot
+    image: dpage/pgadmin4:latest # Se cambió de snapshot a latest.
+    user: root                   # Para solucionar el error de permisos en Windows
     restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: 'False' # Ayuda en local
     ports:
       - "${PORT_PGADMIN}:80"
     depends_on:
