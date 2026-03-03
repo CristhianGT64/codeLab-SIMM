@@ -8,5 +8,5 @@ export interface ModulesNavBarInterface {
 export default interface NavBarInterface {
     nameBuild: string;
     modules: ModulesNavBarInterface[];
-    nameUser : string;
+    nameUser : string | null;
 }
