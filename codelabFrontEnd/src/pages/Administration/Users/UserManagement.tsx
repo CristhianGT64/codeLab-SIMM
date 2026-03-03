@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import {
@@ -12,6 +13,7 @@ import { useNavigate } from "react-router";
 import useDeleteUser from "../../../hooks/UsersHooks/useDeleteUser";
 import useInactiveUser from "../../../hooks/UsersHooks/useInactiveUser";
 import useActiveUser from "../../../hooks/UsersHooks/useActiveUser";
+import type { User } from "../../../interfaces/Users/UserInterface";
 
 const roleStyles: Record<string, string> = {
   ADMIN: "bg-[#104f78] text-white",
@@ -26,7 +28,8 @@ export default function UserManagement() {
   const activeUser = useActiveUser();
   const { data, isLoading, isError, error } = useUsers();
   const users = data?.data ?? [];
-
+  let filtredUser : User[] =  users;
+  
   const totalUsers = users.length;
   const activeUsers = users.filter(
     (user) => user.estado.toLowerCase() === "activo",
@@ -34,6 +37,13 @@ export default function UserManagement() {
   const inactiveUsers = users.filter(
     (user) => user.estado.toLowerCase() === "inactivo",
   ).length;
+
+  const [searchUser,setSearchUser] = useState<string>('');
+
+  /* Generar nuevo arreglo en base a nueva busqueda */
+
+    filtredUser = users.filter((user) =>
+    user.usuario.toLowerCase().includes(searchUser.toLowerCase()));
 
   return (
     <section className="w-full px-4 py-5 md:px-6">
@@ -56,6 +66,7 @@ export default function UserManagement() {
             <input
               type="text"
               placeholder="Buscar usuarios..."
+              onChange={(event) => setSearchUser(event.target.value) }
               className="w-full bg-transparent text-base text-[#6a758f] placeholder:text-[#8891a7] outline-none md:text-lg"
             />
           </label>
@@ -107,7 +118,7 @@ export default function UserManagement() {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {filtredUser.map((user) => (
               <tr
                 key={user.id}
                 className="border-b border-[#9adce2] last:border-b-0"
