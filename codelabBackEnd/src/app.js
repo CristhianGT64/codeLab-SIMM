@@ -64,7 +64,6 @@ app.get('/sucursales/:id', sucursalController.getSucursalById);
 app.put('/sucursales/:id', sucursalController.updateSucursal);
 app.patch('/sucursales/:id/estado', sucursalController.changeSucursalStatus);
 
-
 // Rutas de roles 
 app.get('/roles', rolController.getAll);
 app.post('/roles', rolController.create);
