@@ -9,7 +9,6 @@ import useAuth from "../hooks/useAuth";
 const ProtectedRoute = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Mostrar loading mientras se verifica la sesión
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f4f6fb]">

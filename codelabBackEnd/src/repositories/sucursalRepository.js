@@ -19,7 +19,7 @@ const sucursalRepository = {
    */
   async getSucursalById(id) {
     return await prisma.sucursal.findUnique({
-      where: { id },
+      where: { id: Number(id) },
     });
   },
 

@@ -8,10 +8,6 @@ import usuarioController from './controllers/usuarioController.js';
 
 import errorHandler from './shared/middlewares/errorHandler.js';
 
-//Parche: convierte de BigInt a String para que lo soporte Json.
-BigInt.prototype.toJSON = function() {
-  return this.toString();
-};
 
 const app = express();
 

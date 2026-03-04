@@ -4,10 +4,12 @@ import Login from '../pages/Login';
 import NavBar from '../components/NavBar';
 import navBarData from "../data/dataNavBar/NavBarData";
 import UserManagement from '../pages/Administration/Users/UserManagement';
-import Branches from '../pages/Administration/Branches/Dashboard';
+import Branches from '../pages/Administration/Branches/BranchManagement';
+import FormSucursal from '../pages/Administration/Branches/FormSucursal';
 import FormUser from '../pages/Administration/Users/FormUser';
 import { AuthProvider } from '../context/AuthContext';
 import ProtectedRoute from '../components/ProtectedRoute';
+import settings from '../lib/settings';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -38,6 +40,8 @@ const AppRouter = () => (
             <Route path="/Users-Management/Create-User" element={<FormUser/>} />
             <Route path="/Users-Management/Update-User/:id" element={<FormUser/>} />
             <Route path="/Branches-Management" element={<Branches />} />
+            <Route path="/Branches-Management/Create-Sucursal" element={<FormSucursal />} />
+            <Route path="/Branches-Management/Update-Sucursal/:id" element={<FormSucursal />} />
           </Route>
         </Route>
       </Routes>
