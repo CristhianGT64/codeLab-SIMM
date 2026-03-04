@@ -1,7 +1,7 @@
 import sucursalService from '../services/sucursalService.js';
 
 /**
- * Controlador para manejar las solicitudes relacionadas con sucursales
+ * Controlador para manejar las solicitudes relacionadas con sucursales.
  */
 const sucursalController = {
 
@@ -69,9 +69,13 @@ const sucursalController = {
   async updateSucursal(req, res, next) {
     try {
       const { id } = req.params;
+      // remove any accidental id field from body to avoid conflicts
+      const { id: _ignored, ...data } = req.body;
+      // log for troubleshooting
+      console.log('Updating sucursal', id, data);
       const sucursal = await sucursalService.update(
         Number.parseInt(id, 10),
-        req.body
+        data
       );
       res.json({
         success: true,

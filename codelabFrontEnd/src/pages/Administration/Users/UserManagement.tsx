@@ -59,7 +59,7 @@ export default function UserManagement() {
     <section className="w-full px-4 py-5 md:px-6">
       <header>
         <h2 className="text-3xl font-bold text-[#0b4d77] md:text-4xl">
-          Gestión de Usuarios
+          Gestión de usuarios
         </h2>
         <p className="mt-1 text-lg text-[#4661b0] md:text-xl">
           Administra los usuarios del sistema
@@ -105,7 +105,7 @@ export default function UserManagement() {
           <thead>
             <tr className="bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-left text-white">
               <th className="px-6 py-4 text-base font-semibold md:text-lg">
-                Nombre Completo
+                Nombre completo
               </th>
               <th className="px-4 py-4 text-base font-semibold md:text-lg">
                 Usuario
