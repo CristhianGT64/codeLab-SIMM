@@ -1,0 +1,22 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate compose
+        run: docker compose -f docker-compose.yml config
+
+      - name: Build backend image
+        run: docker build ./codelabBackEnd -f ./codelabBackEnd/Dockerfile -t codelab-backend:${{ github.sha }}
+
+      - name: Build frontend image
+        run: docker build ./codelabFrontEnd -f ./codelabFrontEnd/Dockerfile -t codelab-frontend:${{ github.sha }}
