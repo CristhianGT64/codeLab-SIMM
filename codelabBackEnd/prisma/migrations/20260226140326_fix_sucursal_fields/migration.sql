@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Sucursal" ALTER COLUMN "direccion" DROP NOT NULL,
+ALTER COLUMN "telefono" DROP NOT NULL,
+ALTER COLUMN "gerente" DROP NOT NULL;

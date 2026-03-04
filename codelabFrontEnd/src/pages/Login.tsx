@@ -3,6 +3,7 @@ import settings from "../lib/settings";
 import ButtonLogin from "../components/buttonsComponents/buttonLoginComponent";
 import { useNavigate } from "react-router";
 import useLogin from "../hooks/UsersHooks/useLogin";
+import useAuth from "../hooks/useAuth";
 
 export default function Login() {
 	const [email, setEmail] = useState("");
@@ -10,6 +11,7 @@ export default function Login() {
     const [rememberMe, setRememberMe] = useState(false);
 	const navigate = useNavigate();
 	const loginMutation = useLogin();
+	const { login } = useAuth();
 	const isLoading = loginMutation.isPending;
 	const loginError = loginMutation.error?.message ?? null;
 
@@ -26,7 +28,8 @@ export default function Login() {
 					throw new Error(result.message || "Credenciales inválidas");
 				}
 
-				localStorage.setItem("user", JSON.stringify(result.data));
+				// Usar el contexto de autenticación para guardar el usuario
+				login(result.data);
 				navigate("/dashboard");
 			} catch (error) {
 				console.error(error);

@@ -3,11 +3,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import ButtonsNavBar from "./buttonsComponents/ButtonsComponet";
 import { useNavigate } from "react-router";
+import useAuth from "../hooks/useAuth";
 
 export default function NavBar(navBarData : NavBarInterface) {
 	const navigate = useNavigate();
 
-	const logout = () => {
+	const { user, logout } = useAuth()
+
+	const logoutLogin = () => {
+		logout();
 		navigate('/login');
 	};
 
@@ -39,12 +43,12 @@ export default function NavBar(navBarData : NavBarInterface) {
 
 				<div className="flex items-center gap-4 text-[16px] text-[#d7e7f7]">
 					<p>
-						Bienvenido, <span className="font-bold text-white">{navBarData.nameUser}</span>
+						Bienvenido, <span className="font-bold text-white">{user?.usuario}</span>
 					</p>
 					<button
 						type="button"
 						className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-[#6d8ec2] px-5 py-2 text-[16px] font-bold text-white"
-						onClick={logout}
+						onClick={logoutLogin}
 					>
 						<FontAwesomeIcon icon={faRightFromBracket} />
 						<span>Cerrar Sesión</span>
