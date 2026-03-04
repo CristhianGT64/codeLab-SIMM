@@ -56,10 +56,10 @@ model Permiso {
 
 // ORGANIZACIÓN
 model Sucursal {
-  id        Int      @id @default(autoincrement())
-  nombre    String   @db.VarChar(150)
-  direccion String?  @db.VarChar(255)
-  telefono  String?  @db.VarChar(50)
+  id        BigInt    @id @default(autoincrement())
+  nombre    String    @db.VarChar(150)
+  direccion String?   @db.VarChar(255)
+  telefono  String?   @db.VarChar(50)
   gerente   String?  @db.VarChar(150)
   activa    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
@@ -80,9 +80,10 @@ model Usuario {
   usuario        String        @unique @db.VarChar(100)
   password       String        @db.VarChar(255)
   estado         EstadoUsuario @default(activo)
-  eliminado      Boolean       @default(false)
-  createdAt      DateTime?     @map("created_at")
-  updatedAt      DateTime?     @map("updated_at")
+
+  eliminado      Boolean       @default(false) // <-- NUEVO (soft delete)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
 
   sucursalId Int?
   rolId      Int?

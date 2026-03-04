@@ -24,6 +24,18 @@ const sucursalRepository = {
   },
 
   /**
+   * Busca una sucursal por ID (alias para validaciones)
+   * @param {BigInt} id - ID de la sucursal
+   * @returns {Promise<Object|null>} Sucursal encontrada o null
+   */
+  findById(id) {
+    return prisma.sucursal.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+  },
+
+  /**
    * Crea una nueva sucursal
    * @param {Object} data - Datos de la sucursal
    * @returns {Promise<Object>} Sucursal creada
