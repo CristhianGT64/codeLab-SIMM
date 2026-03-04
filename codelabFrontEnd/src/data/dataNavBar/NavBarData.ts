@@ -21,6 +21,12 @@ const navBarData: NavBarInterface = {
       url : "/Branches-Management",
       disable : false
     },
+    {
+      text: "Productos",
+      icon: "fa-solid fa-box",
+      url : "/Product-Management",
+      disable : false
+    },
   ],
   nameUser : 'Administrador'
 };

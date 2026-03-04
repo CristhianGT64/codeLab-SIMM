@@ -6,6 +6,7 @@ import navBarData from "../data/dataNavBar/NavBarData";
 import UserManagement from '../pages/Administration/Users/UserManagement';
 import Branches from '../pages/Administration/Branches/Dashboard';
 import FormUser from '../pages/Administration/Users/FormUser';
+import ProductManagement from '../pages/Administration/Products/ProductManagement';
 import { AuthProvider } from '../context/AuthContext';
 import ProtectedRoute from '../components/ProtectedRoute';
 
@@ -31,6 +32,7 @@ const AppRouter = () => (
             <Route path="/Users-Management/Create-User" element={<FormUser/>} />
             <Route path="/Users-Management/Update-User/:id" element={<FormUser/>} />
             <Route path="/Branches-Management" element={<Branches />} />
+            <Route path="/Product-Management" element={<ProductManagement />} />
           </Route>
         </Route>
       </Routes>
