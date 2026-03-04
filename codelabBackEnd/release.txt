@@ -1,0 +1,21 @@
+# Construir y ejecutar
+docker-compose up -d --build
+
+# Ver logs
+docker-compose logs -f
+
+# Detener
+docker-compose down
+
+docker run -d -p 3000:3000 --name codelaberpbackend-container codelaberpbackend:latest
+
+
+Por si toca hacer despliegue en la nube con Azure ACR
+az login
+az acr login --name "nombre del app service plan"
+
+docker tag codelaberp:latest acrpokequequepcaiiidev.azurecr.io/codelaberp:latest
+docker tag codelaberp:latest acrpokequequepcaiiidev.azurecr.io/codelaberp:0.3.0
+
+docker push acrpokequequepcaiiidev.azurecr.io/codelaberp:latest
+docker push acrpokequequepcaiiidev.azurecr.io/codelaberp:0.3.0

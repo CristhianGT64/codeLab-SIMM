@@ -59,7 +59,7 @@ model Permiso {
 // ORGANIZACIÓN
 
 model Sucursal {
-  id        Int    @id @default(autoincrement())
+  id        BigInt    @id @default(autoincrement())
   nombre    String    @db.VarChar(150)
   direccion String?   @db.VarChar(255)
   telefono  String?   @db.VarChar(50)

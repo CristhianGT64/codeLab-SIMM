@@ -13,7 +13,6 @@ import { useNavigate } from "react-router";
 import useDeleteUser from "../../../hooks/UsersHooks/useDeleteUser";
 import useInactiveUser from "../../../hooks/UsersHooks/useInactiveUser";
 import useActiveUser from "../../../hooks/UsersHooks/useActiveUser";
-import type { User } from "../../../interfaces/Users/UserInterface";
 
 const roleStyles: Record<string, string> = {
   ADMIN: "bg-[#104f78] text-white",
