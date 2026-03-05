@@ -10,7 +10,7 @@ import FormUser from '../pages/Administration/Users/FormUser';
 import ProductManagement from '../pages/Administration/Products/ProductManagement';
 import { AuthProvider } from '../context/AuthContext';
 import ProtectedRoute from '../components/ProtectedRoute';
-import settings from '../lib/settings';
+import FormProduct from '../pages/Administration/Products/FormProduct';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -42,6 +42,8 @@ const AppRouter = () => (
             <Route path="/Users-Management/Update-User/:id" element={<FormUser/>} />
             <Route path="/Branches-Management" element={<Branches />} />
             <Route path="/Product-Management" element={<ProductManagement />} />
+            <Route path="/Product-Management/Create-Product" element={<FormProduct />} />
+            <Route path="/Product-Management/Update-Product/:id" element={<FormProduct />} />
             <Route path="/Branches-Management/Create-Sucursal" element={<FormSucursal />} />
             <Route path="/Branches-Management/Update-Sucursal/:id" element={<FormSucursal />} />
           </Route>

@@ -5,7 +5,7 @@ import ButtonsNavBar from "./buttonsComponents/ButtonsComponet";
 import { useNavigate } from "react-router";
 import useAuth from "../hooks/useAuth";
 
-export default function NavBar(navBarData : NavBarInterface) {
+export default function NavBar(navBarData : Readonly<NavBarInterface>) {
 	const navigate = useNavigate();
 
 	const { user, logout } = useAuth()
@@ -16,7 +16,6 @@ export default function NavBar(navBarData : NavBarInterface) {
 	};
 
     const redirect = (url : string) => {
-        console.log(url)
 		navigate(url);
     }
 	return (
