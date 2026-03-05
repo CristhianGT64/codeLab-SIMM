@@ -5,7 +5,7 @@ import sucursalController from './controllers/sucursalController.js';
 import authController from './controllers/authController.js';
 import rolController from './controllers/rolController.js';
 import usuarioController from './controllers/usuarioController.js';
-
+import clientController from './controllers/clientController.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
 
 
@@ -75,7 +75,10 @@ app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
 
-
+// Rutas de clientes
+app.post('/clientes', clientController.createClient);
+app.get('/clientes', clientController.getAllClients);
+app.put('/clientes/:id', clientController.updateClient);
 // Middleware de manejo de errores (debe estar al final)
 app.use(errorHandler);
 
