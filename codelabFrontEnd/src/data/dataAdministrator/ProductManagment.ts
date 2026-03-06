@@ -24,6 +24,11 @@ export const HeaderActualizarProducto : HeaderAdmin = {
     subTitle : 'Modifica la información del producto seleccionado'
 }
 
+export const HeaderProducts : HeaderAdmin = {
+    title: "Gestión de Productos",
+    subTitle: "Administra el catálogo de productos del sistema",
+}
+
 export const InformacionImportanteProducto : InformacionImportanteInterface = {
     titulo : 'Información importante',
     puntos : [

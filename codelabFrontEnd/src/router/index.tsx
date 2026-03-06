@@ -11,6 +11,9 @@ import ProductManagement from '../pages/Administration/Products/ProductManagemen
 import { AuthProvider } from '../context/AuthContext';
 import ProtectedRoute from '../components/ProtectedRoute';
 import FormProduct from '../pages/Administration/Products/FormProduct';
+import RolesPermisionManagment from '../pages/Administration/RolesPermission/RolesPermisionManagment';
+import FormRoles from '../pages/Administration/RolesPermission/FormRoles';
+import FormPermissions from '../pages/Administration/RolesPermission/FormPermissions';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -46,6 +49,10 @@ const AppRouter = () => (
             <Route path="/Product-Management/Update-Product/:id" element={<FormProduct />} />
             <Route path="/Branches-Management/Create-Sucursal" element={<FormSucursal />} />
             <Route path="/Branches-Management/Update-Sucursal/:id" element={<FormSucursal />} />
+            <Route path="/RolesPermision-Management/" element={<RolesPermisionManagment />} />
+            <Route path="/RolesPermision-Management/Create-Permisssion" element={<FormPermissions />} />
+            <Route path="/RolesPermision-Management/Create-Roles" element={<FormRoles />} />
+            <Route path="/RolesPermision-Management/Update-Roles/:id" element={<FormRoles />} />
           </Route>
         </Route>
       </Routes>

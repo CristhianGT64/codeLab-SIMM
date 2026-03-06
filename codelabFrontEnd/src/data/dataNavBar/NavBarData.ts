@@ -4,15 +4,15 @@ const navBarData: NavBarInterface = {
   nameBuild: "SIMM",
   modules: [
     {
-      text: "Menú Principal",
-      icon: "fa-solid fa-users",
-      url : "/dashboard",
-      disable : false
-    },
-    {
       text: "Usuarios",
       icon: "fa-solid fa-users",
       url : "/Users-Management",
+      disable : false
+    },
+    {
+      text: "Roles y permisos",
+      icon: "fa-solid fa-key",
+      url : "/RolesPermision-Management",
       disable : false
     },
     {

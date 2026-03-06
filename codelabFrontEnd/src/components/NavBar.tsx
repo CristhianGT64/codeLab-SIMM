@@ -1,7 +1,7 @@
 import type  NavBarInterface from "../interfaces/NavBarInterface";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
-import ButtonsNavBar from "./buttonsComponents/ButtonsComponet";
+import ButtonsComponet from "./buttonsComponents/ButtonsComponet";
 import { useNavigate } from "react-router";
 import useAuth from "../hooks/useAuth";
 
@@ -21,14 +21,15 @@ export default function NavBar(navBarData : Readonly<NavBarInterface>) {
 	return (
 		<header className="w-full bg-linear-to-r from-[#12a4a6] via-[#3f8cb4] to-[#4e6fb2] px-6 py-2">
 			<div className="mx-auto flex w-full max-w-400 items-center justify-between gap-4">
-				<div className="flex items-center gap-3 text-white">
+				<button className="flex items-center gap-3 text-white cursor-pointer"
+				onClick={() => redirect('/dashboard')}>
 					<div className="h-6 w-6 rounded-full border-[5px] border-[#e9f8fc]" />
 					<h1 className="text-[20px] font-bold leading-none">{navBarData.nameBuild}</h1>
-				</div>
+				</button>
 
 				<div className="flex items-center">
 					{navBarData.modules.map((module, index) => (
-						<ButtonsNavBar
+						<ButtonsComponet
 							key={`${module.text}-${index}`}
 							text={module.text}
 							typeButton="button"

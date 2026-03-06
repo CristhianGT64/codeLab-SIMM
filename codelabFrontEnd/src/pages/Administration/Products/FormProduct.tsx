@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router";
-import { useState, useEffect, type ChangeEvent, type SyntheticEvent } from "react";
+import { useRef, useState, type ChangeEvent, type SyntheticEvent } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faCloudArrowUp } from "@fortawesome/free-solid-svg-icons";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
@@ -20,6 +20,10 @@ export default function FormProduct() {
   }>(); /* Obtiene directamente el id del producto de la URL */
   const isEditMode = Boolean(id);
   const [form, setForm] = useState<FormProducts>(InitialProductForm);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   const goBack = () => {
     navigate("/Product-Management");
   };
@@ -30,10 +34,29 @@ export default function FormProduct() {
       setForm((prev) => ({ ...prev, [field]: event.target.value }));
     };
 
-      const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        console.log(form);
-      };
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setForm((prev) => ({ ...prev, urlImage: `/products/${file.name}` }));
+  };
+
+  const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (imageFile) {
+      console.log("=== Información de la imagen ===");
+      console.log("Nombre:", imageFile.name);
+      console.log("Tipo:", imageFile.type);
+      console.log("Tamaño:", (imageFile.size / 1024).toFixed(2), "KB");
+      console.log("Ruta destino:", `/products/${imageFile.name}`);
+    }
+
+    console.log("=== Datos del formulario ===");
+    console.log(form);
+  };
 
   return (
     <section className="w-full px-4 py-6 md:px-6 md:py-8">
@@ -60,15 +83,31 @@ export default function FormProduct() {
               Imagen del Producto (Opcional)
             </p>
             <div className="flex items-center gap-5">
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-[#9adce2] bg-white">
-                <FontAwesomeIcon
-                  icon={faCloudArrowUp}
-                  className="text-3xl text-[#9adce2]"
-                />
+              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#9adce2] bg-white">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <FontAwesomeIcon
+                    icon={faCloudArrowUp}
+                    className="text-3xl text-[#9adce2]"
+                  />
+                )}
               </div>
               <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
                 <button
                   type="button"
+                  onClick={() => fileInputRef.current?.click()}
                   className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#0aa6a2] px-4 py-2 text-base font-semibold text-white hover:bg-[#06706d]"
                 >
                   <FontAwesomeIcon icon={faCloudArrowUp} />
@@ -77,6 +116,11 @@ export default function FormProduct() {
                 <p className="mt-1 text-sm text-[#6a758f]">
                   JPG, PNG o GIF. Máximo 5MB.
                 </p>
+                {imageFile && (
+                  <p className="mt-1 text-sm font-medium text-[#0aa6a2]">
+                    {imageFile.name} ({(imageFile.size / 1024).toFixed(1)} KB)
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -7,8 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import CardTotalComponent from "../../../components/cardTotalComponent/CardTotalComponent";
-import { TableProductData } from "../../../data/dataAdministrator/ProductManagment";
-import type { HeaderAdmin } from "../../../interfaces/Headers/HeaderInterface";
+import { TableProductData, HeaderProducts } from "../../../data/dataAdministrator/ProductManagment";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import { useNavigate } from "react-router";
 
@@ -71,15 +70,11 @@ const mockProducts = [
 
 export default function ProductManagement() {
   const tableHeader: string[] = TableProductData;
-  const headerAdmin: HeaderAdmin = {
-    title: "Gestión de Productos",
-    subTitle: "Administra el catálogo de productos del sistema",
-  };
   const navigate = useNavigate();
 
   return (
     <section className="w-full px-4 py-5 md:px-6">
-      <HeaderTitleAdmin {...headerAdmin} />
+      <HeaderTitleAdmin {...HeaderProducts} />
 
       {/* Barra de búsqueda y botón nuevo producto */}
       <div className="mt-6 rounded-2xl bg-[#f3f5f8] p-4 shadow-[0_6px_18px_rgba(0,0,0,0.08)]">
@@ -192,7 +187,7 @@ export default function ProductManagement() {
                       className={`inline-flex rounded-full ${
                         product.estado === "activo"
                           ? "bg-[#b7e4ca] text-[#008444]"
-                          : "bg-[#fde2e2] text-[#c20000]"
+                          :  "bg-[#86817f] text-[#efeeee]"
                       } px-4 py-1 text-sm font-semibold md:text-base`}
                     >
                       {product.estado === "activo" ? "Activo" : "Inactivo"}

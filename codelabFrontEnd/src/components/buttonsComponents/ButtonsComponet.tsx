@@ -25,7 +25,7 @@ export default function ButtonsComponet(props: Readonly<ButtonsInterface>) {
       disabled={props.disabled}
     >
       <FontAwesomeIcon icon={["fas", iconName]} />
-      <span>{props.text}</span>
+      <span >{props.text}</span>
     </button>
   );
 }
