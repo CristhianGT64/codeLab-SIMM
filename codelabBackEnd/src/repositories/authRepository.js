@@ -8,17 +8,20 @@ const authRepository = {
         estado: 'activo',
         OR: [{ correo: login }, { usuario: login }],
       },
-      select: {
-        id: true,
-        nombreCompleto: true,
-        correo: true,
-        usuario: true,
-        password: true,
-        estado: true,
-        eliminado: true,
-        rol: { select: { id: true, nombre: true } },
-        sucursal: { select: { id: true, nombre: true } },
-      },
+      include: {
+        rol: {
+          include: {
+            rolPermisos: {
+              include: {
+                permiso: true
+              }
+            }
+          }
+        },
+        sucursal: {
+          select: { id: true, nombre: true }
+        }
+      }
     });
   },
 };

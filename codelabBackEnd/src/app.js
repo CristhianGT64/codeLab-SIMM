@@ -3,12 +3,13 @@ import express from 'express';
 import productController from './controllers/productController.js';
 import sucursalController from './controllers/sucursalController.js';
 import authController from './controllers/authController.js';
-import rolController from './controllers/rolController.js';
 import usuarioController from './controllers/usuarioController.js';
-
+import clientController from './controllers/clientController.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
-
-
+import { authorizePermission } from './shared/middlewares/authorizePermission.js'
+import * as roleController from './controllers/roleController.js';
+import * as permissionController from './controllers/permissionController.js';
+import * as permissionCategoryController from './controllers/permissionCategoryController.js'
 const app = express();
 
 const allowedOrigins = process.env.allowedOrigins;
@@ -48,11 +49,11 @@ app.post('/auth/login', authController.login);
 // Rutas de productos
 app.get('/products', productController.getAllProducts);
 app.get('/products/:id', productController.getProductById);
-app.post('/products/create', productController.createProduct);
-app.put('/products/:id', productController.updateProduct);
+app.post('/products/create', authorizePermission('createProduct'), productController.createProduct);
+app.put('/products/:id', authorizePermission('updateProduct'), productController.updateProduct);
 app.patch('/products/:id/activo', productController.activateProduct);
 app.patch('/products/:id/inactivo', productController.deactivateProduct);
-app.delete('/products/:id', productController.deleteProduct);
+app.delete('/products/:id', authorizePermission('deleteProduct'), productController.deleteProduct);
 app.delete('/productsDelete/:id', productController.deleteProduct);
 
 //Rutas de sucursales
@@ -63,9 +64,25 @@ app.put('/sucursales/:id', sucursalController.updateSucursal);
 app.patch('/sucursales/:id/estado', sucursalController.changeSucursalStatus);
 
 // Rutas de roles 
-app.get('/roles', rolController.getAll);
-app.post('/roles', rolController.create);
+app.get('/roles', roleController.getAll);
+app.post('/roles', roleController.create);
+app.put('/roles/:id', roleController.update); // modificar nombre de rol
+app.delete('/roles/:id', roleController.remove); // eliminar rol validando usuarios
 
+// permission categories
+app.post('/permission-categories', permissionCategoryController.create)
+app.get('/permission-categories', permissionCategoryController.getAll)
+
+// permissions
+app.post('/permissions', permissionController.create)
+app.get('/permissions', permissionController.getAll)
+app.put('/permissions/:id', permissionController.update)
+app.delete('/permissions/:id', permissionController.remove)
+
+// role permissions
+app.post('/roles/:id/permissions', roleController.assignPermissions)
+app.put('/roles/:id/permissions', roleController.updatePermissions) // modificar permisos del rol
+app.get('/roles/:id/permissions', roleController.getPermissions)
 // Rutas de usuarios
 app.post('/usuarios', usuarioController.create);
 app.get('/usuarios', usuarioController.getAll);
@@ -75,6 +92,10 @@ app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
 
+// Rutas de clientes
+app.post('/clientes', clientController.createClient);
+app.get('/clientes', clientController.getAllClients);
+app.put('/clientes/:id', clientController.updateClient);
 
 // Middleware de manejo de errores (debe estar al final)
 app.use(errorHandler);
