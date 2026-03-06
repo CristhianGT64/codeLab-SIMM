@@ -29,6 +29,12 @@ const getAll = async (search = "") => {
           telefono: {
             contains: search
           }
+        },
+        {
+          correo: {
+            contains: search,
+            mode: "insensitive"
+          }
         }
       ]
     },
