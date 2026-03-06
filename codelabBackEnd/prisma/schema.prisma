@@ -137,8 +137,10 @@ model MovimientoInventario {
 }
 
 model TipoCliente {
-  id     BigInt @id @default(autoincrement())
-  nombre String @db.VarChar(100)
+  id       BigInt   @id @default(autoincrement())
+  nombre   String   @db.VarChar(100)
+
+  clientes Cliente[]
 }
 
 model Cliente {
@@ -149,6 +151,8 @@ model Cliente {
   correo         String? @db.VarChar(150)
   direccion      String? @db.VarChar(255)
   tipoClienteId  BigInt?
+  tipoCliente TipoCliente? @relation(fields: [tipoClienteId], references: [id])
+
 }
 
 model TipoDocumento {

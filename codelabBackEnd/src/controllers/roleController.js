@@ -6,16 +6,21 @@ export const create = async (req, res) => {
 
     const role = await service.createRole(req.body);
 
-    res.json(role);
+    res.json({
+      success: true,
+      data: role
+    });
 
   } catch (error) {
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
 
   }
 
 };
-
 
 export const getAll = async (req, res) => {
 
@@ -23,16 +28,21 @@ export const getAll = async (req, res) => {
 
     const roles = await service.getAllRoles();
 
-    res.json(roles);
+    res.json({
+      success: true,
+      data: roles
+    });
 
   } catch (error) {
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
 
   }
 
 };
-
 
 export const update = async (req, res) => {
 
@@ -43,16 +53,21 @@ export const update = async (req, res) => {
       req.body
     );
 
-    res.json(role);
+    res.json({
+      success: true,
+      data: role
+    });
 
   } catch (error) {
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
 
   }
 
 };
-
 
 export const remove = async (req, res) => {
 
@@ -60,18 +75,21 @@ export const remove = async (req, res) => {
 
     await service.deleteRole(Number(req.params.id));
 
-    res.json({ message: "Role removed" });
+    res.json({
+      success: true,
+      message: "Role removed"
+    });
 
   } catch (error) {
 
-    res.status(400).json({ message: error.message });
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
 
   }
 
 };
-
-
-// asignar permisos (POST /roles/:id/permissions)
 
 export const assignPermissions = async (req, res) => {
 
@@ -82,18 +100,21 @@ export const assignPermissions = async (req, res) => {
       req.body.permissions
     );
 
-    res.json(role);
+    res.json({
+      success: true,
+      data: role
+    });
 
   } catch (error) {
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
 
   }
 
 };
-
-
-// modificar permisos (PUT /roles/:id/permissions)
 
 export const updatePermissions = async (req, res) => {
 
@@ -104,16 +125,21 @@ export const updatePermissions = async (req, res) => {
       req.body.permissions
     );
 
-    res.json({ message: "Permissions updated", result });
+    res.json({
+      success: true,
+      data: result
+    });
 
   } catch (error) {
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
 
   }
 
 };
-
 
 export const getPermissions = async (req, res) => {
 
@@ -123,11 +149,17 @@ export const getPermissions = async (req, res) => {
       Number(req.params.id)
     );
 
-    res.json(permissions);
+    res.json({
+      success: true,
+      data: permissions
+    });
 
   } catch (error) {
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
 
   }
 
