@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
 
 import productoController from './controllers/productoController.js';
 import categoriaController from './controllers/categoriaController.js';
@@ -8,6 +9,11 @@ import sucursalController from './controllers/sucursalController.js';
 import authController from './controllers/authController.js';
 import usuarioController from './controllers/usuarioController.js';
 import clientController from './controllers/clientController.js';
+import roleController from './controllers/rolController.js';
+
+import { permissionCategoryController } from './controllers/permissionCategoryController.js';
+import permissionController from './controllers/permissionController.js';
+
 import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
 

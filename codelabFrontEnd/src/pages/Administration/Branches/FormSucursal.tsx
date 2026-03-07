@@ -48,8 +48,6 @@ export default function FormSucursal() {
 
   useEffect(() => {
     if (isEditMode && id && existingData) {
-      // los IDs vienen como número en los datos y como string en la URL;
-      // convertimos al mismo tipo para evitar comparación fallida.
       const found = existingData.data.find(
         (s: any) => s.id.toString() === id,
       );
