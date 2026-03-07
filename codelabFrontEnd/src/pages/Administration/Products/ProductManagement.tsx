@@ -7,9 +7,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import CardTotalComponent from "../../../components/cardTotalComponent/CardTotalComponent";
-import { TableProductData, HeaderProducts } from "../../../data/dataAdministrator/ProductManagment";
+import {
+  TableProductData,
+  HeaderProducts,
+} from "../../../data/dataAdministrator/ProductManagment";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import { useNavigate } from "react-router";
+import useListProduct from "../../../hooks/ProductosHooks/useListProduct";
+import { useMemo, useState } from "react";
 
 const categoryStyles: Record<string, string> = {
   Tecnología: "bg-[#104f78] text-white",
@@ -17,58 +22,68 @@ const categoryStyles: Record<string, string> = {
   Papelería: "bg-[#4661b0] text-white",
 };
 
-const mockProducts = [
-  {
-    id: 1,
-    nombre: "Laptop Dell Inspiron 15",
-    sku: "TECH-LAP-001",
-    categoria: "Tecnología",
-    precioVenta: 899.99,
-    costo: 650,
-    margen: 27.8,
-    stock: 25,
-    unidad: "Unidad",
-    estado: "activo",
-  },
-  {
-    id: 2,
-    nombre: "Mouse Inalámbrico Logitech",
-    sku: "TECH-MOU-002",
-    categoria: "Tecnología",
-    precioVenta: 29.99,
-    costo: 15,
-    margen: 50,
-    stock: 150,
-    unidad: "Unidad",
-    estado: "activo",
-  },
-  {
-    id: 3,
-    nombre: "Escritorio Ejecutivo",
-    sku: "MUEBLE-ESC-001",
-    categoria: "Muebles",
-    precioVenta: 350,
-    costo: 200,
-    margen: 42.9,
-    stock: 10,
-    unidad: "Unidad",
-    estado: "inactivo",
-  },
-  {
-    id: 4,
-    nombre: "Cuaderno Profesional",
-    sku: "PAPELERIA-CUA-001",
-    categoria: "Papelería",
-    precioVenta: 5.99,
-    costo: 2.5,
-    margen: 58.3,
-    stock: 500,
-    unidad: "Unidad",
-    estado: "activo",
-  },
-];
-
 export default function ProductManagement() {
+  const { data: listProduct } = useListProduct();
+  const mockProducts = listProduct?.data ?? [];
+
+  const summary = useMemo(() => {
+    const toNumber = (value: string | number | null | undefined) => {
+      if (typeof value === "number") {
+        return Number.isFinite(value) ? value : 0;
+      }
+
+      if (typeof value === "string") {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      return 0;
+    };
+
+    const totalProductos = mockProducts.length;
+    const productosActivos = mockProducts.filter(
+      (product) => product.estado?.toLowerCase() === "activo"
+    ).length;
+
+    const stockTotal = mockProducts.reduce((acc, product) => {
+      const stockProducto = product.inventarios.reduce(
+        (stockAcc, inventario) => stockAcc + toNumber(inventario.stockActual),
+        0
+      );
+      return acc + stockProducto;
+    }, 0);
+
+    const valorInventario = mockProducts.reduce((acc, product) => {
+      const costo = toNumber(product.costo);
+      const stockProducto = product.inventarios.reduce(
+        (stockAcc, inventario) => stockAcc + toNumber(inventario.stockActual),
+        0
+      );
+      return acc + costo * stockProducto;
+    }, 0);
+
+    return {
+      totalProductos,
+      productosActivos,
+      stockTotal,
+      valorInventario: Number(valorInventario.toFixed(2)),
+    };
+  }, [mockProducts]);
+
+  const [searchProduct, setSearchProduct] = useState<string>("");
+  
+  const filtredUser = useMemo(() => {
+    if (!searchProduct.trim()) return mockProducts;
+
+    const searchLower = searchProduct.toLocaleLowerCase();
+    return mockProducts.filter(
+      (product) =>
+        product.nombre.toLowerCase().includes(searchLower) ||
+        product.sku.toLowerCase().includes(searchLower) ||
+        product.categoria.nombre.toLowerCase().includes(searchLower),
+    );
+  }, [mockProducts, searchProduct]);
+
   const tableHeader: string[] = TableProductData;
   const navigate = useNavigate();
 
@@ -88,6 +103,7 @@ export default function ProductManagement() {
               type="text"
               placeholder="Buscar por nombre, SKU o categoría..."
               className="w-full bg-transparent text-base text-[#6a758f] placeholder:text-[#8891a7] outline-none md:text-lg"
+              onChange={(event) => setSearchProduct(event.target.value)}
             />
           </label>
 
@@ -96,7 +112,7 @@ export default function ProductManagement() {
             typeButton="button"
             className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
             icon="fa-solid fa-plus"
-            onClick={() => navigate('/Product-Management/Create-Product')}
+            onClick={() => navigate("/Product-Management/Create-Product")}
             disabled={false}
           />
         </div>
@@ -106,22 +122,23 @@ export default function ProductManagement() {
       <div className="mt-6 grid gap-4 md:grid-cols-4">
         <CardTotalComponent
           title="Total Productos"
-          total={4}
+          total={summary.totalProductos}
           colorNumber="text-[#0a4d76]"
         />
         <CardTotalComponent
           title="Productos Activos"
-          total={3}
+          total={summary.productosActivos}
           colorNumber="text-[#009b3a]"
         />
         <CardTotalComponent
           title="Valor Inventario"
-          total={21750.0}
+          total={summary.valorInventario}
           colorNumber="text-[#0aa6a2]"
+          isCurrency
         />
         <CardTotalComponent
           title="Stock Total"
-          total={300}
+          total={summary.stockTotal}
           colorNumber="text-[#0a4d76]"
         />
       </div>
@@ -143,7 +160,7 @@ export default function ProductManagement() {
               </tr>
             </thead>
             <tbody>
-              {mockProducts.map((product) => (
+              {filtredUser.map((product) => (
                 <tr
                   key={product.id}
                   className="border-b border-[#9adce2] last:border-b-0"
@@ -163,31 +180,35 @@ export default function ProductManagement() {
                   </td>
                   <td className="px-4 py-4">
                     <span
-                      className={`inline-flex rounded-full px-4 py-1 text-sm font-semibold md:text-base ${categoryStyles[product.categoria] ?? "bg-[#9dd8df] text-[#0a4d76]"}`}
+                      className={`inline-flex rounded-full px-4 py-1 text-sm font-semibold md:text-base ${categoryStyles[product.categoria.nombre] ?? "bg-[#9dd8df] text-[#0a4d76]"}`}
                     >
-                      {product.categoria}
+                      {product.categoria.nombre}
                     </span>
                   </td>
                   <td className="px-4 py-4 text-center text-sm font-medium text-[#0a4d76] md:text-base">
-                    ${product.precioVenta.toFixed(2)}
+                    L {product.precioVenta}
                   </td>
                   <td className="px-4 py-4 text-center text-sm text-[#6a758f] md:text-base">
-                    ${product.costo.toFixed(2)}
+                    L {product.costo}
                   </td>
                   <td className="px-4 py-4 text-center">
                     <span className="text-sm font-semibold text-[#0aa6a2] md:text-base">
-                      {product.margen.toFixed(1)}%
+                      {(
+                        (product.precioVenta - product.costo) /
+                        product.precioVenta
+                      ).toFixed(2)}
+                      %
                     </span>
                   </td>
                   <td className="px-4 py-4 text-center text-sm text-[#4661b0] md:text-base">
-                    {product.stock} {product.unidad}
+                    {`${product.inventarios.reduce((acc, inventario) => acc + inventario.stockActual, 0)} ${product.unidadMedida}`}
                   </td>
                   <td className="px-4 py-4 text-center">
                     <span
                       className={`inline-flex rounded-full ${
                         product.estado === "activo"
                           ? "bg-[#b7e4ca] text-[#008444]"
-                          :  "bg-[#86817f] text-[#efeeee]"
+                          : "bg-[#86817f] text-[#efeeee]"
                       } px-4 py-1 text-sm font-semibold md:text-base`}
                     >
                       {product.estado === "activo" ? "Activo" : "Inactivo"}

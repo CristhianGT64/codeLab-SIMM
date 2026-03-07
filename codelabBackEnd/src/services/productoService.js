@@ -23,7 +23,6 @@ const productoService = {
       precioVenta,
       unidadMedida,
       stockInicial,
-      imagenUrl,
       imagenPath,
       sucursalId,
     } = body;
@@ -118,7 +117,6 @@ const productoService = {
           costo,
           precioVenta,
           unidadMedida,
-          imagenUrl: imagenUrl || null,
           imagenPath: imagenPath || null,
           estado: 'activo',
           categoriaId: BigInt(categoriaId),
@@ -130,7 +128,6 @@ const productoService = {
           costo: true,
           precioVenta: true,
           unidadMedida: true,
-          imagenUrl: true,
           imagenPath: true,
           estado: true,
           categoria: { select: { id: true, nombre: true } },
@@ -228,7 +225,6 @@ const productoService = {
     if (body.costo !== undefined) data.costo = body.costo;
     if (body.precioVenta !== undefined) data.precioVenta = body.precioVenta;
     if (body.unidadMedida !== undefined) data.unidadMedida = body.unidadMedida;
-    if (body.imagenUrl !== undefined) data.imagenUrl = body.imagenUrl;
     if (body.categoriaId !== undefined) data.categoriaId = BigInt(body.categoriaId);
 
     return productoRepository.update(id, data);

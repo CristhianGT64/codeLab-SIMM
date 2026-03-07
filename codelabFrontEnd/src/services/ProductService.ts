@@ -1,0 +1,60 @@
+import type { ProductResponse } from "../interfaces/Products/FormProducts";
+import settings from "../lib/settings";
+import type { booleanResponse } from "../interfaces/Users/UserInterface";
+
+export const ListProduct = async () : Promise<ProductResponse> => {
+      const response = await fetch(`${settings.URL}/productos`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    
+      const payload = (await response.json()) as ProductResponse;
+    
+      if (!response.ok) {
+        throw new Error("No se encontraron usuarios");
+      }
+    
+      return payload;
+}
+
+export const inactivateProducto = async (id: string): Promise<booleanResponse> => {
+  const response = await fetch(`${settings.URL}/productos/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const payload = (await response.json()) as booleanResponse;
+
+  return validatePlayload(response, payload);
+};
+
+export const activateProducto = async (id: string): Promise<booleanResponse> => {
+  const response = await fetch(`${settings.URL}/productos/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const payload = (await response.json()) as booleanResponse;
+
+  return validatePlayload(response, payload);
+};
+
+const validatePlayload = (
+  response: any,
+  payload: booleanResponse,
+): booleanResponse => {
+  if (!response.ok) {
+    throw new Error("No se pudo eliminar el usuario");
+  }
+  if (typeof payload === "boolean") {
+    return payload;
+  }
+
+  return { success: payload.success };
+};
