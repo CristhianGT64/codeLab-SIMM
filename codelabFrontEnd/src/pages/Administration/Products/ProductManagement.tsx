@@ -15,6 +15,8 @@ import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import { useNavigate } from "react-router";
 import useListProduct from "../../../hooks/ProductosHooks/useListProduct";
 import { useMemo, useState } from "react";
+import useInactiveProducto from "../../../hooks/ProductosHooks/useInactiveProducto";
+import useActivateProducto from "../../../hooks/ProductosHooks/useActiveProducto";
 
 const categoryStyles: Record<string, string> = {
   Tecnología: "bg-[#104f78] text-white",
@@ -25,6 +27,8 @@ const categoryStyles: Record<string, string> = {
 export default function ProductManagement() {
   const { data: listProduct } = useListProduct();
   const mockProducts = listProduct?.data ?? [];
+  const inactiveProduct = useInactiveProducto();
+  const activeProduct = useActivateProducto();
 
   const summary = useMemo(() => {
     const toNumber = (value: string | number | null | undefined) => {
@@ -224,6 +228,11 @@ export default function ProductManagement() {
                             : "text-[#24e775] hover:text-[#008444]"
                         }`}
                         aria-label={`Cambiar estado de ${product.nombre}`}
+                        onClick={
+                          product.estado === 'activo' 
+                          ? () => inactiveProduct.mutate(product.id)
+                          :() => activeProduct.mutate(product.id)
+                        }
                       >
                         <FontAwesomeIcon icon={faPowerOff} />
                       </button>

@@ -1,12 +1,13 @@
 export interface FormProducts {
-  nameProduct: string;
+  nombre: string;
   sku: string;
-  categorie: string;
-  productCost: number;
-  priceSale: number;
-  unit: string;
-  stockInit: number;
-  urlImage: string;
+  categoriaId: string;
+  costo: string;
+  precioVenta: number;
+  unidadMedida: string;
+  stockInicial: number;
+  sucursalId: string;
+  imagen: File | null;
 }
 
 export interface Categoria {
@@ -36,5 +37,17 @@ export interface ProductoDto {
 export interface ProductResponse {
       success: boolean;
       data: ProductoDto[];
+}
+
+export interface CategoriaProducto {
+    id : string;
+    nombre : string;
+    descripcion : string;
+    disponible : boolean
+}
+
+export interface ResponseCategoriaProducto {
+    success : boolean;
+    data : CategoriaProducto[];
 }
 
