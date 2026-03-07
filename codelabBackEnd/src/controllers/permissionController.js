@@ -6,11 +6,17 @@ export const create = async (req, res) => {
 
     const permission = await service.createPermission(req.body);
 
-    res.json(permission);
+    res.json({
+      success: true,
+      data: permission
+    });
 
   } catch (error) {
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
 
   }
 
@@ -22,11 +28,17 @@ export const getAll = async (req, res) => {
 
     const permissions = await service.getAllPermissions();
 
-    res.json(permissions);
+    res.json({
+      success: true,
+      data: permissions
+    });
 
   } catch (error) {
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
 
   }
 
@@ -41,11 +53,17 @@ export const update = async (req, res) => {
       req.body
     );
 
-    res.json(permission);
+    res.json({
+      success: true,
+      data: permission
+    });
 
   } catch (error) {
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
 
   }
 
@@ -57,11 +75,17 @@ export const remove = async (req, res) => {
 
     await service.deletePermission(Number(req.params.id));
 
-    res.json({ message: "Permission removed" });
+    res.json({
+      success: true,
+      message: "Permission removed"
+    });
 
   } catch (error) {
 
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
 
   }
 

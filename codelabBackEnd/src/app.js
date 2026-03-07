@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import cors from 'cors';
+import dotenv from 'dotenv';
 
 import productoController from './controllers/productoController.js';
 import categoriaController from './controllers/categoriaController.js';
@@ -9,11 +9,9 @@ import sucursalController from './controllers/sucursalController.js';
 import authController from './controllers/authController.js';
 import usuarioController from './controllers/usuarioController.js';
 import clientController from './controllers/clientController.js';
-import roleController from './controllers/rolController.js';
-
-import { permissionCategoryController } from './controllers/permissionCategoryController.js';
-import permissionController from './controllers/permissionController.js';
-
+import * as roleController from './controllers/roleController.js';
+import * as permissionCategoryController from './controllers/permissionCategoryController.js';
+import * as permissionController from './controllers/permissionController.js';
 import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
 
@@ -23,14 +21,17 @@ BigInt.prototype.toJSON = function() {
 };
 
 const app = express();
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Manejo de CORS
-const allowedOrigins = process.env.allowedOrigins
-  ? process.env.allowedOrigins.split(',').map(origin => origin.trim())
-  : [];
+const allowedOrigins = (process.env.allowedOrigins || process.env.ALLOWED_ORIGINS || '')
+  .replace(/[\[\]']/g, '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;

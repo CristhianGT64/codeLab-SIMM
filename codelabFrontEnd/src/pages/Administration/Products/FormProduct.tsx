@@ -12,6 +12,10 @@ import {
 } from "../../../data/dataAdministrator/ProductManagment";
 import InfImportante from "../../../components/informacionImportante/InfImportante";
 import type { FormProducts } from "../../../interfaces/Products/FormProducts";
+import useListUnidadesProducto from "../../../hooks/ProductosHooks/useUnidadesProducto";
+import useListCategoriaProducto from "../../../hooks/ProductosHooks/useCategoriaProducto";
+import useListSucursales from "../../../hooks/SucursalesHooks/useListSucursales";
+import useCreateProducto from "../../../hooks/ProductosHooks/useCreateProducto";
 
 export default function FormProduct() {
   const navigate = useNavigate();
@@ -23,6 +27,19 @@ export default function FormProduct() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { data: unidadesData } = useListUnidadesProducto();
+  const { data: categoriaData } = useListCategoriaProducto();
+  const { data: sucursalesData } = useListSucursales();
+  const {
+    mutateAsync: createProductMutation,
+    isPending: isCreating,
+    error: createError,
+  } = useCreateProducto();
+  const unidadesProduct = unidadesData?.data ?? [];
+  const categoriaProduct = categoriaData?.data ?? [];
+  const sucursales = sucursalesData?.data ?? [];
+  const isPending = isCreating;
+  const mutationError = createError;
 
   const goBack = () => {
     navigate("/Product-Management");
@@ -40,22 +57,22 @@ export default function FormProduct() {
 
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
-    setForm((prev) => ({ ...prev, urlImage: `/products/${file.name}` }));
+    setForm((prev) => ({ ...prev, imagen: file }));
   };
 
   const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (imageFile) {
-      console.log("=== Información de la imagen ===");
-      console.log("Nombre:", imageFile.name);
-      console.log("Tipo:", imageFile.type);
-      console.log("Tamaño:", (imageFile.size / 1024).toFixed(2), "KB");
-      console.log("Ruta destino:", `/products/${imageFile.name}`);
-    }
+    try {
+      const wasProcessed =
+        isEditMode && id
+          ? console.log("Actualizando...")
+          : await createProductMutation(form);
 
-    console.log("=== Datos del formulario ===");
-    console.log(form);
+      if (wasProcessed) {
+        navigate("/Product-Management");
+      }
+    } catch {}
   };
 
   return (
@@ -74,8 +91,9 @@ export default function FormProduct() {
           {...(isEditMode ? HeaderActualizarProducto : HeaderNuevoProducto)}
         />
 
-        <form className="mt-8 rounded-2xl bg-[#f4f6f8] p-6 shadow-[0_6px_16px_rgba(0,0,0,0.1)] md:p-8"
-            onSubmit={onSubmit}
+        <form
+          className="mt-8 rounded-2xl bg-[#f4f6f8] p-6 shadow-[0_6px_16px_rgba(0,0,0,0.1)] md:p-8"
+          onSubmit={onSubmit}
         >
           {/* Imagen del producto */}
           <div className="mb-6">
@@ -132,10 +150,10 @@ export default function FormProduct() {
                 Nombre del Producto <span className="text-[#ff4f4f]">*</span>
               </p>
               <input
-                id="nameProduct"
+                id="nombreProducto"
                 type="text"
-                onChange={onChangeField("nameProduct")}
-                value={form.nameProduct}
+                value={form.nombre}
+                onChange={onChangeField("nombre")}
                 placeholder="Ej: Laptop Dell Inspiron 15"
                 className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]"
               />
@@ -162,15 +180,22 @@ export default function FormProduct() {
                 Categoría <span className="text-[#ff4f4f]">*</span>
               </p>
               <select
-                value={form.categorie}
-                onChange={onChangeField("categorie")}
+                value={form.categoriaId}
+                onChange={onChangeField("categoriaId")}
                 id="categoria"
                 className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#111111] outline-none focus:border-[#0aa6a2]"
+                required
               >
                 <option value="">Seleccionar categoría</option>
-                <option value="tecnologia">Tecnología</option>
-                <option value="muebles">Muebles</option>
-                <option value="papeleria">Papelería</option>
+
+                {categoriaProduct.map((categoria) => (
+                  <option
+                    key={`${categoria.id}-${categoria.nombre}`}
+                    value={categoria.id}
+                  >
+                    {categoria.nombre}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -187,8 +212,8 @@ export default function FormProduct() {
                   L
                 </span>
                 <input
-                  value={form.productCost}
-                  onChange={onChangeField("productCost")}
+                  value={form.costo}
+                  onChange={onChangeField("costo")}
                   id="costo"
                   type="number"
                   step="0.01"
@@ -209,8 +234,8 @@ export default function FormProduct() {
                   L
                 </span>
                 <input
-                  value={form.priceSale}
-                  onChange={onChangeField("priceSale")}
+                  value={form.precioVenta}
+                  onChange={onChangeField("precioVenta")}
                   id="precioVenta"
                   type="number"
                   step="0.01"
@@ -227,7 +252,7 @@ export default function FormProduct() {
                 Margen de Ganancia
               </p>
               <div className="flex h-14 items-center rounded-2xl border-2 border-[#9adce2] bg-[#e8f3f5] px-5">
-                <span className="text-xl font-bold text-[#0aa6a2]">0.0%</span>
+                <span className="text-xl font-bold text-[#0aa6a2]">{`${(((form.precioVenta - Number(form.costo)) / form.precioVenta) * 100).toFixed(2)} %`}</span>
               </div>
             </div>
           </div>
@@ -240,15 +265,38 @@ export default function FormProduct() {
               </p>
               <select
                 id="unidadMedida"
-                value={form.unit}
-                onChange={onChangeField("unit")}
+                value={form.unidadMedida}
+                onChange={onChangeField("unidadMedida")}
+                className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#111111] outline-none focus:border-[#0aa6a2]"
+                required
+              >
+                <option value="">Elija una unidad</option>
+                {unidadesProduct.map((unidad) => (
+                  <option key={unidad} value={unidad}>
+                    {unidad}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
+                Sucursal asignada <span className="text-[#ff4f4f]">*</span>
+              </p>
+              <select
+                id="sucursal"
+                aria-label="Sucursal Asignada"
+                value={form.sucursalId}
+                onChange={onChangeField("sucursalId")}
+                required
                 className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#111111] outline-none focus:border-[#0aa6a2]"
               >
-                <option value="unidad">Unidad</option>
-                <option value="caja">Caja</option>
-                <option value="paquete">Paquete</option>
-                <option value="kilogramo">Kilogramo</option>
-                <option value="litro">Litro</option>
+                <option value="">Seleccionar sucursal</option>
+                {sucursales.map((sucursal) => (
+                  <option key={sucursal.id} value={sucursal.id}>
+                    {sucursal.nombre}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -257,8 +305,8 @@ export default function FormProduct() {
                 Stock Inicial <span className="text-[#ff4f4f]">*</span>
               </p>
               <input
-                value={form.stockInit}
-                onChange={onChangeField("stockInit")}
+                value={form.stockInicial}
+                onChange={onChangeField("stockInicial")}
                 id="stockInicial"
                 type="number"
                 min="0"
@@ -288,7 +336,7 @@ export default function FormProduct() {
                 onClick={() => {}}
                 disabled={false}
                 className="inline-flex h-14 cursor-pointer items-center justify-center gap-3 rounded-2xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-2xl font-bold text-white hover:from-[#06706d] hover:to-[#334c8b] disabled:cursor-not-allowed disabled:opacity-70"
-                text="Actualizar Producto"
+                text={isPending ? "Actualizando..." : "Actualizar Producto"}
                 icon="fa-solid fa-floppy-disk"
               />
             ) : (
@@ -297,11 +345,17 @@ export default function FormProduct() {
                 onClick={() => {}}
                 disabled={false}
                 className="inline-flex h-14 cursor-pointer items-center justify-center gap-3 rounded-2xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-2xl font-bold text-white hover:from-[#06706d] hover:to-[#334c8b] disabled:cursor-not-allowed disabled:opacity-70"
-                text="Crear Producto"
+                text={isPending ? "Creando..." : "Crear Producto"}
                 icon="fa-solid fa-floppy-disk"
               />
             )}
           </div>
+
+          {mutationError && (
+            <p className="mt-4 text-base font-semibold text-[#c20000]">
+              {mutationError.message}
+            </p>
+          )}
         </form>
       </div>
     </section>

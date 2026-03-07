@@ -82,6 +82,8 @@ model Categoria {
   nombre      String  @db.VarChar(150)
   descripcion String? @db.VarChar(255)
   disponible  Boolean @default(true)
+
+  productos Producto[]
 }
 
 model Proveedor {
@@ -91,6 +93,8 @@ model Proveedor {
   correo     String? @db.VarChar(150)
   direccion  String? @db.VarChar(255)
   disponible Boolean @default(true)
+
+  productos Producto[] @relation("ProductoProveedor")
 }
 
 model Producto {
@@ -100,6 +104,8 @@ model Producto {
   costo        Decimal        @db.Decimal(10, 2)
   precioVenta  Decimal        @map("precio_venta") @db.Decimal(10, 2)
   unidadMedida String?        @map("unidad_medida") @db.VarChar(50)
+  imagenUrl    String?        @map("imagen_url") @db.VarChar(255)
+  imagenPath   String?        @map("imagen_path") @db.VarChar(255)
   estado       EstadoProducto @default(activo)
   createdAt    DateTime?      @map("created_at")
   updatedAt    DateTime?      @map("updated_at")
@@ -108,6 +114,7 @@ model Producto {
   categoria   Categoria? @relation(fields: [categoriaId], references: [id])
 
   proveedores Proveedor[]            @relation("ProductoProveedor")
+  productoProveedores ProductoProveedor[]
   inventarios Inventario[]
   movimientos MovimientoInventario[]
   detalles    DetalleVenta[]
@@ -137,8 +144,10 @@ model MovimientoInventario {
 }
 
 model TipoCliente {
-  id     BigInt @id @default(autoincrement())
-  nombre String @db.VarChar(100)
+  id       BigInt   @id @default(autoincrement())
+  nombre   String   @db.VarChar(100)
+
+  clientes Cliente[]
 }
 
 model Cliente {
@@ -149,6 +158,8 @@ model Cliente {
   correo         String? @db.VarChar(150)
   direccion      String? @db.VarChar(255)
   tipoClienteId  BigInt?
+  tipoCliente TipoCliente? @relation(fields: [tipoClienteId], references: [id])
+
 }
 
 model TipoDocumento {

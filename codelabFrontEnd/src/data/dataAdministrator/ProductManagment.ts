@@ -40,12 +40,13 @@ export const InformacionImportanteProducto : InformacionImportanteInterface = {
 }
 
 export const InitialProductForm: FormProducts = {
-    nameProduct : '',
-    sku : '',
-    categorie : '',
-    productCost : 0,
-    priceSale : 0,
-    unit : '',
-    stockInit : 0,
-    urlImage : '',
+  nombre: '',
+  sku: '',
+  categoriaId: '',
+  costo: '',
+  precioVenta: 0,
+  unidadMedida: '',
+  stockInicial: 0,
+  sucursalId: '',
+  imagen: null,
 };
