@@ -4,7 +4,12 @@ import {
   faEye,
   faEyeSlash,
 } from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useState, type ChangeEvent, type SyntheticEvent } from "react";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type SyntheticEvent,
+} from "react";
 import { useNavigate, useParams } from "react-router";
 import type { FormUserState } from "../../../interfaces/Users/FormUserInterface";
 import useListSucursales from "../../../hooks/SucursalesHooks/useListSucursales";
@@ -39,8 +44,16 @@ export default function FormUser() {
     isError: isUserError,
     error: userError,
   } = useUserById(id ?? "");
-  const { mutateAsync: createUserMutation, isPending: isCreating, error: createError } = useCreateUser();
-  const { mutateAsync: updateUserMutation, isPending: isUpdating, error: updateError } = useUpdateUser();
+  const {
+    mutateAsync: createUserMutation,
+    isPending: isCreating,
+    error: createError,
+  } = useCreateUser();
+  const {
+    mutateAsync: updateUserMutation,
+    isPending: isUpdating,
+    error: updateError,
+  } = useUpdateUser();
   const isPending = isCreating || isUpdating;
   const mutationError = createError ?? updateError;
 
@@ -75,9 +88,10 @@ export default function FormUser() {
   const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      const wasProcessed = isEditMode && id
-        ? await updateUserMutation({ id, credentials: form })
-        : await createUserMutation(form);
+      const wasProcessed =
+        isEditMode && id
+          ? await updateUserMutation({ id, credentials: form })
+          : await createUserMutation(form);
 
       if (wasProcessed) {
         navigate("/Users-Management");
@@ -98,7 +112,9 @@ export default function FormUser() {
         </button>
 
         <header className="mt-6">
-          <h2 className="text-4xl font-bold text-[#0a4d76]">{isEditMode ? "Actualizar Usuario" : "Nuevo usuario"}</h2>
+          <h2 className="text-4xl font-bold text-[#0a4d76]">
+            {isEditMode ? "Actualizar Usuario" : "Nuevo usuario"}
+          </h2>
           <p className="mt-2 text-2xl text-[#4661b0]">
             {isEditMode
               ? "Modifica la información del usuario seleccionado"
@@ -286,7 +302,9 @@ export default function FormUser() {
 
           {isEditMode && isUserError && (
             <p className="mt-4 text-base font-semibold text-[#c20000]">
-              {userError instanceof Error ? userError.message : "No se pudo cargar el usuario"}
+              {userError instanceof Error
+                ? userError.message
+                : "No se pudo cargar el usuario"}
             </p>
           )}
 

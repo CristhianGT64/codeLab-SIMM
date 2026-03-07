@@ -6,7 +6,254 @@ datasource db {
   provider = "postgresql"
 }
 
-// ENUMS
+model Rol {
+  id          BigInt    @id @default(autoincrement())
+  nombre      String    @unique @db.VarChar(100)
+  descripcion String?   @db.VarChar(255)
+  disponible  Boolean   @default(true)
+  createdAt   DateTime? @map("created_at")
+
+  usuarios     Usuario[]
+  rolPermisos  RolPermiso[]
+}
+
+model Permiso {
+  id          BigInt    @id @default(autoincrement())
+  nombre      String    @unique @db.VarChar(100)
+  descripcion String?   @db.VarChar(255)
+  disponible  Boolean   @default(true)
+  createdAt   DateTime? @map("created_at")
+
+  categoriaId BigInt
+  categoria   CategoriaPermiso @relation(fields: [categoriaId], references: [id])
+
+  rolPermisos RolPermiso[]
+}
+
+model RolPermiso {
+  rolId     BigInt
+  permisoId BigInt
+
+  rol     Rol     @relation(fields: [rolId], references: [id])
+  permiso Permiso @relation(fields: [permisoId], references: [id])
+
+  @@id([rolId, permisoId])
+}
+
+model CategoriaPermiso {
+  id              BigInt   @id @default(autoincrement())
+  nombreCategoria String   @db.VarChar(150)
+  disponible      Boolean  @default(true)
+
+  permisos Permiso[]
+}
+
+model Sucursal {
+  id        BigInt   @id @default(autoincrement())
+  nombre    String   @db.VarChar(150)
+  direccion String?  @db.VarChar(255)
+  telefono  String?  @db.VarChar(50)
+  gerente   String?  @db.VarChar(150)
+  activa    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt
+  usuarios Usuario[]
+}
+
+model Usuario {
+  id             BigInt        @id @default(autoincrement())
+  nombreCompleto String        @map("nombre_completo") @db.VarChar(150)
+  correo         String        @unique @db.VarChar(150)
+  password       String        @db.VarChar(255)
+  estado         EstadoUsuario @default(activo)
+  createdAt      DateTime?     @map("created_at")
+  updatedAt      DateTime?     @map("updated_at")
+  sucursalId     BigInt?
+  rolId          BigInt?
+  eliminado      Boolean       @default(false)
+  usuario        String        @unique @db.VarChar(100)
+
+  rol Rol? @relation(fields: [rolId], references: [id])
+  sucursal Sucursal? @relation(fields: [sucursalId], references: [id])
+}
+
+model Categoria {
+  id          BigInt  @id @default(autoincrement())
+  nombre      String  @db.VarChar(150)
+  descripcion String? @db.VarChar(255)
+  disponible  Boolean @default(true)
+}
+
+model Proveedor {
+  id         BigInt  @id @default(autoincrement())
+  nombre     String  @db.VarChar(150)
+  telefono   String? @db.VarChar(50)
+  correo     String? @db.VarChar(150)
+  direccion  String? @db.VarChar(255)
+  disponible Boolean @default(true)
+}
+
+model Producto {
+  id           BigInt         @id @default(autoincrement())
+  nombre       String         @db.VarChar(150)
+  sku          String         @unique @db.VarChar(100)
+  costo        Decimal        @db.Decimal(10, 2)
+  precioVenta  Decimal        @map("precio_venta") @db.Decimal(10, 2)
+  unidadMedida String?        @map("unidad_medida") @db.VarChar(50)
+  estado       EstadoProducto @default(activo)
+  createdAt    DateTime?      @map("created_at")
+  updatedAt    DateTime?      @map("updated_at")
+
+  categoriaId BigInt?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
+
+  proveedores Proveedor[]            @relation("ProductoProveedor")
+  inventarios Inventario[]
+  movimientos MovimientoInventario[]
+  detalles    DetalleVenta[]
+}
+
+model Inventario {
+  id          BigInt   @id @default(autoincrement())
+  stockActual Int      @default(0) @map("stock_actual")
+  productoId  BigInt
+  sucursalId  BigInt
+  producto    Producto @relation(fields: [productoId], references: [id])
+
+  @@unique([productoId, sucursalId])
+}
+
+model MovimientoInventario {
+  id             BigInt                   @id @default(autoincrement())
+  tipo           TipoMovimientoInventario
+  cantidad       Int
+  referenciaTipo String?                  @map("referencia_tipo") @db.VarChar(50)
+  referenciaId   BigInt?                  @map("referencia_id")
+  createdAt      DateTime?                @map("created_at")
+  productoId     BigInt
+  sucursalId     BigInt
+  usuarioId      BigInt?
+  producto       Producto                 @relation(fields: [productoId], references: [id])
+}
+
+model TipoCliente {
+  id     BigInt @id @default(autoincrement())
+  nombre String @db.VarChar(100)
+}
+
+model Cliente {
+  id             BigInt  @id @default(autoincrement())
+  nombreCompleto String? @map("nombre_completo") @db.VarChar(150)
+  identificacion String? @unique @db.VarChar(50)
+  telefono       String? @db.VarChar(50)
+  correo         String? @db.VarChar(150)
+  direccion      String? @db.VarChar(255)
+  tipoClienteId  BigInt?
+}
+
+model TipoDocumento {
+  id         BigInt  @id @default(autoincrement())
+  numero     Int     @unique
+  nombre     String  @unique @db.VarChar(150)
+  disponible Boolean
+}
+
+model Establecimiento {
+  id              BigInt @id @default(autoincrement())
+  numero          Int
+  tipoDocumentoId BigInt
+  sucursalId      BigInt
+
+  @@unique([numero, tipoDocumentoId])
+}
+
+model RangoEmision {
+  id     BigInt @id @default(autoincrement())
+  inicio Int
+  fin    Int
+}
+
+model PuntoEmision {
+  id                BigInt  @id @default(autoincrement())
+  numero            Int
+  tipoDocumentoId   BigInt
+  establecimientoId BigInt
+  rangoEmisionId    BigInt?
+
+  @@unique([numero, establecimientoId])
+}
+
+model Cai {
+  id          BigInt    @id @default(autoincrement())
+  codigo      String    @unique @db.VarChar(100)
+  fechaInicio DateTime? @map("fecha_inicio")
+  fechaFin    DateTime? @map("fecha_fin")
+  activo      Boolean
+}
+
+model NumeroFactura {
+  id                BigInt  @id @default(autoincrement())
+  numeroFormateado  String? @unique @map("numero_formateado") @db.VarChar(50)
+  correlativo       Int
+  usado             Boolean @default(false)
+  tipoDocumentoId   BigInt
+  establecimientoId BigInt
+  puntoEmisionId    BigInt
+  caiId             BigInt?
+
+  @@unique([tipoDocumentoId, establecimientoId, puntoEmisionId, correlativo])
+}
+
+model Venta {
+  id         BigInt      @id @default(autoincrement())
+  total      Decimal     @db.Decimal(10, 2)
+  estado     EstadoVenta
+  createdAt  DateTime?   @map("created_at")
+  clienteId  BigInt?
+  usuarioId  BigInt?
+  sucursalId BigInt?
+}
+
+model DetalleVenta {
+  id             BigInt   @id @default(autoincrement())
+  cantidad       Int
+  precioUnitario Decimal  @map("precio_unitario") @db.Decimal(10, 2)
+  subtotal       Decimal  @db.Decimal(10, 2)
+  ventaId        BigInt
+  productoId     BigInt
+  producto       Producto @relation(fields: [productoId], references: [id])
+}
+
+model Factura {
+  id              BigInt   @id @default(autoincrement())
+  subtotal        Decimal  @db.Decimal(10, 2)
+  impuesto        Decimal  @db.Decimal(10, 2)
+  total           Decimal  @db.Decimal(10, 2)
+  fechaEmision    DateTime @map("fecha_emision")
+  numeroFacturaId BigInt   @unique
+  ventaId         BigInt?  @unique
+  clienteId       BigInt?
+  usuarioId       BigInt?
+  sucursalId      BigInt?
+}
+
+model ConfiguracionContable {
+  id              BigInt          @id @default(autoincrement())
+  metodoValuacion MetodoValuacion @map("metodo_valuacion")
+  monedaFuncional String          @map("moneda_funcional") @db.VarChar(10)
+}
+
+model ProductoProveedor {
+  A        BigInt
+  B        BigInt
+  Producto Producto @relation(fields: [A], references: [id], onDelete: Cascade)
+
+  @@id([A, B], map: "_ProductoProveedor_AB_pkey")
+  @@index([B], map: "_ProductoProveedor_B_index")
+  @@map("_ProductoProveedor")
+}
+
+
 enum EstadoUsuario {
   activo
   inactivo

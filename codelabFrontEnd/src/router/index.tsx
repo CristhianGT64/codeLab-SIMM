@@ -7,9 +7,13 @@ import UserManagement from '../pages/Administration/Users/UserManagement';
 import Branches from '../pages/Administration/Branches/BranchManagement';
 import FormSucursal from '../pages/Administration/Branches/FormSucursal';
 import FormUser from '../pages/Administration/Users/FormUser';
+import ProductManagement from '../pages/Administration/Products/ProductManagement';
 import { AuthProvider } from '../context/AuthContext';
 import ProtectedRoute from '../components/ProtectedRoute';
-import settings from '../lib/settings';
+import FormProduct from '../pages/Administration/Products/FormProduct';
+import RolesPermisionManagment from '../pages/Administration/RolesPermission/RolesPermisionManagment';
+import FormRoles from '../pages/Administration/RolesPermission/FormRoles';
+import FormPermissions from '../pages/Administration/RolesPermission/FormPermissions';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -40,8 +44,15 @@ const AppRouter = () => (
             <Route path="/Users-Management/Create-User" element={<FormUser/>} />
             <Route path="/Users-Management/Update-User/:id" element={<FormUser/>} />
             <Route path="/Branches-Management" element={<Branches />} />
+            <Route path="/Product-Management" element={<ProductManagement />} />
+            <Route path="/Product-Management/Create-Product" element={<FormProduct />} />
+            <Route path="/Product-Management/Update-Product/:id" element={<FormProduct />} />
             <Route path="/Branches-Management/Create-Sucursal" element={<FormSucursal />} />
             <Route path="/Branches-Management/Update-Sucursal/:id" element={<FormSucursal />} />
+            <Route path="/RolesPermision-Management/" element={<RolesPermisionManagment />} />
+            <Route path="/RolesPermision-Management/Create-Permisssion" element={<FormPermissions />} />
+            <Route path="/RolesPermision-Management/Create-Roles" element={<FormRoles />} />
+            <Route path="/RolesPermision-Management/Update-Roles/:id" element={<FormRoles />} />
           </Route>
         </Route>
       </Routes>

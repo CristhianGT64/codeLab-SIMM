@@ -10,6 +10,6 @@ export interface Sucursal {
 
 export interface SucursalResponse {
   success: boolean;
-  data: Sucursal | Sucursal[];
+  data: Sucursal[];
   message?: string;
 }
