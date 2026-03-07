@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import ButtonsComponet from '../../../components/buttonsComponents/ButtonsComponet';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
