@@ -79,7 +79,7 @@ app.get('/productos/unidades', productoController.unidades);
 app.post('/productos', uploadProductoImage.single('imagen'), productoController.create);
 app.get('/productos', productoController.list);
 app.get('/productos/:id', productoController.getById);
-app.put('/productos/:id', productoController.update);
+app.put('/productos/:id', uploadProductoImage.single('imagen'), productoController.update);
 app.patch('/productos/:id', productoController.patch);
 app.delete('/productos/:id', productoController.remove);
 

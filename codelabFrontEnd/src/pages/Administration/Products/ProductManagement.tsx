@@ -17,6 +17,7 @@ import useListProduct from "../../../hooks/ProductosHooks/useListProduct";
 import { useMemo, useState } from "react";
 import useInactiveProducto from "../../../hooks/ProductosHooks/useInactiveProducto";
 import useActivateProducto from "../../../hooks/ProductosHooks/useActiveProducto";
+import settings from "../../../lib/settings";
 
 const categoryStyles: Record<string, string> = {
   Tecnología: "bg-[#104f78] text-white",
@@ -25,7 +26,7 @@ const categoryStyles: Record<string, string> = {
 };
 
 export default function ProductManagement() {
-  const { data: listProduct } = useListProduct();
+  const { data: listProduct, isLoading, isError, error } = useListProduct();
   const mockProducts = listProduct?.data ?? [];
   const inactiveProduct = useInactiveProducto();
   const activeProduct = useActivateProducto();
@@ -46,13 +47,13 @@ export default function ProductManagement() {
 
     const totalProductos = mockProducts.length;
     const productosActivos = mockProducts.filter(
-      (product) => product.estado?.toLowerCase() === "activo"
+      (product) => product.estado?.toLowerCase() === "activo",
     ).length;
 
     const stockTotal = mockProducts.reduce((acc, product) => {
       const stockProducto = product.inventarios.reduce(
         (stockAcc, inventario) => stockAcc + toNumber(inventario.stockActual),
-        0
+        0,
       );
       return acc + stockProducto;
     }, 0);
@@ -61,7 +62,7 @@ export default function ProductManagement() {
       const costo = toNumber(product.costo);
       const stockProducto = product.inventarios.reduce(
         (stockAcc, inventario) => stockAcc + toNumber(inventario.stockActual),
-        0
+        0,
       );
       return acc + costo * stockProducto;
     }, 0);
@@ -75,7 +76,7 @@ export default function ProductManagement() {
   }, [mockProducts]);
 
   const [searchProduct, setSearchProduct] = useState<string>("");
-  
+
   const filtredUser = useMemo(() => {
     if (!searchProduct.trim()) return mockProducts;
 
@@ -90,6 +91,18 @@ export default function ProductManagement() {
 
   const tableHeader: string[] = TableProductData;
   const navigate = useNavigate();
+
+  const getProductImageUrl = (imagenPath: string | null) => {
+    if (!imagenPath) return null;
+    if (/^https?:\/\//i.test(imagenPath)) return imagenPath;
+
+    const baseUrl = settings.URL.replace(/\/$/, "");
+    const normalizedPath = imagenPath.startsWith("/")
+      ? imagenPath
+      : `/${imagenPath}`;
+
+    return `${baseUrl}${normalizedPath}`;
+  };
 
   return (
     <section className="w-full px-4 py-5 md:px-6">
@@ -149,6 +162,14 @@ export default function ProductManagement() {
 
       {/* Tabla de productos */}
       <div className="mt-6 overflow-hidden rounded-2xl bg-white shadow-[0_8px_18px_rgba(0,0,0,0.08)]">
+        {isLoading && (
+          <p className="px-6 py-4 text-[#4661b0]">Cargando productos...</p>
+        )}
+        {isError && (
+          <p className="px-6 py-4 text-[#c20000]">
+            {error instanceof Error ? error.message : "Error cargando productos"}
+          </p>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
@@ -171,8 +192,23 @@ export default function ProductManagement() {
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#e8f4f6] text-[#0aa6a2]">
-                        <FontAwesomeIcon icon={faBoxOpen} className="text-lg" />
+                      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-[#e8f4f6] text-[#0aa6a2]">
+                        {getProductImageUrl(product.imagenPath) ? (
+                          <img
+                            src={
+                              getProductImageUrl(product.imagenPath) ??
+                              undefined
+                            }
+                            alt={product.nombre}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <FontAwesomeIcon
+                            icon={faBoxOpen}
+                            className="text-lg"
+                          />
+                        )}
                       </div>
                       <span className="text-base font-semibold text-[#0a4d76] md:text-lg">
                         {product.nombre}
@@ -229,9 +265,9 @@ export default function ProductManagement() {
                         }`}
                         aria-label={`Cambiar estado de ${product.nombre}`}
                         onClick={
-                          product.estado === 'activo' 
-                          ? () => inactiveProduct.mutate(product.id)
-                          :() => activeProduct.mutate(product.id)
+                          product.estado === "activo"
+                            ? () => inactiveProduct.mutate(product.id)
+                            : () => activeProduct.mutate(product.id)
                         }
                       >
                         <FontAwesomeIcon icon={faPowerOff} />
@@ -240,6 +276,11 @@ export default function ProductManagement() {
                         type="button"
                         className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
                         aria-label={`Editar ${product.nombre}`}
+                        onClick={() =>
+                          navigate(
+                            `/Product-Management/Update-Product/${product.id}`,
+                          )
+                        }
                       >
                         <FontAwesomeIcon icon={faPenToSquare} />
                       </button>

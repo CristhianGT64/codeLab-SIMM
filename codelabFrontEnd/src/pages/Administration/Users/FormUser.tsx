@@ -18,6 +18,14 @@ import useCreateUser from "../../../hooks/UsersHooks/useCreateUser";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import useUpdateUser from "../../../hooks/UsersHooks/useUpdateUser";
 import useUserById from "../../../hooks/UsersHooks/useUserById";
+import StatusNotification from "../../../components/notifications/StatusNotification";
+
+type NotificationState = {
+  isVisible: boolean;
+  variant: "success" | "error";
+  title: string;
+  message: string;
+};
 
 const initialForm: FormUserState = {
   nombreCompleto: "",
@@ -34,6 +42,12 @@ export default function FormUser() {
   const isEditMode = Boolean(id);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState<FormUserState>(initialForm);
+  const [notification, setNotification] = useState<NotificationState>({
+    isVisible: false,
+    variant: "success",
+    title: "",
+    message: "",
+  });
   const { data: sucursalesData } = useListSucursales();
   const sucursales = sucursalesData?.data ?? [];
   const { data: rolesData } = useListRols();
@@ -47,15 +61,12 @@ export default function FormUser() {
   const {
     mutateAsync: createUserMutation,
     isPending: isCreating,
-    error: createError,
   } = useCreateUser();
   const {
     mutateAsync: updateUserMutation,
     isPending: isUpdating,
-    error: updateError,
   } = useUpdateUser();
   const isPending = isCreating || isUpdating;
-  const mutationError = createError ?? updateError;
 
   useEffect(() => {
     if (!isEditMode) {
@@ -94,9 +105,44 @@ export default function FormUser() {
           : await createUserMutation(form);
 
       if (wasProcessed) {
-        navigate("/Users-Management");
+        setNotification({
+          isVisible: true,
+          variant: "success",
+          title: isEditMode ? "Usuario actualizado" : "Usuario creado",
+          message: isEditMode
+            ? "Los cambios del usuario se guardaron correctamente."
+            : "El usuario se creo correctamente.",
+        });
+
+        globalThis.setTimeout(() => {
+          navigate("/Users-Management");
+        }, 1300);
+      } else {
+        setNotification({
+          isVisible: true,
+          variant: "error",
+          title: isEditMode
+            ? "No se pudo actualizar"
+            : "No se pudo crear el usuario",
+          message:
+            "La operacion no pudo completarse. Intenta de nuevo en unos segundos.",
+        });
       }
-    } catch {}
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "La operacion fallo por un error inesperado.";
+
+      setNotification({
+        isVisible: true,
+        variant: "error",
+        title: isEditMode
+          ? "Error al actualizar usuario"
+          : "Error al crear usuario",
+        message: errorMessage,
+      });
+    }
   };
 
   return (
@@ -121,6 +167,16 @@ export default function FormUser() {
               : "Completa el formulario para crear un nuevo usuario"}
           </p>
         </header>
+
+        <StatusNotification
+          isVisible={notification.isVisible}
+          variant={notification.variant}
+          title={notification.title}
+          message={notification.message}
+          onClose={() =>
+            setNotification((prev) => ({ ...prev, isVisible: false }))
+          }
+        />
 
         <form
           onSubmit={onSubmit}
@@ -308,11 +364,6 @@ export default function FormUser() {
             </p>
           )}
 
-          {mutationError && (
-            <p className="mt-4 text-base font-semibold text-[#c20000]">
-              {mutationError.message}
-            </p>
-          )}
         </form>
       </div>
     </section>
