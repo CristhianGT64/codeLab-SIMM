@@ -13,8 +13,8 @@ const usuarioService = {
 
     // Validar rol y sucursal existan
     const [rol, sucursal] = await Promise.all([
-      rolRepository.findById(BigInt(rolId)),
-      sucursalRepository.findById(BigInt(sucursalId)),
+      rolRepository.findById(Number(rolId)),
+      sucursalRepository.getSucursalById(Number(sucursalId)),
     ]);
 
     if (!rol) {
@@ -61,8 +61,8 @@ const usuarioService = {
       password: passwordHash,
       estado: 'activo',
       eliminado: false,
-      rolId: BigInt(rolId),
-      sucursalId: BigInt(sucursalId),
+      rolId: Number(rolId),
+      sucursalId: Number(sucursalId),
     });
   },
 

@@ -1,11 +1,18 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
-import productController from './controllers/productController.js';
+import productoController from './controllers/productoController.js';
+import categoriaController from './controllers/categoriaController.js';
 import sucursalController from './controllers/sucursalController.js';
 import authController from './controllers/authController.js';
-import rolController from './controllers/rolController.js';
 import usuarioController from './controllers/usuarioController.js';
-
+import clientController from './controllers/clientController.js';
+import * as roleController from './controllers/roleController.js';
+import * as permissionCategoryController from './controllers/permissionCategoryController.js';
+import * as permissionController from './controllers/permissionController.js';
+import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
 
 //Parche: convierte de BigInt a String para que lo soporte Json.
@@ -14,8 +21,17 @@ BigInt.prototype.toJSON = function() {
 };
 
 const app = express();
+dotenv.config();
 
-const allowedOrigins = process.env.allowedOrigins;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Manejo de CORS
+const allowedOrigins = (process.env.allowedOrigins || process.env.ALLOWED_ORIGINS || '')
+  .replace(/[\[\]']/g, '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -35,13 +51,14 @@ app.use((req, res, next) => {
   return next();
 });
 
-BigInt.prototype.toJSON = function () {
-  return this.toString();
-};
-
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Servir archivos estáticos (imágenes subidas)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Health check
 app.get('/', (req, res) => {
   res.json({ ok: true, service: 'SIMM API' });
 });
@@ -49,28 +66,51 @@ app.get('/', (req, res) => {
 // Ruta de login
 app.post('/auth/login', authController.login);
 
-// Rutas de productos
-app.get('/products', productController.getAllProducts);
-app.get('/products/:id', productController.getProductById);
-app.post('/products/create', productController.createProduct);
-app.put('/products/:id', productController.updateProduct);
-app.patch('/products/:id/activo', productController.activateProduct);
-app.patch('/products/:id/inactivo', productController.deactivateProduct);
-app.delete('/products/:id', productController.deleteProduct);
-app.delete('/productsDelete/:id', productController.deleteProduct);
+// Categorías Productos
+app.get('/categorias', categoriaController.list);
+app.get('/categorias/:id', categoriaController.getById);
+app.post('/categorias', categoriaController.create);
+app.put('/categorias/:id', categoriaController.update);
+app.patch('/categorias/:id', categoriaController.patch);
+app.delete('/categorias/:id', categoriaController.remove);
 
-//Rutas de sucursales
-app.post('/sucursales', sucursalController.createSucursal); //Funciona
-app.get('/sucursales', sucursalController.getAllSucursales); //Funciona
+// Productos
+app.get('/productos/unidades', productoController.unidades);
+app.post('/productos', uploadProductoImage.single('imagen'), productoController.create);
+app.get('/productos', productoController.list);
+app.get('/productos/:id', productoController.getById);
+app.put('/productos/:id', uploadProductoImage.single('imagen'), productoController.update);
+app.patch('/productos/:id', productoController.patch);
+app.delete('/productos/:id', productoController.remove);
+
+// Sucursales
+app.post('/sucursales', sucursalController.createSucursal);
+app.get('/sucursales', sucursalController.getAllSucursales);
 app.get('/sucursales/:id', sucursalController.getSucursalById);
 app.put('/sucursales/:id', sucursalController.updateSucursal);
 app.patch('/sucursales/:id/estado', sucursalController.changeSucursalStatus);
 
-// Rutas de roles 
-app.get('/roles', rolController.getAll);
-app.post('/roles', rolController.create);
+// Roles
+app.get('/roles', roleController.getAll);
+app.post('/roles', roleController.create);
+app.put('/roles/:id', roleController.update); // modificar nombre de rol
+app.delete('/roles/:id', roleController.remove); // eliminar rol validando usuarios
 
-// Rutas de usuarios
+// permission categories
+app.post('/permission-categories', permissionCategoryController.create)
+app.get('/permission-categories', permissionCategoryController.getAll)
+
+// permissions
+app.post('/permissions', permissionController.create)
+app.get('/permissions', permissionController.getAll)
+app.put('/permissions/:id', permissionController.update)
+app.delete('/permissions/:id', permissionController.remove)
+
+// role permissions
+app.post('/roles/:id/permissions', roleController.assignPermissions)
+app.put('/roles/:id/permissions', roleController.updatePermissions) // modificar permisos del rol
+app.get('/roles/:id/permissions', roleController.getPermissions)
+// Usuarios
 app.post('/usuarios', usuarioController.create);
 app.get('/usuarios', usuarioController.getAll);
 app.get('/usuarios/:id', usuarioController.getById);
@@ -79,8 +119,11 @@ app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
 
-
-// Middleware de manejo de errores (debe estar al final)
+// Rutas de clientes
+app.post('/clientes', clientController.createClient);
+app.get('/clientes', clientController.getAllClients);
+app.put('/clientes/:id', clientController.updateClient);
+// Middleware de errores
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;

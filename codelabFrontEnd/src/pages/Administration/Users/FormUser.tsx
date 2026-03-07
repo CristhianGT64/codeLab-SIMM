@@ -4,7 +4,12 @@ import {
   faEye,
   faEyeSlash,
 } from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useState, type ChangeEvent, type SyntheticEvent } from "react";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type SyntheticEvent,
+} from "react";
 import { useNavigate, useParams } from "react-router";
 import type { FormUserState } from "../../../interfaces/Users/FormUserInterface";
 import useListSucursales from "../../../hooks/SucursalesHooks/useListSucursales";
@@ -13,6 +18,14 @@ import useCreateUser from "../../../hooks/UsersHooks/useCreateUser";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import useUpdateUser from "../../../hooks/UsersHooks/useUpdateUser";
 import useUserById from "../../../hooks/UsersHooks/useUserById";
+import StatusNotification from "../../../components/notifications/StatusNotification";
+
+type NotificationState = {
+  isVisible: boolean;
+  variant: "success" | "error";
+  title: string;
+  message: string;
+};
 
 const initialForm: FormUserState = {
   nombreCompleto: "",
@@ -29,6 +42,12 @@ export default function FormUser() {
   const isEditMode = Boolean(id);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState<FormUserState>(initialForm);
+  const [notification, setNotification] = useState<NotificationState>({
+    isVisible: false,
+    variant: "success",
+    title: "",
+    message: "",
+  });
   const { data: sucursalesData } = useListSucursales();
   const sucursales = sucursalesData?.data ?? [];
   const { data: rolesData } = useListRols();
@@ -39,10 +58,15 @@ export default function FormUser() {
     isError: isUserError,
     error: userError,
   } = useUserById(id ?? "");
-  const { mutateAsync: createUserMutation, isPending: isCreating, error: createError } = useCreateUser();
-  const { mutateAsync: updateUserMutation, isPending: isUpdating, error: updateError } = useUpdateUser();
+  const {
+    mutateAsync: createUserMutation,
+    isPending: isCreating,
+  } = useCreateUser();
+  const {
+    mutateAsync: updateUserMutation,
+    isPending: isUpdating,
+  } = useUpdateUser();
   const isPending = isCreating || isUpdating;
-  const mutationError = createError ?? updateError;
 
   useEffect(() => {
     if (!isEditMode) {
@@ -75,14 +99,50 @@ export default function FormUser() {
   const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      const wasProcessed = isEditMode && id
-        ? await updateUserMutation({ id, credentials: form })
-        : await createUserMutation(form);
+      const wasProcessed =
+        isEditMode && id
+          ? await updateUserMutation({ id, credentials: form })
+          : await createUserMutation(form);
 
       if (wasProcessed) {
-        navigate("/Users-Management");
+        setNotification({
+          isVisible: true,
+          variant: "success",
+          title: isEditMode ? "Usuario actualizado" : "Usuario creado",
+          message: isEditMode
+            ? "Los cambios del usuario se guardaron correctamente."
+            : "El usuario se creo correctamente.",
+        });
+
+        globalThis.setTimeout(() => {
+          navigate("/Users-Management");
+        }, 1300);
+      } else {
+        setNotification({
+          isVisible: true,
+          variant: "error",
+          title: isEditMode
+            ? "No se pudo actualizar"
+            : "No se pudo crear el usuario",
+          message:
+            "La operacion no pudo completarse. Intenta de nuevo en unos segundos.",
+        });
       }
-    } catch {}
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "La operacion fallo por un error inesperado.";
+
+      setNotification({
+        isVisible: true,
+        variant: "error",
+        title: isEditMode
+          ? "Error al actualizar usuario"
+          : "Error al crear usuario",
+        message: errorMessage,
+      });
+    }
   };
 
   return (
@@ -98,13 +158,25 @@ export default function FormUser() {
         </button>
 
         <header className="mt-6">
-          <h2 className="text-4xl font-bold text-[#0a4d76]">{isEditMode ? "Actualizar Usuario" : "Nuevo Usuario"}</h2>
+          <h2 className="text-4xl font-bold text-[#0a4d76]">
+            {isEditMode ? "Actualizar Usuario" : "Nuevo usuario"}
+          </h2>
           <p className="mt-2 text-2xl text-[#4661b0]">
             {isEditMode
               ? "Modifica la información del usuario seleccionado"
               : "Completa el formulario para crear un nuevo usuario"}
           </p>
         </header>
+
+        <StatusNotification
+          isVisible={notification.isVisible}
+          variant={notification.variant}
+          title={notification.title}
+          message={notification.message}
+          onClose={() =>
+            setNotification((prev) => ({ ...prev, isVisible: false }))
+          }
+        />
 
         <form
           onSubmit={onSubmit}
@@ -113,7 +185,7 @@ export default function FormUser() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="md:col-span-2">
               <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
-                Nombre Completo <span className="text-[#ff4f4f]">*</span>
+                Nombre completo <span className="text-[#ff4f4f]">*</span>
               </p>
               <input
                 id="nombreCompleto"
@@ -129,7 +201,7 @@ export default function FormUser() {
 
             <div>
               <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
-                Correo Electrónico <span className="text-[#ff4f4f]">*</span>
+                Correo electrónico <span className="text-[#ff4f4f]">*</span>
               </p>
               <input
                 id="correo"
@@ -145,7 +217,7 @@ export default function FormUser() {
 
             <div>
               <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
-                Nombre de Usuario <span className="text-[#ff4f4f]">*</span>
+                Nombre de usuario <span className="text-[#ff4f4f]">*</span>
               </p>
               <input
                 id="usuario"
@@ -213,7 +285,7 @@ export default function FormUser() {
 
             <div>
               <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
-                Sucursal Asignada <span className="text-[#ff4f4f]">*</span>
+                Sucursal asignada <span className="text-[#ff4f4f]">*</span>
               </p>
               <select
                 id="sucursal"
@@ -263,7 +335,7 @@ export default function FormUser() {
                 onClick={() => null}
                 disabled={isPending}
                 className="inline-flex h-14 cursor-pointer items-center justify-center gap-3 rounded-2xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-2xl font-bold text-white hover:from-[#06706d] hover:to-[#334c8b] disabled:cursor-not-allowed disabled:opacity-70"
-                text={isPending ? "Actualizando..." : "Actualizar Usuario"}
+                text={isPending ? "Actualizando..." : "Actualizar usuario"}
                 icon="fa-solid fa-floppy-disk"
               />
             ) : (
@@ -272,7 +344,7 @@ export default function FormUser() {
                 onClick={() => null}
                 disabled={isPending}
                 className="inline-flex h-14 cursor-pointer items-center justify-center gap-3 rounded-2xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-2xl font-bold text-white hover:from-[#06706d] hover:to-[#334c8b] disabled:cursor-not-allowed disabled:opacity-70"
-                text={isPending ? "Creando..." : "Crear Usuario"}
+                text={isPending ? "Creando..." : "Crear usuario"}
                 icon="fa-solid fa-floppy-disk"
               />
             )}
@@ -286,15 +358,12 @@ export default function FormUser() {
 
           {isEditMode && isUserError && (
             <p className="mt-4 text-base font-semibold text-[#c20000]">
-              {userError instanceof Error ? userError.message : "No se pudo cargar el usuario"}
+              {userError instanceof Error
+                ? userError.message
+                : "No se pudo cargar el usuario"}
             </p>
           )}
 
-          {mutationError && (
-            <p className="mt-4 text-base font-semibold text-[#c20000]">
-              {mutationError.message}
-            </p>
-          )}
         </form>
       </div>
     </section>
