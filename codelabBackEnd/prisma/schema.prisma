@@ -82,6 +82,8 @@ model Categoria {
   nombre      String  @db.VarChar(150)
   descripcion String? @db.VarChar(255)
   disponible  Boolean @default(true)
+
+  productos Producto[]
 }
 
 model Proveedor {
@@ -91,23 +93,31 @@ model Proveedor {
   correo     String? @db.VarChar(150)
   direccion  String? @db.VarChar(255)
   disponible Boolean @default(true)
+
+  productos Producto[] @relation("ProductoProveedor")
 }
 
 model Producto {
-  id                BigInt                 @id @default(autoincrement())
-  nombre            String                 @db.VarChar(150)
-  sku               String                 @unique @db.VarChar(100)
-  costo             Decimal                @db.Decimal(10, 2)
-  precioVenta       Decimal                @map("precio_venta") @db.Decimal(10, 2)
-  unidadMedida      String?                @map("unidad_medida") @db.VarChar(50)
-  estado            EstadoProducto         @default(activo)
-  createdAt         DateTime?              @map("created_at")
-  updatedAt         DateTime?              @map("updated_at")
-  categoriaId       BigInt?
-  detalles          DetalleVenta[]
-  inventarios       Inventario[]
-  movimientos       MovimientoInventario[]
-  ProductoProveedor ProductoProveedor[]
+  id           BigInt         @id @default(autoincrement())
+  nombre       String         @db.VarChar(150)
+  sku          String         @unique @db.VarChar(100)
+  costo        Decimal        @db.Decimal(10, 2)
+  precioVenta  Decimal        @map("precio_venta") @db.Decimal(10, 2)
+  unidadMedida String?        @map("unidad_medida") @db.VarChar(50)
+  imagenUrl    String?        @map("imagen_url") @db.VarChar(255)
+  imagenPath   String?        @map("imagen_path") @db.VarChar(255)
+  estado       EstadoProducto @default(activo)
+  createdAt    DateTime?      @map("created_at")
+  updatedAt    DateTime?      @map("updated_at")
+
+  categoriaId BigInt?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
+
+  proveedores Proveedor[]            @relation("ProductoProveedor")
+  productoProveedores ProductoProveedor[]
+  inventarios Inventario[]
+  movimientos MovimientoInventario[]
+  detalles    DetalleVenta[]
 }
 
 model Inventario {
