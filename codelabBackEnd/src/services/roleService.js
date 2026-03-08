@@ -16,7 +16,8 @@ export const getAllRoles = async () => {
     descripcion: r.descripcion,
     disponible: r.disponible,
     createdAt: r.createdAt,
-    totalUsuariosRol: r._count.usuarios
+    totalUsuariosRol: r._count.usuarios,
+    totalPermisosRol: r._count.rolPermisos
   }));
 
 };

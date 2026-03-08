@@ -8,10 +8,11 @@ import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import { HeaderRolesPermission } from "../../../data/dataAdministrator/RolesPermissionData";
 import CardPermissionRolesComponent from "../../../components/cardPermissionRoles/CardPermissionRoles";
 import useListRols from "../../../hooks/RolesHooks/useListRols";
+import useListPermisos from "../../../hooks/PermisosHook/useListPermisos";
 
 export default function RolesPermisionManagment() {
   const { data: rolesData } = useListRols();
-  const {data : permisosData} = useListRols();
+  const {data : permisosData} = useListPermisos();
   const roles = rolesData?.data ?? [];
   const Permisos = permisosData?.data ?? [];
   const navigate = useNavigate();
@@ -98,8 +99,8 @@ export default function RolesPermisionManagment() {
             name={rol.nombre}
             subTitle={""}
             description={rol.descripcion}
-            totalPermissionAssigned={50}
-            totalUserRol={50}
+            totalPermissionAssigned={rol.totalPermisosRol}
+            totalUserRol={rol.totalUsuariosRol}
           />
         ))}
       </div>

@@ -4,7 +4,8 @@ export interface Rol {
     descripcion : string;
     disponible : boolean;
     createdAt : string | null;
-    
+    totalUsuariosRol : number;
+    totalPermisosRol : number;
 }
 
 export default interface RolResponse {

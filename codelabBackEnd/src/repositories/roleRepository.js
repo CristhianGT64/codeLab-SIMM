@@ -20,7 +20,8 @@ export const getAllRoles = async () => {
       createdAt: true,
       _count: {
         select: {
-          usuarios: true
+          usuarios: true,
+          rolPermisos: true
         }
       }
     }

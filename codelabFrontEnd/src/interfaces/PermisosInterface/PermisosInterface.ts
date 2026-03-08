@@ -8,5 +8,5 @@ export interface Permisos {
 
 export interface ResponsePermisos {
     success : boolean,
-    data : Permisos
+    data : Permisos[]
 }
