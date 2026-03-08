@@ -1,7 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faPenToSquare,
-  faTrashCan,
   faShield,
   faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
@@ -15,9 +13,10 @@ const roleHeaderStyles: Record<string, string> = {
   Visualizador: "bg-[#4dc9cf]",
 };
 
-export default function CardPermissionRolesComponent(infoCard : Readonly<CardPermissionRolesInterface>) {
-
-    const navigate = useNavigate();
+export default function CardPermissionRolesComponent(
+  infoCard: Readonly<CardPermissionRolesInterface>,
+) {
+  const navigate = useNavigate();
 
   return (
     <div
@@ -74,32 +73,31 @@ export default function CardPermissionRolesComponent(infoCard : Readonly<CardPer
 
         {/* Botones de acción */}
         <div className="mt-4 flex gap-3">
-            <ButtonsComponet
-              text='Editar'
-              typeButton="button"
-              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0aa6a2] px-4 py-3 text-base font-semibold text-white hover:bg-[#06706d]"
-              icon="fa-solid fa-pen-to-square"
-              onClick={() => navigate(`/RolesPermision-Management/Update-Roles/${infoCard.id}`)}
-              disabled={false}
-            />
-          <button
-            type="button"
-            className=""
-          >
-            <FontAwesomeIcon icon={faPenToSquare} />
-            Editar
-          </button>
-          <button
-            type="button"
+          <ButtonsComponet
+            text="Editar"
+            typeButton="button"
+            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0aa6a2] px-4 py-3 text-base font-semibold text-white hover:bg-[#06706d]"
+            icon="fa-solid fa-pen-to-square"
+            onClick={() =>
+              navigate(`/RolesPermision-Management/Update-Roles/${infoCard.id}`)
+            }
+            disabled={false}
+          />
+          <ButtonsComponet
+            text=""
+            typeButton="button"
             disabled={infoCard.totalUserRol > 0}
-            className={`flex w-12 cursor-pointer items-center justify-center rounded-xl border-2 text-lg ${
+            className={`flex w-12  items-center justify-center rounded-xl border-2 text-lg ${
               infoCard.totalUserRol > 0
                 ? "border-[#d1d5db] bg-[#f3f4f6] text-[#9ca3af] cursor-not-allowed"
-                : "border-[#fde2e2] bg-[#fef2f2] text-[#c20000] hover:bg-[#fde2e2]"
+                : "border-[#fde2e2] bg-[#fef2f2] text-[#c20000] hover:bg-[#fde2e2] cursor-pointer" 
             }`}
-          >
-            <FontAwesomeIcon icon={faTrashCan} />
-          </button>
+            icon="fa-solid fa-trash-can"
+            onClick={() =>
+            {}
+            }
+          />
+
         </div>
       </div>
     </div>

@@ -12,7 +12,7 @@ export const listRols = async (): Promise<RolResponse> => {
   const payload = (await response.json()) as RolResponse;
 
   if (!response.ok) {
-    throw new Error("No se encontraron usuarios");
+    throw new Error("No se encontraron roles");
   }
 
   return payload;
