@@ -91,6 +91,17 @@ const usuarioService = {
 
     return data;
   },
+  async getUsersByRole() {
+
+    const result = await usuarioRepository.getUsersByRole();
+
+    return result.map(r => ({
+      rol: r.nombre,
+      totalUsuarios: r.usuarios.length,
+      usuarios: r.usuarios
+    }));
+
+  },
 
   async update(idParam, { nombreCompleto, correo, usuario, password, rolId, sucursalId, estado }) {
     const id = BigInt(idParam);
