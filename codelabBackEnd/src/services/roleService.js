@@ -8,7 +8,16 @@ export const createRole = async (data) => {
 
 export const getAllRoles = async () => {
 
-  return repository.getAllRoles();
+  const roles = await repository.getAllRoles();
+
+  return roles.map(r => ({
+    id: r.id,
+    nombre: r.nombre,
+    descripcion: r.descripcion,
+    disponible: r.disponible,
+    createdAt: r.createdAt,
+    totalUsuariosRol: r._count.usuarios
+  }));
 
 };
 

@@ -12,7 +12,18 @@ export const createRole = async (data) => {
 export const getAllRoles = async () => {
 
   return prisma.rol.findMany({
-    where: { disponible: true }
+    select: {
+      id: true,
+      nombre: true,
+      descripcion: true,
+      disponible: true,
+      createdAt: true,
+      _count: {
+        select: {
+          usuarios: true
+        }
+      }
+    }
   });
 
 };
