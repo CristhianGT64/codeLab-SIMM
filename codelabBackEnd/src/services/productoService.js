@@ -173,8 +173,14 @@ const productoService = {
     return prod;
   },
 
-  async update(idParam, body) {
+  async update(idParam, body = {}) {
     const id = BigInt(idParam);
+
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+      const err = new Error('Body de solicitud inválido para actualizar producto.');
+      err.status = 400;
+      throw err;
+    }
 
     const current = await productoRepository.findById(id);
     if (!current) {
@@ -226,6 +232,7 @@ const productoService = {
     if (body.precioVenta !== undefined) data.precioVenta = body.precioVenta;
     if (body.unidadMedida !== undefined) data.unidadMedida = body.unidadMedida;
     if (body.categoriaId !== undefined) data.categoriaId = BigInt(body.categoriaId);
+    if (body.imagenPath !== undefined) data.imagenPath = body.imagenPath;
 
     return productoRepository.update(id, data);
   },

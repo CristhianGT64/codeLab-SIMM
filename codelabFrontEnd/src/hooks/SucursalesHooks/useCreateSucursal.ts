@@ -5,7 +5,7 @@ const useCreateSucursal = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createSucursal,
-    onSuccess: () => queryClient.invalidateQueries(["sucursales"]),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sucursales"] }),
   });
 };
 
