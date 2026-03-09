@@ -5,4 +5,5 @@ export interface CardPermissionRolesInterface {
     description : string;
     totalPermissionAssigned : number;
     totalUserRol : number;
+    onDelete : (id : string) => void | Promise<void>
 }

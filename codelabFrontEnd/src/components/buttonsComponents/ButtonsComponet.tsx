@@ -24,7 +24,7 @@ export default function ButtonsComponet(props: Readonly<ButtonsInterface>) {
       onClick={props.onClick}
       disabled={props.disabled}
     >
-      <FontAwesomeIcon icon={["fas", iconName]} />
+      {props.icon === '' ? '' : <FontAwesomeIcon icon={["fas", iconName]} />}
       <span >{props.text}</span>
     </button>
   );

@@ -13,7 +13,20 @@ const usuarioController = {
       next(e);
     }
   },
+  async getUsersByRole(req, res, next) {
+    try {
 
+      const data = await usuarioService.getUsersByRole();
+
+      res.json({
+        success: true,
+        data
+      });
+
+    } catch (e) {
+      next(e);
+    }
+  },
   async getAll(req, res, next) {
     try {
       const data = await usuarioService.getAll();

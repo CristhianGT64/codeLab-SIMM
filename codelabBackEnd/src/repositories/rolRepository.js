@@ -4,7 +4,7 @@ const rolRepository = {
   getAll() {
     return prisma.rol.findMany({
       orderBy: { id: 'asc' },
-      select: { id: true, nombre: true, descripcion: true, disponible: true },
+      select: { id: true, nombre: true, descripcion: true, disponible: true,  },
     });
   },
 

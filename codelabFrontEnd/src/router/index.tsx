@@ -10,6 +10,7 @@ import FormUser from '../pages/Administration/Users/FormUser';
 import ProductManagement from '../pages/Administration/Products/ProductManagement';
 import { AuthProvider } from '../context/AuthContext';
 import ProtectedRoute from '../components/ProtectedRoute';
+import PermissionGate from '../components/PermissionGate';
 import FormProduct from '../pages/Administration/Products/FormProduct';
 import RolesPermisionManagment from '../pages/Administration/RolesPermission/RolesPermisionManagment';
 import FormRoles from '../pages/Administration/RolesPermission/FormRoles';
@@ -40,19 +41,27 @@ const AppRouter = () => (
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/Users-Management" element={<UserManagement />} />
-            <Route path="/Users-Management/Create-User" element={<FormUser/>} />
-            <Route path="/Users-Management/Update-User/:id" element={<FormUser/>} />
-            <Route path="/Branches-Management" element={<Branches />} />
-            <Route path="/Product-Management" element={<ProductManagement />} />
-            <Route path="/Product-Management/Create-Product" element={<FormProduct />} />
-            <Route path="/Product-Management/Update-Product/:id" element={<FormProduct />} />
-            <Route path="/Branches-Management/Create-Sucursal" element={<FormSucursal />} />
-            <Route path="/Branches-Management/Update-Sucursal/:id" element={<FormSucursal />} />
-            <Route path="/RolesPermision-Management/" element={<RolesPermisionManagment />} />
-            <Route path="/RolesPermision-Management/Create-Permisssion" element={<FormPermissions />} />
-            <Route path="/RolesPermision-Management/Create-Roles" element={<FormRoles />} />
-            <Route path="/RolesPermision-Management/Update-Roles/:id" element={<FormRoles />} />
+
+            {/* Usuarios */}
+            <Route path="/Users-Management" element={<PermissionGate permiso="Ver usuarios"><UserManagement /></PermissionGate>} />
+            <Route path="/Users-Management/Create-User" element={<PermissionGate permiso="Crear usuarios"><FormUser/></PermissionGate>} />
+            <Route path="/Users-Management/Update-User/:id" element={<PermissionGate permiso="Editar usuarios"><FormUser/></PermissionGate>} />
+
+            {/* Sucursales */}
+            <Route path="/Branches-Management" element={<PermissionGate permiso="Ver sucursales"><Branches /></PermissionGate>} />
+            <Route path="/Branches-Management/Create-Sucursal" element={<PermissionGate permiso="Crear sucursales"><FormSucursal /></PermissionGate>} />
+            <Route path="/Branches-Management/Update-Sucursal/:id" element={<PermissionGate permiso="Editar sucursales"><FormSucursal /></PermissionGate>} />
+
+            {/* Productos */}
+            <Route path="/Product-Management" element={<PermissionGate permiso="Ver productos"><ProductManagement /></PermissionGate>} />
+            <Route path="/Product-Management/Create-Product" element={<PermissionGate permiso="Crear productos"><FormProduct /></PermissionGate>} />
+            <Route path="/Product-Management/Update-Product/:id" element={<PermissionGate permiso="Editar productos"><FormProduct /></PermissionGate>} />
+
+            {/* Roles y Permisos */}
+            <Route path="/RolesPermision-Management/" element={<PermissionGate permiso="Ver roles"><RolesPermisionManagment /></PermissionGate>} />
+            <Route path="/RolesPermision-Management/Create-Permisssion" element={<PermissionGate permiso="Crear permisos"><FormPermissions /></PermissionGate>} />
+            <Route path="/RolesPermision-Management/Create-Roles" element={<PermissionGate permiso="Crear roles"><FormRoles /></PermissionGate>} />
+            <Route path="/RolesPermision-Management/Update-Roles/:id" element={<PermissionGate permiso="Editar roles"><FormRoles /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>

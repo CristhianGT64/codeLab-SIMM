@@ -75,7 +75,23 @@ const usuarioRepository = {
       },
     });
   },
-
+  getUsersByRole() {
+    return prisma.rol.findMany({
+      select: {
+        id: true,
+        nombre: true,
+        usuarios: {
+          where: { eliminado: false },
+          select: {
+            id: true,
+            nombreCompleto: true,
+            correo: true,
+            usuario: true
+          }
+        }
+      }
+    });
+  },
   getNotDeletedById(id) {
     return prisma.usuario.findFirst({
       where: { id, eliminado: false },
@@ -172,6 +188,8 @@ const usuarioRepository = {
       select: { id: true },
     });
   },
+
+  
 };
 
 export default usuarioRepository;
