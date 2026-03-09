@@ -1,13 +1,12 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faPenToSquare,
-  faTrashCan,
   faShield,
   faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
 import type { CardPermissionRolesInterface } from "../../interfaces/cardPermissionRolesInterface/CardPermissionRolesInterface";
 import ButtonsComponet from "../buttonsComponents/ButtonsComponet";
 import { useNavigate } from "react-router";
+import { useState } from "react";
 
 const roleHeaderStyles: Record<string, string> = {
   Administrador: "bg-[#104f78]",
@@ -15,9 +14,12 @@ const roleHeaderStyles: Record<string, string> = {
   Visualizador: "bg-[#4dc9cf]",
 };
 
-export default function CardPermissionRolesComponent(infoCard : Readonly<CardPermissionRolesInterface>) {
-
-    const navigate = useNavigate();
+export default function CardPermissionRolesComponent(
+  infoCard: Readonly<CardPermissionRolesInterface>,
+) {
+  const navigate = useNavigate();
+  const [showDeleteConfirmation, setShowDeleteConfirmation] =
+    useState<boolean>(false);
 
   return (
     <div
@@ -74,33 +76,62 @@ export default function CardPermissionRolesComponent(infoCard : Readonly<CardPer
 
         {/* Botones de acción */}
         <div className="mt-4 flex gap-3">
+          <ButtonsComponet
+            text="Editar"
+            typeButton="button"
+            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0aa6a2] px-4 py-3 text-base font-semibold text-white hover:bg-[#06706d]"
+            icon="fa-solid fa-pen-to-square"
+            onClick={() =>
+              navigate(`/RolesPermision-Management/Update-Roles/${infoCard.id}`)
+            }
+            disabled={false}
+          />
+          {!showDeleteConfirmation && (
             <ButtonsComponet
-              text='Editar'
+              text=""
               typeButton="button"
-              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0aa6a2] px-4 py-3 text-base font-semibold text-white hover:bg-[#06706d]"
-              icon="fa-solid fa-pen-to-square"
-              onClick={() => navigate(`/RolesPermision-Management/Update-Roles/${infoCard.id}`)}
-              disabled={false}
+              disabled={infoCard.totalUserRol > 0}
+              className={`flex w-12  items-center justify-center rounded-xl border-2 text-lg ${
+                infoCard.totalUserRol > 0
+                  ? "border-[#d1d5db] bg-[#f3f4f6] text-[#9ca3af] cursor-not-allowed"
+                  : "border-[#fde2e2] bg-[#fef2f2] text-[#c20000] hover:bg-[#fde2e2] cursor-pointer"
+              }`}
+              icon="fa-solid fa-trash-can"
+              onClick={() => {
+                setShowDeleteConfirmation(true);
+              }}
             />
-          <button
-            type="button"
-            className=""
-          >
-            <FontAwesomeIcon icon={faPenToSquare} />
-            Editar
-          </button>
-          <button
-            type="button"
-            disabled={infoCard.totalUserRol > 0}
-            className={`flex w-12 cursor-pointer items-center justify-center rounded-xl border-2 text-lg ${
-              infoCard.totalUserRol > 0
-                ? "border-[#d1d5db] bg-[#f3f4f6] text-[#9ca3af] cursor-not-allowed"
-                : "border-[#fde2e2] bg-[#fef2f2] text-[#c20000] hover:bg-[#fde2e2]"
-            }`}
-          >
-            <FontAwesomeIcon icon={faTrashCan} />
-          </button>
+          )}
         </div>
+
+        {/* Botones de confirmacion para eliminar (conectar visibilidad con tu logica) */}
+        {showDeleteConfirmation && (
+          <div>
+            <p className="p-2 mb-2 block text-sm font-semibold text-[#0a4d76]">
+              ¿Desea eliminar este rol?
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <ButtonsComponet
+                text="Confirmar"
+                typeButton="button"
+                className="h-11 cursor-pointer rounded-xl bg-[#e00000] text-base font-semibold text-white hover:bg-[#b40000]"
+                icon=""
+                onClick={() => infoCard.onDelete(infoCard.id)}
+                disabled={false}
+              />
+              <ButtonsComponet
+                text="Cancelar"
+                typeButton="button"
+                className="h-11 cursor-pointer rounded-xl bg-[#d1d5db] text-base font-semibold text-[#374151] hover:bg-[#bcc4cf]"
+                icon=""
+                onClick={() => {
+                  setShowDeleteConfirmation(false);
+                }}
+                disabled={false}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
