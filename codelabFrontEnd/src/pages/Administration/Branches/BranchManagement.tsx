@@ -10,11 +10,13 @@ import {
 import useListSucursales from '../../../hooks/SucursalesHooks/useListSucursales';
 import useChangeSucursalStatus from '../../../hooks/SucursalesHooks/useChangeSucursalStatus';
 import CardTotalComponent from '../../../components/cardTotalComponent/CardTotalComponent';
+import useAuth from '../../../hooks/useAuth';
 
 const Branches = () => {
   const sucursalesQuery = useListSucursales();
   const statusMutation = useChangeSucursalStatus();
   const navigate = useNavigate();
+  const { tienePermiso } = useAuth();
 
   const [search, setSearch] = useState('');
 
@@ -68,14 +70,16 @@ const Branches = () => {
               className="w-full bg-transparent text-base text-[#6a758f] placeholder:text-[#8891a7] outline-none md:text-lg"
             />
           </label>
-          <ButtonsComponet
-            text="Nueva sucursal"
-            typeButton="button"
-            className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
-            icon="fa-solid fa-plus"
-            onClick={() => goToForm()}
-            disabled={false}
-          />
+          {tienePermiso("Crear sucursales") && (
+            <ButtonsComponet
+              text="Nueva sucursal"
+              typeButton="button"
+              className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
+              icon="fa-solid fa-plus"
+              onClick={() => goToForm()}
+              disabled={false}
+            />
+          )}
         </div>
       </div>
 
@@ -142,28 +146,32 @@ const Branches = () => {
                   </td>
                   <td className="px-4 py-4 text-center">
                     <div className="flex items-center justify-center gap-4 text-lg md:text-xl">
-                      <button
-                        type="button"
-                        className={`cursor-pointer ${
-                          s.activa
-                            ? 'text-[#ff5e00] hover:text-[#b64402]'
-                            : 'text-[#24e775] hover:text-[#008444]'
-                        } `}
-                        aria-label={`Cambiar estado de ${s.nombre}`}
-                        onClick={() =>
-                          statusMutation.mutate(s.id)
-                        }
-                      >
-                        <FontAwesomeIcon icon={faPowerOff} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => goToForm(s)}
-                        className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
-                        aria-label={`Editar ${s.nombre}`}
-                      >
-                        <FontAwesomeIcon icon={faPenToSquare} />
-                      </button>
+                      {tienePermiso("Editar sucursales") && (
+                        <button
+                          type="button"
+                          className={`cursor-pointer ${
+                            s.activa
+                              ? 'text-[#ff5e00] hover:text-[#b64402]'
+                              : 'text-[#24e775] hover:text-[#008444]'
+                          } `}
+                          aria-label={`Cambiar estado de ${s.nombre}`}
+                          onClick={() =>
+                            statusMutation.mutate(s.id)
+                          }
+                        >
+                          <FontAwesomeIcon icon={faPowerOff} />
+                        </button>
+                      )}
+                      {tienePermiso("Editar sucursales") && (
+                        <button
+                          type="button"
+                          onClick={() => goToForm(s)}
+                          className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
+                          aria-label={`Editar ${s.nombre}`}
+                        >
+                          <FontAwesomeIcon icon={faPenToSquare} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

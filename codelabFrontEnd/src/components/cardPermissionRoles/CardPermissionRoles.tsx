@@ -7,6 +7,7 @@ import type { CardPermissionRolesInterface } from "../../interfaces/cardPermissi
 import ButtonsComponet from "../buttonsComponents/ButtonsComponet";
 import { useNavigate } from "react-router";
 import { useState } from "react";
+import useAuth from "../../hooks/useAuth";
 
 const roleHeaderStyles: Record<string, string> = {
   Administrador: "bg-[#104f78]",
@@ -20,6 +21,7 @@ export default function CardPermissionRolesComponent(
   const navigate = useNavigate();
   const [showDeleteConfirmation, setShowDeleteConfirmation] =
     useState<boolean>(false);
+  const { tienePermiso } = useAuth();
 
   return (
     <div
@@ -76,17 +78,19 @@ export default function CardPermissionRolesComponent(
 
         {/* Botones de acción */}
         <div className="mt-4 flex gap-3">
-          <ButtonsComponet
-            text="Editar"
-            typeButton="button"
-            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0aa6a2] px-4 py-3 text-base font-semibold text-white hover:bg-[#06706d]"
-            icon="fa-solid fa-pen-to-square"
-            onClick={() =>
-              navigate(`/RolesPermision-Management/Update-Roles/${infoCard.id}`)
-            }
-            disabled={false}
-          />
-          {!showDeleteConfirmation && (
+          {tienePermiso("Editar roles") && (
+            <ButtonsComponet
+              text="Editar"
+              typeButton="button"
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0aa6a2] px-4 py-3 text-base font-semibold text-white hover:bg-[#06706d]"
+              icon="fa-solid fa-pen-to-square"
+              onClick={() =>
+                navigate(`/RolesPermision-Management/Update-Roles/${infoCard.id}`)
+              }
+              disabled={false}
+            />
+          )}
+          {tienePermiso("Eliminar roles") && !showDeleteConfirmation && (
             <ButtonsComponet
               text=""
               typeButton="button"

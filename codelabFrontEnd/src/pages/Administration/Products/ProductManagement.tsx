@@ -18,6 +18,7 @@ import { useMemo, useState } from "react";
 import useInactiveProducto from "../../../hooks/ProductosHooks/useInactiveProducto";
 import useActivateProducto from "../../../hooks/ProductosHooks/useActiveProducto";
 import settings from "../../../lib/settings";
+import useAuth from "../../../hooks/useAuth";
 
 const categoryStyles: Record<string, string> = {
   Tecnología: "bg-[#104f78] text-white",
@@ -30,6 +31,7 @@ export default function ProductManagement() {
   const mockProducts = listProduct?.data ?? [];
   const inactiveProduct = useInactiveProducto();
   const activeProduct = useActivateProducto();
+  const { tienePermiso } = useAuth();
 
   const summary = useMemo(() => {
     const toNumber = (value: string | number | null | undefined) => {
@@ -124,14 +126,16 @@ export default function ProductManagement() {
             />
           </label>
 
-          <ButtonsComponet
-            text="Nuevo Producto"
-            typeButton="button"
-            className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
-            icon="fa-solid fa-plus"
-            onClick={() => navigate("/Product-Management/Create-Product")}
-            disabled={false}
-          />
+          {tienePermiso("Crear productos") && (
+            <ButtonsComponet
+              text="Nuevo Producto"
+              typeButton="button"
+              className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
+              icon="fa-solid fa-plus"
+              onClick={() => navigate("/Product-Management/Create-Product")}
+              disabled={false}
+            />
+          )}
         </div>
       </div>
 
@@ -256,34 +260,38 @@ export default function ProductManagement() {
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center justify-center gap-4 text-lg md:text-xl">
-                      <button
-                        type="button"
-                        className={`cursor-pointer ${
-                          product.estado === "activo"
-                            ? "text-[#ff5e00] hover:text-[#b64402]"
-                            : "text-[#24e775] hover:text-[#008444]"
-                        }`}
-                        aria-label={`Cambiar estado de ${product.nombre}`}
-                        onClick={
-                          product.estado === "activo"
-                            ? () => inactiveProduct.mutate(product.id)
-                            : () => activeProduct.mutate(product.id)
-                        }
-                      >
-                        <FontAwesomeIcon icon={faPowerOff} />
-                      </button>
-                      <button
-                        type="button"
-                        className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
-                        aria-label={`Editar ${product.nombre}`}
-                        onClick={() =>
-                          navigate(
-                            `/Product-Management/Update-Product/${product.id}`,
-                          )
-                        }
-                      >
-                        <FontAwesomeIcon icon={faPenToSquare} />
-                      </button>
+                      {tienePermiso("Editar productos") && (
+                        <button
+                          type="button"
+                          className={`cursor-pointer ${
+                            product.estado === "activo"
+                              ? "text-[#ff5e00] hover:text-[#b64402]"
+                              : "text-[#24e775] hover:text-[#008444]"
+                          }`}
+                          aria-label={`Cambiar estado de ${product.nombre}`}
+                          onClick={
+                            product.estado === "activo"
+                              ? () => inactiveProduct.mutate(product.id)
+                              : () => activeProduct.mutate(product.id)
+                          }
+                        >
+                          <FontAwesomeIcon icon={faPowerOff} />
+                        </button>
+                      )}
+                      {tienePermiso("Editar productos") && (
+                        <button
+                          type="button"
+                          className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
+                          aria-label={`Editar ${product.nombre}`}
+                          onClick={() =>
+                            navigate(
+                              `/Product-Management/Update-Product/${product.id}`,
+                            )
+                          }
+                        >
+                          <FontAwesomeIcon icon={faPenToSquare} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
