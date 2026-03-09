@@ -98,3 +98,28 @@ export const getRolePermissions = async (roleId) => {
   });
 
 };
+
+
+export const getRoleById = async (id) => {
+
+  return prisma.rol.findUnique({
+    where: { id },
+    include: {
+      rolPermisos: {
+        include: {
+          permiso: {
+            select: {
+              id: true,
+              nombre: true,
+              descripcion: true,
+              disponible: true,
+              createdAt: true,
+              categoriaId: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+};

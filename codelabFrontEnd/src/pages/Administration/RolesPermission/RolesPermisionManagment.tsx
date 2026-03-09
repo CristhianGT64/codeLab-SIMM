@@ -9,6 +9,7 @@ import { HeaderRolesPermission } from "../../../data/dataAdministrator/RolesPerm
 import CardPermissionRolesComponent from "../../../components/cardPermissionRoles/CardPermissionRoles";
 import useListRols from "../../../hooks/RolesHooks/useListRols";
 import useListPermisos from "../../../hooks/PermisosHook/useListPermisos";
+import useDeleteRol from "../../../hooks/RolesHooks/useDeleteRol";
 
 export default function RolesPermisionManagment() {
   const { data: rolesData } = useListRols();
@@ -16,6 +17,9 @@ export default function RolesPermisionManagment() {
   const roles = rolesData?.data ?? [];
   const Permisos = permisosData?.data ?? [];
   const navigate = useNavigate();
+  const deleteRolMutation = useDeleteRol();
+
+  const rolesFiltred = roles.filter((rol) => rol.disponible === true)
 
   const {totalRoles, totalRolesSistema, totalPermisos} = useMemo(
     () => ({
@@ -25,6 +29,10 @@ export default function RolesPermisionManagment() {
     }),
     [roles],
   );
+
+  const handleDeleteRole = async (id : string) => {
+     deleteRolMutation.mutate(id);
+  }
 
   return (
     <section className="w-full px-4 py-5 md:px-6">
@@ -92,7 +100,7 @@ export default function RolesPermisionManagment() {
       {/* Grid de tarjetas de roles */}
 
       <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {roles.map((rol) => (
+        {rolesFiltred.map((rol) => (
           <CardPermissionRolesComponent
             key={`${rol.id}-${rol.nombre}`}
             id={String(rol.id)}
@@ -101,6 +109,7 @@ export default function RolesPermisionManagment() {
             description={rol.descripcion}
             totalPermissionAssigned={rol.totalPermisosRol}
             totalUserRol={rol.totalUsuariosRol}
+            onDelete={handleDeleteRole}
           />
         ))}
       </div>

@@ -6,6 +6,7 @@ import {
 import type { CardPermissionRolesInterface } from "../../interfaces/cardPermissionRolesInterface/CardPermissionRolesInterface";
 import ButtonsComponet from "../buttonsComponents/ButtonsComponet";
 import { useNavigate } from "react-router";
+import { useState } from "react";
 
 const roleHeaderStyles: Record<string, string> = {
   Administrador: "bg-[#104f78]",
@@ -17,6 +18,8 @@ export default function CardPermissionRolesComponent(
   infoCard: Readonly<CardPermissionRolesInterface>,
 ) {
   const navigate = useNavigate();
+  const [showDeleteConfirmation, setShowDeleteConfirmation] =
+    useState<boolean>(false);
 
   return (
     <div
@@ -83,22 +86,52 @@ export default function CardPermissionRolesComponent(
             }
             disabled={false}
           />
-          <ButtonsComponet
-            text=""
-            typeButton="button"
-            disabled={infoCard.totalUserRol > 0}
-            className={`flex w-12  items-center justify-center rounded-xl border-2 text-lg ${
-              infoCard.totalUserRol > 0
-                ? "border-[#d1d5db] bg-[#f3f4f6] text-[#9ca3af] cursor-not-allowed"
-                : "border-[#fde2e2] bg-[#fef2f2] text-[#c20000] hover:bg-[#fde2e2] cursor-pointer" 
-            }`}
-            icon="fa-solid fa-trash-can"
-            onClick={() =>
-            {}
-            }
-          />
-
+          {!showDeleteConfirmation && (
+            <ButtonsComponet
+              text=""
+              typeButton="button"
+              disabled={infoCard.totalUserRol > 0}
+              className={`flex w-12  items-center justify-center rounded-xl border-2 text-lg ${
+                infoCard.totalUserRol > 0
+                  ? "border-[#d1d5db] bg-[#f3f4f6] text-[#9ca3af] cursor-not-allowed"
+                  : "border-[#fde2e2] bg-[#fef2f2] text-[#c20000] hover:bg-[#fde2e2] cursor-pointer"
+              }`}
+              icon="fa-solid fa-trash-can"
+              onClick={() => {
+                setShowDeleteConfirmation(true);
+              }}
+            />
+          )}
         </div>
+
+        {/* Botones de confirmacion para eliminar (conectar visibilidad con tu logica) */}
+        {showDeleteConfirmation && (
+          <div>
+            <p className="p-2 mb-2 block text-sm font-semibold text-[#0a4d76]">
+              ¿Desea eliminar este rol?
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <ButtonsComponet
+                text="Confirmar"
+                typeButton="button"
+                className="h-11 cursor-pointer rounded-xl bg-[#e00000] text-base font-semibold text-white hover:bg-[#b40000]"
+                icon=""
+                onClick={() => infoCard.onDelete(infoCard.id)}
+                disabled={false}
+              />
+              <ButtonsComponet
+                text="Cancelar"
+                typeButton="button"
+                className="h-11 cursor-pointer rounded-xl bg-[#d1d5db] text-base font-semibold text-[#374151] hover:bg-[#bcc4cf]"
+                icon=""
+                onClick={() => {
+                  setShowDeleteConfirmation(false);
+                }}
+                disabled={false}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

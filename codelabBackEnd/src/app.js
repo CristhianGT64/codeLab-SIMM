@@ -92,6 +92,7 @@ app.patch('/sucursales/:id/estado', sucursalController.changeSucursalStatus);
 
 // Roles
 app.get('/roles', roleController.getAll);
+app.get('/roles/:id', roleController.getById);
 app.post('/roles', roleController.create);
 app.put('/roles/:id', roleController.update); // modificar nombre de rol
 app.delete('/roles/:id', roleController.remove); // eliminar rol validando usuarios

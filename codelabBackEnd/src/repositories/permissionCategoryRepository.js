@@ -11,7 +11,12 @@ export const createPermissionCategory = async (data) => {
 export const getAllPermissionCategories = async () => {
 
   return prisma.categoriaPermiso.findMany({
-    where: { disponible: true }
+    where: { disponible: true },
+    include: {
+      permisos: {
+        where: { disponible: true }
+      }
+    }
   });
 
 };

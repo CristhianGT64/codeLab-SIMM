@@ -4,6 +4,8 @@ import { faArrowLeft, faShield } from "@fortawesome/free-solid-svg-icons";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import useListCategoriaPermisos from "../../../hooks/PermisosHook/useListCategoriaPermisos";
 import {
+  type CreateCategoriaPermission,
+  CreateCategoriaPermissionEmpy,
   type FormPermission,
   FormPermissionEmpty,
 } from "../../../interfaces/PermisosInterface/categoriaPermisos";
@@ -11,8 +13,12 @@ import InfImportante from "../../../components/informacionImportante/InfImportan
 import {
   InformacionImportantePermisos,
   HeaderCreatePermission,
+  notificacionExito,
+  notificacionFracaso,
+  buttonCancelar,
+  buttonCrearPermiso,
 } from "../../../data/dataAdministrator/PermissionDataAdmin";
-import useCreatePermission from "../../../hooks/PermisosHook/useCreateHook";
+import useCreatePermission from "../../../hooks/PermisosHook/useCreatePermiso";
 import StatusNotification from "../../../components/notifications/StatusNotification";
 import {
   type NotificationStateInterface,
@@ -20,17 +26,25 @@ import {
 } from "../../../interfaces/NotificacionesInterface";
 import { useNavigate } from "react-router";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
+import useCreateCategoriaPermiso from "../../../hooks/PermisosHook/useCreateCategoriaPermiso";
 
 export default function FormPermissions() {
   const { data: categoriaPermisosData } = useListCategoriaPermisos();
   const [isNewCategory, setIsNewCategory] = useState<boolean>(false);
   const categoriaPermisos = categoriaPermisosData?.data ?? [];
-  const { mutateAsync: createPermisionMatuation, isSuccess: permissionSucces } =
-    useCreatePermission();
+  const {
+    mutateAsync: createPermisionMatuation,
+    isSuccess: permissionSucces,
+    isPending: isCreatingPermission,
+  } = useCreatePermission();
+  const { mutateAsync: createCategoriaPermiso } =
+    useCreateCategoriaPermiso();
   const [notification, setNotification] =
     useState<NotificationStateInterface>(NotificacionData);
   const [form, setForm] = useState<FormPermission>(FormPermissionEmpty);
   const navigate = useNavigate();
+  const [categoria, setCategoria] =
+    useState<CreateCategoriaPermission>(CreateCategoriaPermissionEmpy);
 
   const onChangeField =
     (field: keyof FormPermission) =>
@@ -39,22 +53,46 @@ export default function FormPermissions() {
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       >,
     ) => {
-      setForm((prev) => ({ ...prev, [field]: event.target.value }));
+      const nextValue =
+        field === "categoriaId"
+          ? Number(event.target.value)
+          : event.target.value;
+
+      setForm((prev) => ({ ...prev, [field]: nextValue }));
     };
 
   const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (isCreatingPermission) {
+      return;
+    }
+
     try {
-      const created = await createPermisionMatuation(form);
+      let categoriaId = form.categoriaId;
+
+      /* Validar si es una nueva categoria */
+
+      if (isNewCategory) {
+        const categoriaCreada = await createCategoriaPermiso(categoria);
+        categoriaId = Number(categoriaCreada.data.id);
+
+        if (Number.isNaN(categoriaId)) {
+          throw new TypeError("Categoria invalida");
+        }
+
+        
+      }
+
+      const payload: FormPermission = {
+        ...form,
+        categoriaId,
+      };
+
+      const created = await createPermisionMatuation(payload);
 
       if (created || permissionSucces) {
-        setNotification({
-          isVisible: true,
-          variant: "success",
-          title: "Permiso creado",
-          message: "El permiso se creo correctamente.",
-        });
+        setNotification({ ...notificacionExito });
 
         globalThis.setTimeout(() => {
           navigate("/RolesPermision-Management");
@@ -63,21 +101,9 @@ export default function FormPermissions() {
         return;
       }
 
-      setNotification({
-        isVisible: true,
-        variant: "error",
-        title: "No se pudo crear el permiso",
-        message:
-          "La operacion no pudo completarse. Intenta de nuevo en unos segundos.",
-      });
+      setNotification({ ...notificacionFracaso });
     } catch {
-      setNotification({
-        isVisible: true,
-        variant: "error",
-        title: "No se pudo crear el permiso",
-        message:
-          "La operacion no pudo completarse. Intenta de nuevo en unos segundos.",
-      });
+      setNotification({ ...notificacionFracaso });
     }
   };
 
@@ -173,6 +199,9 @@ export default function FormPermissions() {
               <input
                 id="nombrePermiso"
                 type="text"
+                onChange={(event) =>
+                  setCategoria({ nombreCategoria: event.target.value })
+                }
                 placeholder="Ej: Reportes, Inventario, Ventas"
                 className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]"
               />
@@ -211,21 +240,14 @@ export default function FormPermissions() {
           {/* Botones de acción */}
           <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
             <ButtonsComponet
-              typeButton="button"
+              {...buttonCancelar}
               onClick={() => navigate("/RolesPermision-Management")}
-              disabled={false}
-              className="h-14 cursor-pointer rounded-2xl border-2 border-[#9adce2] bg-white text-2xl font-semibold text-[#4661b0] hover:bg-[#edf8fa]"
-              text="Cancelar"
-              icon="fa-solid fa-arrow-left"
             />
 
             <ButtonsComponet
-              typeButton="submit"
-              onClick={() => {}}
-              disabled={false}
-              className="inline-flex h-14 cursor-pointer items-center justify-center gap-3 rounded-2xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-2xl font-bold text-white hover:from-[#06706d] hover:to-[#334c8b] disabled:cursor-not-allowed disabled:opacity-70"
-              text="Crear Permiso"
-              icon="fa-solid fa-floppy-disk"
+              {...buttonCrearPermiso}
+              text={isCreatingPermission ? "Creando permiso..." : "Crear Permiso"}
+              disabled={isCreatingPermission}
             />
           </div>
         </form>

@@ -22,6 +22,23 @@ export const getAllRoles = async () => {
 
 };
 
+export const getRoleById = async (id) => {
+
+  const role = await repository.getRoleById(id);
+
+  if (!role) {
+    throw new Error("Role not found");
+  }
+
+  return {
+    id: role.id,
+    nombre: role.nombre,
+    descripcion: role.descripcion,
+    permisos: role.rolPermisos.map((rolePermission) => rolePermission.permiso)
+  };
+
+};
+
 export const updateRole = async (id, data) => {
 
   return repository.updateRole(id, data);

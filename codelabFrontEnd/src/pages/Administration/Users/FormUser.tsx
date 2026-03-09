@@ -274,7 +274,7 @@ export default function FormUser() {
                 {roles.length > 0 ? (
                   roles.map((rol) => (
                     <option key={rol.id} value={rol.id}>
-                      {rol.descripcion}
+                      {rol.nombre}
                     </option>
                   ))
                 ) : (
