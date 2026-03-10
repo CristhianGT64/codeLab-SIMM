@@ -14,6 +14,7 @@ import * as permissionCategoryController from './controllers/permissionCategoryC
 import * as permissionController from './controllers/permissionController.js';
 import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
+import * as invoiceTypeController from './controllers/invoiceTypeController.js';
 
 //Parche: convierte de BigInt a String para que lo soporte Json.
 BigInt.prototype.toJSON = function() {
@@ -121,6 +122,13 @@ app.put('/usuarios/:id', usuarioController.update);
 app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
+
+// Invoice Types (Tipos de Documento o facturas)
+app.post('/invoice-types', invoiceTypeController.create);
+app.get('/invoice-types', invoiceTypeController.getAll);
+app.get('/invoice-types/:id', invoiceTypeController.getById);
+app.put('/invoice-types/:id', invoiceTypeController.update);
+app.patch('/invoice-types/:id/status', invoiceTypeController.updateStatus);
 
 
 // Rutas de clientes
