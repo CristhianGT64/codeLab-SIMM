@@ -20,7 +20,8 @@ export const getAllRoles = async () => {
       createdAt: true,
       _count: {
         select: {
-          usuarios: true
+          usuarios: true,
+          rolPermisos: true
         }
       }
     }
@@ -93,6 +94,31 @@ export const getRolePermissions = async (roleId) => {
     where: { rolId: roleId },
     include: {
       permiso: true
+    }
+  });
+
+};
+
+
+export const getRoleById = async (id) => {
+
+  return prisma.rol.findUnique({
+    where: { id },
+    include: {
+      rolPermisos: {
+        include: {
+          permiso: {
+            select: {
+              id: true,
+              nombre: true,
+              descripcion: true,
+              disponible: true,
+              createdAt: true,
+              categoriaId: true
+            }
+          }
+        }
+      }
     }
   });
 

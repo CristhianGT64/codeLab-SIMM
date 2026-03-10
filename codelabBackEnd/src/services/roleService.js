@@ -16,8 +16,26 @@ export const getAllRoles = async () => {
     descripcion: r.descripcion,
     disponible: r.disponible,
     createdAt: r.createdAt,
-    totalUsuariosRol: r._count.usuarios
+    totalUsuariosRol: r._count.usuarios,
+    totalPermisosRol: r._count.rolPermisos
   }));
+
+};
+
+export const getRoleById = async (id) => {
+
+  const role = await repository.getRoleById(id);
+
+  if (!role) {
+    throw new Error("Role not found");
+  }
+
+  return {
+    id: role.id,
+    nombre: role.nombre,
+    descripcion: role.descripcion,
+    permisos: role.rolPermisos.map((rolePermission) => rolePermission.permiso)
+  };
 
 };
 

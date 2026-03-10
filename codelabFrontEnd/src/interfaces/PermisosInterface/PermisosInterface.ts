@@ -8,5 +8,13 @@ export interface Permisos {
 
 export interface ResponsePermisos {
     success : boolean,
-    data : Permisos
+    data : Permisos[]
+}
+
+export interface FormPermisoSeleccionados {
+    permissions : string[]
+}
+
+export const permisosSeleccionadosEmpty : FormPermisoSeleccionados = {
+    permissions : []
 }

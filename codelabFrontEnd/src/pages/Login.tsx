@@ -29,7 +29,7 @@ export default function Login() {
 				}
 
 				// Usar el contexto de autenticación para guardar el usuario
-				login(result.data);
+				await login(result.data);
 				navigate("/dashboard");
 			} catch (error) {
 				console.error(error);

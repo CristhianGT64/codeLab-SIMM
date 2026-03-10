@@ -1,6 +1,6 @@
 import type PropsButtons from "../../interfaces/ButtonInterface/ButtonsInterface";
 
-export default function ButtonLogin(props : PropsButtons) {
+export default function ButtonLogin(props : Readonly<PropsButtons>) {
 
   return (
     <button
