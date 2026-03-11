@@ -29,7 +29,7 @@ export default function Login() {
 				}
 
 				// Usar el contexto de autenticación para guardar el usuario
-				login(result.data);
+				await login(result.data);
 				navigate("/dashboard");
 			} catch (error) {
 				console.error(error);
@@ -52,14 +52,14 @@ export default function Login() {
 						className="grid gap-5 px-7 pb-8 pt-7"
 					>
 						<label className="grid gap-2 text-[20px] font-semibold text-[#1f4f6f]">
-							<span>Correo electrónico</span>
+							<span>Usuario</span>
 							<input
 								type="email"
 								value={email}
 								onChange={(event) => setEmail(event.target.value)}
 								disabled={isLoading}
 								required
-								placeholder="tu@email.com"
+								placeholder="user43"
 								className="rounded-[14px] border-2 border-[#9dd0d8] bg-transparent px-4 py-3 text-[22px] text-[#3a5b74] outline-none placeholder:text-[#93a4b2] focus:border-[#4a6eb0]"
 							/>
 						</label>

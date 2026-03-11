@@ -79,7 +79,7 @@ app.get('/productos/unidades', productoController.unidades);
 app.post('/productos', uploadProductoImage.single('imagen'), productoController.create);
 app.get('/productos', productoController.list);
 app.get('/productos/:id', productoController.getById);
-app.put('/productos/:id', productoController.update);
+app.put('/productos/:id', uploadProductoImage.single('imagen'), productoController.update);
 app.patch('/productos/:id', productoController.patch);
 app.delete('/productos/:id', productoController.remove);
 
@@ -92,6 +92,7 @@ app.patch('/sucursales/:id/estado', sucursalController.changeSucursalStatus);
 
 // Roles
 app.get('/roles', roleController.getAll);
+app.get('/roles/:id', roleController.getById);
 app.post('/roles', roleController.create);
 app.put('/roles/:id', roleController.update); // modificar nombre de rol
 app.delete('/roles/:id', roleController.remove); // eliminar rol validando usuarios
@@ -113,11 +114,14 @@ app.get('/roles/:id/permissions', roleController.getPermissions)
 // Usuarios
 app.post('/usuarios', usuarioController.create);
 app.get('/usuarios', usuarioController.getAll);
+// Rutas para obtener usuarios por rol y para operaciones CRUD específicas (Opcional por si se necesitan)
+app.get('/usuarios/roles', usuarioController.getUsersByRole);
 app.get('/usuarios/:id', usuarioController.getById);
 app.put('/usuarios/:id', usuarioController.update);
 app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
+
 
 // Rutas de clientes
 app.post('/clientes', clientController.createClient);

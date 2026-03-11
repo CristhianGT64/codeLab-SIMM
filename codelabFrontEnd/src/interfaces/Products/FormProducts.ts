@@ -26,7 +26,7 @@ export interface ProductoDto {
   costo: number;
   precioVenta: number;
   unidadMedida: string;
-  imagenPath: number;
+  imagenPath: string | null;
   estado: string;
   categoria: Categoria;
   inventarios : Inventarios []
@@ -38,6 +38,12 @@ export interface ProductResponse {
       success: boolean;
       data: ProductoDto[];
 }
+export interface ProductReadResponse {
+      success: boolean;
+      data: ProductoDto;
+}
+
+
 
 export interface CategoriaProducto {
     id : string;

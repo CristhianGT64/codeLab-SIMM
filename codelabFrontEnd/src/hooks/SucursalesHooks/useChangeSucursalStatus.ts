@@ -7,7 +7,7 @@ const useChangeSucursalStatus = () => {
     mutationFn: (id: string) => changeSucursalStatus(id),
     onMutate: async (id: string) => {
       // En caché, invertimos el estado de la sucursal para una respuesta más rápida.
-      await queryClient.cancelQueries(["sucursales"]);
+      await queryClient.cancelQueries({ queryKey: ["sucursales"] });
       const previous = queryClient.getQueryData<any>(["sucursales"]);
       if (previous) {
         queryClient.setQueryData(["sucursales"], {
@@ -25,7 +25,7 @@ const useChangeSucursalStatus = () => {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["sucursales"]);
+      queryClient.invalidateQueries({ queryKey: ["sucursales"] });
     },
   });
 };

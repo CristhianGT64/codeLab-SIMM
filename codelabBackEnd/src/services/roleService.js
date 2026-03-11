@@ -8,7 +8,34 @@ export const createRole = async (data) => {
 
 export const getAllRoles = async () => {
 
-  return repository.getAllRoles();
+  const roles = await repository.getAllRoles();
+
+  return roles.map(r => ({
+    id: r.id,
+    nombre: r.nombre,
+    descripcion: r.descripcion,
+    disponible: r.disponible,
+    createdAt: r.createdAt,
+    totalUsuariosRol: r._count.usuarios,
+    totalPermisosRol: r._count.rolPermisos
+  }));
+
+};
+
+export const getRoleById = async (id) => {
+
+  const role = await repository.getRoleById(id);
+
+  if (!role) {
+    throw new Error("Role not found");
+  }
+
+  return {
+    id: role.id,
+    nombre: role.nombre,
+    descripcion: role.descripcion,
+    permisos: role.rolPermisos.map((rolePermission) => rolePermission.permiso)
+  };
 
 };
 

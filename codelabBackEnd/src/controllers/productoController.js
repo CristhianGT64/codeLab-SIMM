@@ -48,7 +48,13 @@ const productoController = {
 
   async update(req, res, next) {
     try {
-      const data = await productoService.update(req.params.id, req.body);
+      const imagenPath = req.file ? `/uploads/productos/${req.file.filename}` : undefined;
+      const payload = {
+        ...(req.body || {}),
+        ...(imagenPath !== undefined ? { imagenPath } : {}),
+      };
+
+      const data = await productoService.update(req.params.id, payload);
       res.json({
         success: true,
         message: 'Producto actualizado correctamente.',

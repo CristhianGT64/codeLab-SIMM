@@ -44,6 +44,35 @@ export const getAll = async (req, res) => {
 
 };
 
+export const getById = async (req, res) => {
+
+  try {
+
+    const role = await service.getRoleById(Number(req.params.id));
+
+    res.json({
+      success: true,
+      data: role
+    });
+
+  } catch (error) {
+
+    if (error.message === "Role not found") {
+      return res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+
+};
+
 export const update = async (req, res) => {
 
   try {

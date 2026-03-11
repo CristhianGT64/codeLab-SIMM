@@ -16,6 +16,7 @@ import useActiveUser from "../../../hooks/UsersHooks/useActiveUser";
 import { TableUserData } from "../../../data/dataAdministrator/UserManagmentData";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import type { HeaderAdmin } from "../../../interfaces/Headers/HeaderInterface";
+import useAuth from "../../../hooks/useAuth";
 
 const roleStyles: Record<string, string> = {
   ADMIN: "bg-[#104f78] text-white",
@@ -25,6 +26,7 @@ const roleStyles: Record<string, string> = {
 
 export default function UserManagement() {
   const navigate = useNavigate();
+  const { tienePermiso } = useAuth();
   const deleteUserMutation = useDeleteUser();
   const inactiveUser = useInactiveUser();
   const activeUser = useActiveUser();
@@ -85,14 +87,16 @@ export default function UserManagement() {
             />
           </label>
 
-          <ButtonsComponet
-            text="Nuevo Usuario"
-            typeButton="button"
-            className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
-            icon="fa-solid fa-plus"
-            onClick={() => navigate("/Users-Management/Create-User")}
-            disabled={false}
-          />
+          {tienePermiso("Crear usuarios") && (
+            <ButtonsComponet
+              text="Nuevo Usuario"
+              typeButton="button"
+              className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
+              icon="fa-solid fa-plus"
+              onClick={() => navigate("/Users-Management/Create-User")}
+              disabled={false}
+            />
+          )}
         </div>
       </div>
 
@@ -170,36 +174,42 @@ export default function UserManagement() {
                 </td>
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-4 text-lg md:text-xl">
-                    <button
-                      type="button"
-                      className={`cursor-pointer ${user.estado === "activo" ? "text-[#ff5e00] hover:text-[#b64402]" : "text-[#24e775] hover:text-[#008444]"} `}
-                      aria-label={`Cambiar estado de ${user.nombreCompleto}`}
-                      onClick={
-                        user.estado === "activo"
-                          ? () => inactiveUser.mutate(user.id)
-                          : () => activeUser.mutate(user.id)
-                      }
-                    >
-                      <FontAwesomeIcon icon={faPowerOff} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate(`/Users-Management/Update-User/${user.id}`)
-                      }
-                      className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
-                      aria-label={`Editar ${user.nombreCompleto}`}
-                    >
-                      <FontAwesomeIcon icon={faPenToSquare} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteUserMutation.mutate(user.id)}
-                      className="cursor-pointer text-[#ff0000] hover:text-[#7d0202] "
-                      aria-label={`Eliminar ${user.nombreCompleto}`}
-                    >
-                      <FontAwesomeIcon icon={faTrashCan} />
-                    </button>
+                    {tienePermiso("Editar usuarios") && (
+                      <button
+                        type="button"
+                        className={`cursor-pointer ${user.estado === "activo" ? "text-[#ff5e00] hover:text-[#b64402]" : "text-[#24e775] hover:text-[#008444]"} `}
+                        aria-label={`Cambiar estado de ${user.nombreCompleto}`}
+                        onClick={
+                          user.estado === "activo"
+                            ? () => inactiveUser.mutate(user.id)
+                            : () => activeUser.mutate(user.id)
+                        }
+                      >
+                        <FontAwesomeIcon icon={faPowerOff} />
+                      </button>
+                    )}
+                    {tienePermiso("Editar usuarios") && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate(`/Users-Management/Update-User/${user.id}`)
+                        }
+                        className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
+                        aria-label={`Editar ${user.nombreCompleto}`}
+                      >
+                        <FontAwesomeIcon icon={faPenToSquare} />
+                      </button>
+                    )}
+                    {tienePermiso("Eliminar usuarios") && (
+                      <button
+                        type="button"
+                        onClick={() => deleteUserMutation.mutate(user.id)}
+                        className="cursor-pointer text-[#ff0000] hover:text-[#7d0202] "
+                        aria-label={`Eliminar ${user.nombreCompleto}`}
+                      >
+                        <FontAwesomeIcon icon={faTrashCan} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

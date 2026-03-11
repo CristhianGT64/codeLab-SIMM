@@ -1,5 +1,11 @@
 import { useNavigate, useParams } from "react-router";
-import { useRef, useState, type ChangeEvent, type SyntheticEvent } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  type ChangeEvent,
+  type SyntheticEvent,
+} from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faCloudArrowUp } from "@fortawesome/free-solid-svg-icons";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
@@ -16,6 +22,17 @@ import useListUnidadesProducto from "../../../hooks/ProductosHooks/useUnidadesPr
 import useListCategoriaProducto from "../../../hooks/ProductosHooks/useCategoriaProducto";
 import useListSucursales from "../../../hooks/SucursalesHooks/useListSucursales";
 import useCreateProducto from "../../../hooks/ProductosHooks/useCreateProducto";
+import useProductById from "../../../hooks/ProductosHooks/useReadProductById";
+import settings from "../../../lib/settings";
+import useUpdateProduct from "../../../hooks/ProductosHooks/useUpdateProducto";
+import StatusNotification from "../../../components/notifications/StatusNotification";
+
+type NotificationState = {
+  isVisible: boolean;
+  variant: "success" | "error";
+  title: string;
+  message: string;
+};
 
 export default function FormProduct() {
   const navigate = useNavigate();
@@ -27,19 +44,65 @@ export default function FormProduct() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [notification, setNotification] = useState<NotificationState>({
+    isVisible: false,
+    variant: "success",
+    title: "",
+    message: "",
+  });
   const { data: unidadesData } = useListUnidadesProducto();
   const { data: categoriaData } = useListCategoriaProducto();
   const { data: sucursalesData } = useListSucursales();
   const {
     mutateAsync: createProductMutation,
     isPending: isCreating,
-    error: createError,
   } = useCreateProducto();
+  const {
+    mutateAsync: updateProductMutation,
+    isPending: isUpdating,
+  } = useUpdateProduct();
   const unidadesProduct = unidadesData?.data ?? [];
   const categoriaProduct = categoriaData?.data ?? [];
   const sucursales = sucursalesData?.data ?? [];
-  const isPending = isCreating;
-  const mutationError = createError;
+  const isPending = isCreating || isUpdating;
+  const {
+    data: ProductData,
+    isLoading: isLoadingUser,
+    isError: isUserError,
+    error: userError,
+  } = useProductById(id ?? "");
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setForm(InitialProductForm);
+      return;
+    }
+
+    if (ProductData?.data) {
+      const imagePath = ProductData.data.imagenPath;
+      if (imagePath) {
+        const baseUrl = settings.URL.replace(/\/$/, "");
+        const normalizedPath = imagePath.startsWith("/")
+          ? imagePath
+          : `/${imagePath}`;
+        setImagePreview(`${baseUrl}${normalizedPath}`);
+      } else {
+        setImagePreview(null);
+      }
+
+      setForm({
+        nombre: ProductData?.data.nombre,
+        sku: ProductData?.data.sku,
+        categoriaId: ProductData?.data.categoria.id.toString(),
+        costo: ProductData?.data.costo.toString(),
+        precioVenta: ProductData?.data.precioVenta,
+        unidadMedida: ProductData?.data.unidadMedida,
+        stockInicial: ProductData?.data.inventarios[0].stockActual,
+        sucursalId: ProductData?.data.inventarios[0].sucursalId,
+        imagen: null,
+      });
+    }
+  }, [isEditMode, ProductData]);
 
   const goBack = () => {
     navigate("/Product-Management");
@@ -66,13 +129,48 @@ export default function FormProduct() {
     try {
       const wasProcessed =
         isEditMode && id
-          ? console.log("Actualizando...")
+          ? await updateProductMutation({ id, credentials: form })
           : await createProductMutation(form);
 
       if (wasProcessed) {
-        navigate("/Product-Management");
+        setNotification({
+          isVisible: true,
+          variant: "success",
+          title: isEditMode ? "Producto actualizado" : "Producto creado",
+          message: isEditMode
+            ? "Los cambios del producto se guardaron correctamente."
+            : "El producto se creo correctamente.",
+        });
+
+        globalThis.setTimeout(() => {
+          navigate("/Product-Management");
+        }, 1300);
+      } else {
+        setNotification({
+          isVisible: true,
+          variant: "error",
+          title: isEditMode
+            ? "No se pudo actualizar"
+            : "No se pudo crear el producto",
+          message:
+            "La operacion no pudo completarse. Intenta de nuevo en unos segundos.",
+        });
       }
-    } catch {}
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "La operacion fallo por un error inesperado.";
+
+      setNotification({
+        isVisible: true,
+        variant: "error",
+        title: isEditMode
+          ? "Error al actualizar producto"
+          : "Error al crear producto",
+        message: errorMessage,
+      });
+    }
   };
 
   return (
@@ -90,6 +188,30 @@ export default function FormProduct() {
         <HeaderTitleAdmin
           {...(isEditMode ? HeaderActualizarProducto : HeaderNuevoProducto)}
         />
+
+        <StatusNotification
+          isVisible={notification.isVisible}
+          variant={notification.variant}
+          title={notification.title}
+          message={notification.message}
+          onClose={() =>
+            setNotification((prev) => ({ ...prev, isVisible: false }))
+          }
+        />
+
+        {isEditMode && isLoadingUser && (
+          <p className="mt-4 text-base font-semibold text-[#4661b0]">
+            Cargando información del producto...
+          </p>
+        )}
+
+        {isEditMode && isUserError && (
+          <p className="mt-4 text-base font-semibold text-[#c20000]">
+            {userError instanceof Error
+              ? userError.message
+              : "No se pudo cargar el producto"}
+          </p>
+        )}
 
         <form
           className="mt-8 rounded-2xl bg-[#f4f6f8] p-6 shadow-[0_6px_16px_rgba(0,0,0,0.1)] md:p-8"
@@ -169,8 +291,9 @@ export default function FormProduct() {
                 onChange={onChangeField("sku")}
                 id="sku"
                 type="text"
+                disabled={isEditMode}
                 placeholder="TECH-LAP-001"
-                className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]"
+                className={`h-14 w-full rounded-2xl border-2 ${isEditMode ? " border-[#839496] bg-[#949a9b]" : " border-[#9adce2] bg-white"} px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]`}
               />
             </div>
 
@@ -307,11 +430,12 @@ export default function FormProduct() {
               <input
                 value={form.stockInicial}
                 onChange={onChangeField("stockInicial")}
+                disabled={isEditMode}
                 id="stockInicial"
                 type="number"
                 min="0"
                 placeholder="0"
-                className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]"
+                className={`h-14 w-full rounded-2xl border-2 ${isEditMode ? " border-[#839496] bg-[#949a9b]" : " border-[#9adce2] bg-white"} px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]`}
               />
             </div>
           </div>
@@ -350,12 +474,6 @@ export default function FormProduct() {
               />
             )}
           </div>
-
-          {mutationError && (
-            <p className="mt-4 text-base font-semibold text-[#c20000]">
-              {mutationError.message}
-            </p>
-          )}
         </form>
       </div>
     </section>
