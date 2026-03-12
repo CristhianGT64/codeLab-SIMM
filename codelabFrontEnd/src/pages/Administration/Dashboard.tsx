@@ -1,9 +1,13 @@
 import { DashboardDataAdmin } from "../../data/dataAdministrator/DashboardDataAdmin";
 import type { DashboardInterface } from "../../interfaces/DashboardInterface";
 import LinkCard from "../../components/cardsAdministrator/LinksCards";
+import useAuth from "../../hooks/useAuth";
 
 export default function Dashboard() {
-  const dataDashboard: DashboardInterface[] = DashboardDataAdmin;
+  const { tienePermiso } = useAuth();
+  const dataDashboard: DashboardInterface[] = DashboardDataAdmin.filter(
+    (item) => !item.permiso || tienePermiso(item.permiso),
+  );
 
   return (
     <section className="px-6 py-8">
@@ -11,10 +15,8 @@ export default function Dashboard() {
 
       {/* Grid de tarjetas - 1 col en móvil, 2 en tablet, 3-4 en desktop */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {/* Tarjetas */}
-
         {dataDashboard.map((dataLink: DashboardInterface) => (
-          <LinkCard {...dataLink} />
+          <LinkCard key={dataLink.url} {...dataLink} />
         ))}
       </div>
     </section>

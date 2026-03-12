@@ -2,7 +2,8 @@ export interface ModulesNavBarInterface {
     text: string;
     icon: string;
     url : string;
-    disable : boolean
+    disable : boolean;
+    permiso? : string;
 }
 
 export default interface NavBarInterface {

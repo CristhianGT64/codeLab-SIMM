@@ -5,5 +5,6 @@ export interface DashboardInterface {
   buttonDescription: string;
   colorBorder: string;
   colorSvg: string;
-  url : string
+  url : string;
+  permiso? : string;
 }

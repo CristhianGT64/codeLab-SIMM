@@ -1,5 +1,3 @@
-import type { FormPermisoSeleccionados } from "../PermisosInterface/PermisosInterface";
-
 export interface Rol {
     id : string;
     nombre : string;

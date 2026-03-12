@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
@@ -10,6 +10,7 @@ import CardPermissionRolesComponent from "../../../components/cardPermissionRole
 import useListRols from "../../../hooks/RolesHooks/useListRols";
 import useListPermisos from "../../../hooks/PermisosHook/useListPermisos";
 import useDeleteRol from "../../../hooks/RolesHooks/useDeleteRol";
+import useAuth from "../../../hooks/useAuth";
 
 export default function RolesPermisionManagment() {
   const { data: rolesData } = useListRols();
@@ -18,6 +19,8 @@ export default function RolesPermisionManagment() {
   const Permisos = permisosData?.data ?? [];
   const navigate = useNavigate();
   const deleteRolMutation = useDeleteRol();
+  const { tienePermiso } = useAuth();
+  const [searchRol, setSearchRol] = useState<string>('');
 
   const rolesFiltred = roles.filter((rol) => rol.disponible === true)
 
@@ -29,6 +32,13 @@ export default function RolesPermisionManagment() {
     }),
     [roles],
   );
+
+  const filtredRol = useMemo(() => {
+    if (!searchRol.trim()) return rolesFiltred;
+
+    const searchLower = searchRol.toLocaleLowerCase();
+    return rolesFiltred.filter((rol) => rol.nombre.toLocaleLowerCase().includes(searchLower))
+  }, [searchRol, rolesFiltred])
 
   const handleDeleteRole = async (id : string) => {
      deleteRolMutation.mutate(id);
@@ -47,6 +57,7 @@ export default function RolesPermisionManagment() {
               className="text-lg text-[#9adce2]"
             />
             <input
+              onChange={(event) => setSearchRol(event.target.value)}
               type="text"
               placeholder="Buscar roles..."
               className="w-full bg-transparent text-base text-[#6a758f] placeholder:text-[#8891a7] outline-none md:text-lg"
@@ -54,26 +65,30 @@ export default function RolesPermisionManagment() {
           </label>
 
           <div className="flex gap-3">
-            <ButtonsComponet
-              text="Agregar Permisos"
-              typeButton="button"
-              className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-[#0aa6a2] bg-white px-5 text-base font-semibold text-[#0aa6a2] hover:bg-[#e8f8f7] md:text-lg"
-              icon="fa-solid fa-key"
-              onClick={() =>
-                navigate("/RolesPermision-Management/Create-Permisssion")
-              }
-              disabled={false}
-            />
-            <ButtonsComponet
-              text="Nuevo Rol"
-              typeButton="button"
-              className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
-              icon="fa-solid fa-plus"
-              onClick={() =>
-                navigate("/RolesPermision-Management/Create-Roles")
-              }
-              disabled={false}
-            />
+            {tienePermiso("Crear permisos") && (
+              <ButtonsComponet
+                text="Agregar Permisos"
+                typeButton="button"
+                className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-[#0aa6a2] bg-white px-5 text-base font-semibold text-[#0aa6a2] hover:bg-[#e8f8f7] md:text-lg"
+                icon="fa-solid fa-key"
+                onClick={() =>
+                  navigate("/RolesPermision-Management/Create-Permisssion")
+                }
+                disabled={false}
+              />
+            )}
+            {tienePermiso("Crear roles") && (
+              <ButtonsComponet
+                text="Nuevo Rol"
+                typeButton="button"
+                className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
+                icon="fa-solid fa-plus"
+                onClick={() =>
+                  navigate("/RolesPermision-Management/Create-Roles")
+                }
+                disabled={false}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -100,7 +115,7 @@ export default function RolesPermisionManagment() {
       {/* Grid de tarjetas de roles */}
 
       <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {rolesFiltred.map((rol) => (
+        {filtredRol.map((rol) => (
           <CardPermissionRolesComponent
             key={`${rol.id}-${rol.nombre}`}
             id={String(rol.id)}

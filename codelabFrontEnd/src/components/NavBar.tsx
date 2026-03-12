@@ -8,7 +8,7 @@ import useAuth from "../hooks/useAuth";
 export default function NavBar(navBarData : Readonly<NavBarInterface>) {
 	const navigate = useNavigate();
 
-	const { user, logout } = useAuth()
+	const { user, logout, tienePermiso } = useAuth()
 
 	const logoutLogin = () => {
 		logout();
@@ -18,6 +18,11 @@ export default function NavBar(navBarData : Readonly<NavBarInterface>) {
     const redirect = (url : string) => {
 		navigate(url);
     }
+
+	const modulosVisibles = navBarData.modules.filter(
+		(m) => !m.permiso || tienePermiso(m.permiso),
+	);
+
 	return (
 		<header className="w-full bg-linear-to-r from-[#12a4a6] via-[#3f8cb4] to-[#4e6fb2] px-6 py-2">
 			<div className="mx-auto flex w-full max-w-400 items-center justify-between gap-4">
@@ -28,7 +33,7 @@ export default function NavBar(navBarData : Readonly<NavBarInterface>) {
 				</button>
 
 				<div className="flex items-center">
-					{navBarData.modules.map((module, index) => (
+					{modulosVisibles.map((module, index) => (
 						<ButtonsComponet
 							key={`${module.text}-${index}`}
 							text={module.text}
