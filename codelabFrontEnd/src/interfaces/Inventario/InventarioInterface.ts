@@ -111,3 +111,8 @@ export interface HistorialInventarioFilters {
   fechaDesde?: string;
   fechaHasta?: string;
 }
+
+export interface FiltroTipo {
+  valor : string | number
+  nombre : string
+}
