@@ -62,6 +62,11 @@ const AppRouter = () => (
             <Route path="/RolesPermision-Management/Create-Permisssion" element={<PermissionGate permiso="Crear permisos"><FormPermissions /></PermissionGate>} />
             <Route path="/RolesPermision-Management/Create-Roles" element={<PermissionGate permiso="Crear roles"><FormRoles /></PermissionGate>} />
             <Route path="/RolesPermision-Management/Update-Roles/:id" element={<PermissionGate permiso="Editar roles"><FormRoles /></PermissionGate>} />
+
+            {/* Gestion de inventarios */}
+            <Route path="/Inventario-Management/" element={<PermissionGate permiso="Movimientos inventario"><RolesPermisionManagment /></PermissionGate>} />
+            <Route path="/Inventario-Management/Salida-Inventario" element={<PermissionGate permiso="Salida inventario"><RolesPermisionManagment /></PermissionGate>} />
+            <Route path="/Inventario-Management/Entrada-Inventario" element={<PermissionGate permiso="Entrada inventario"><RolesPermisionManagment /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>
