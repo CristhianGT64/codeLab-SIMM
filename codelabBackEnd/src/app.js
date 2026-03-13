@@ -9,6 +9,10 @@ import sucursalController from './controllers/sucursalController.js';
 import authController from './controllers/authController.js';
 import usuarioController from './controllers/usuarioController.js';
 import clientController from './controllers/clientController.js';
+import inventarioController from './controllers/inventarioController.js';
+import proveedorController from './controllers/proveedorController.js';
+import configuracionContableController from './controllers/configuracionContableController.js';
+
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
 import * as permissionController from './controllers/permissionController.js';
@@ -89,6 +93,28 @@ app.get('/sucursales', sucursalController.getAllSucursales);
 app.get('/sucursales/:id', sucursalController.getSucursalById);
 app.put('/sucursales/:id', sucursalController.updateSucursal);
 app.patch('/sucursales/:id/estado', sucursalController.changeSucursalStatus);
+
+// Proveedores
+app.post('/proveedores', proveedorController.create);
+app.get('/proveedores', proveedorController.list);
+app.get('/proveedores/:id', proveedorController.getById);
+app.put('/proveedores/:id', proveedorController.update);
+app.patch('/proveedores/:id', proveedorController.patch);
+app.delete('/proveedores/:id', proveedorController.remove);
+
+// Inventario
+app.get('/inventario/dashboard', inventarioController.dashboard);
+app.get('/inventario/tipos-entrada', inventarioController.tiposEntrada);
+app.get('/inventario/motivos-salida', inventarioController.motivosSalida);
+app.post('/inventario/entrada', inventarioController.registrarEntrada);
+app.post('/inventario/salida', inventarioController.registrarSalida);
+app.get('/inventario/historial', inventarioController.historial);
+app.get('/inventario/historial/:productoId', inventarioController.historialPorProducto);
+
+// Configuración método de inventario
+app.get('/configuracion/metodo-inventario', configuracionContableController.getMetodoInventario);
+app.put('/configuracion/metodo-inventario', configuracionContableController.updateMetodoInventario);
+app.get('/configuracion/metodo-inventario/opciones', configuracionContableController.opciones);
 
 // Roles
 app.get('/roles', roleController.getAll);

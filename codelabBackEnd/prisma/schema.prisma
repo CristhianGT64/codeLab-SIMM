@@ -13,8 +13,8 @@ model Rol {
   disponible  Boolean   @default(true)
   createdAt   DateTime? @map("created_at")
 
-  usuarios     Usuario[]
-  rolPermisos  RolPermiso[]
+  usuarios    Usuario[]
+  rolPermisos RolPermiso[]
 }
 
 model Permiso {
@@ -41,9 +41,9 @@ model RolPermiso {
 }
 
 model CategoriaPermiso {
-  id              BigInt   @id @default(autoincrement())
-  nombreCategoria String   @db.VarChar(150)
-  disponible      Boolean  @default(true)
+  id              BigInt  @id @default(autoincrement())
+  nombreCategoria String  @db.VarChar(150)
+  disponible      Boolean @default(true)
 
   permisos Permiso[]
 }
@@ -57,7 +57,10 @@ model Sucursal {
   activa    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt
-  usuarios Usuario[]
+
+  usuarios    Usuario[]
+  inventarios Inventario[]
+  movimientos MovimientoInventario[]
 }
 
 model Usuario {
@@ -73,8 +76,9 @@ model Usuario {
   eliminado      Boolean       @default(false)
   usuario        String        @unique @db.VarChar(100)
 
-  rol Rol? @relation(fields: [rolId], references: [id])
-  sucursal Sucursal? @relation(fields: [sucursalId], references: [id])
+  rol         Rol?                  @relation(fields: [rolId], references: [id])
+  sucursal    Sucursal?             @relation(fields: [sucursalId], references: [id])
+  movimientos MovimientoInventario[]
 }
 
 model Categoria {
@@ -94,7 +98,8 @@ model Proveedor {
   direccion  String? @db.VarChar(255)
   disponible Boolean @default(true)
 
-  productos Producto[] @relation("ProductoProveedor")
+  movimientos         MovimientoInventario[]
+  productoProveedores ProductoProveedor[]
 }
 
 model Producto {
@@ -107,17 +112,16 @@ model Producto {
   imagenUrl    String?        @map("imagen_url") @db.VarChar(255)
   imagenPath   String?        @map("imagen_path") @db.VarChar(255)
   estado       EstadoProducto @default(activo)
-  createdAt    DateTime?      @map("created_at")
-  updatedAt    DateTime?      @map("updated_at")
+  createdAt    DateTime?      @default(now()) @map("created_at")
+  updatedAt    DateTime?      @updatedAt @map("updated_at")
 
   categoriaId BigInt?
   categoria   Categoria? @relation(fields: [categoriaId], references: [id])
 
-  proveedores Proveedor[]            @relation("ProductoProveedor")
   productoProveedores ProductoProveedor[]
-  inventarios Inventario[]
-  movimientos MovimientoInventario[]
-  detalles    DetalleVenta[]
+  inventarios         Inventario[]
+  movimientos         MovimientoInventario[]
+  detalles            DetalleVenta[]
 }
 
 model Inventario {
@@ -125,27 +129,47 @@ model Inventario {
   stockActual Int      @default(0) @map("stock_actual")
   productoId  BigInt
   sucursalId  BigInt
-  producto    Producto @relation(fields: [productoId], references: [id])
+
+  producto Producto @relation(fields: [productoId], references: [id])
+  sucursal Sucursal @relation(fields: [sucursalId], references: [id])
 
   @@unique([productoId, sucursalId])
 }
 
 model MovimientoInventario {
-  id             BigInt                   @id @default(autoincrement())
-  tipo           TipoMovimientoInventario
-  cantidad       Int
-  referenciaTipo String?                  @map("referencia_tipo") @db.VarChar(50)
-  referenciaId   BigInt?                  @map("referencia_id")
-  createdAt      DateTime?                @map("created_at")
-  productoId     BigInt
-  sucursalId     BigInt
-  usuarioId      BigInt?
-  producto       Producto                 @relation(fields: [productoId], references: [id])
+  id               BigInt                   @id @default(autoincrement())
+  tipo             TipoMovimientoInventario
+  subtipoEntrada   SubtipoEntradaInventario? @map("subtipo_entrada")
+  motivoSalida     MotivoSalidaInventario?   @map("motivo_salida")
+  detalleMotivo    String?                  @map("detalle_motivo") @db.VarChar(255)
+  observaciones    String?                  @db.Text
+  cantidad         Int
+  stockResultante  Int                      @map("stock_resultante")
+  fechaMovimiento  DateTime                 @map("fecha_movimiento")
+  estado           String                   @default("completado") @db.VarChar(30)
+  referenciaTipo   String?                  @map("referencia_tipo") @db.VarChar(50)
+  referenciaId     BigInt?                  @map("referencia_id")
+  createdAt        DateTime                 @default(now()) @map("created_at")
+  productoId       BigInt
+  sucursalId       BigInt
+  usuarioId        BigInt?
+  proveedorId      BigInt?
+
+  producto  Producto   @relation(fields: [productoId], references: [id])
+  sucursal  Sucursal   @relation(fields: [sucursalId], references: [id])
+  usuario   Usuario?   @relation(fields: [usuarioId], references: [id])
+  proveedor Proveedor? @relation(fields: [proveedorId], references: [id])
+
+  @@index([productoId])
+  @@index([sucursalId])
+  @@index([usuarioId])
+  @@index([proveedorId])
+  @@index([fechaMovimiento])
 }
 
 model TipoCliente {
-  id       BigInt   @id @default(autoincrement())
-  nombre   String   @db.VarChar(100)
+  id     BigInt @id @default(autoincrement())
+  nombre String @db.VarChar(100)
 
   clientes Cliente[]
 }
@@ -158,8 +182,8 @@ model Cliente {
   correo         String? @db.VarChar(150)
   direccion      String? @db.VarChar(255)
   tipoClienteId  BigInt?
-  tipoCliente TipoCliente? @relation(fields: [tipoClienteId], references: [id])
 
+  tipoCliente TipoCliente? @relation(fields: [tipoClienteId], references: [id])
 }
 
 model TipoDocumento {
@@ -185,7 +209,7 @@ model RangoEmision {
 }
 
 model PuntoEmision {
-  id                BigInt  @id @default(autoincrement())
+  id                BigInt @id @default(autoincrement())
   numero            Int
   tipoDocumentoId   BigInt
   establecimientoId BigInt
@@ -226,13 +250,14 @@ model Venta {
 }
 
 model DetalleVenta {
-  id             BigInt   @id @default(autoincrement())
+  id             BigInt  @id @default(autoincrement())
   cantidad       Int
-  precioUnitario Decimal  @map("precio_unitario") @db.Decimal(10, 2)
-  subtotal       Decimal  @db.Decimal(10, 2)
+  precioUnitario Decimal @map("precio_unitario") @db.Decimal(10, 2)
+  subtotal       Decimal @db.Decimal(10, 2)
   ventaId        BigInt
   productoId     BigInt
-  producto       Producto @relation(fields: [productoId], references: [id])
+
+  producto Producto @relation(fields: [productoId], references: [id])
 }
 
 model Factura {
@@ -255,15 +280,16 @@ model ConfiguracionContable {
 }
 
 model ProductoProveedor {
-  A        BigInt
-  B        BigInt
-  Producto Producto @relation(fields: [A], references: [id], onDelete: Cascade)
+  productoId  BigInt
+  proveedorId BigInt
 
-  @@id([A, B], map: "_ProductoProveedor_AB_pkey")
-  @@index([B], map: "_ProductoProveedor_B_index")
-  @@map("_ProductoProveedor")
+  producto  Producto  @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  proveedor Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+
+  @@id([productoId, proveedorId])
+  @@index([proveedorId])
+  @@map("producto_proveedor")
 }
-
 
 enum EstadoUsuario {
   activo
@@ -288,4 +314,17 @@ enum TipoMovimientoInventario {
 enum MetodoValuacion {
   FIFO
   PROMEDIO_PONDERADO
+}
+
+enum SubtipoEntradaInventario {
+  PRODUCTO_NUEVO
+  REABASTECIMIENTO
+}
+
+enum MotivoSalidaInventario {
+  VENTA
+  DANIO
+  CONSUMO_INTERNO
+  AJUSTE
+  OTRO
 }
