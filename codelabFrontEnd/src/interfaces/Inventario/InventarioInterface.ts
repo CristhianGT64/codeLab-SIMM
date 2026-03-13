@@ -67,7 +67,9 @@ export interface RegistrarEntradaForm {
   fechaHora: string;
   proveedorId: string;
   observaciones?: string;
+  usuarioId : string
 }
+
 
 export interface RegistrarSalidaForm {
   productoId: string;
@@ -77,6 +79,7 @@ export interface RegistrarSalidaForm {
   cantidad: number;
   fechaHora: string;
   observaciones?: string;
+  usuarioId : string
 }
 
 export interface MovimientoInventarioResponse {

@@ -1,7 +1,7 @@
 import prisma from '../infra/prisma/prismaClient.js';
 import inventarioRepository from '../repositories/inventarioRepository.js';
 
-const SUBTIPOS_ENTRADA = ['PRODUCTO_NUEVO', 'REABASTECIMIENTO'];
+const SUBTIPOS_ENTRADA = ['REABASTECIMIENTO'];
 const MOTIVOS_SALIDA = ['VENTA', 'DANIO', 'CONSUMO_INTERNO', 'AJUSTE', 'OTRO'];
 
 const inventarioService = {
@@ -15,6 +15,7 @@ const inventarioService = {
       proveedorNombre,
       tipoEntrada,
       observaciones,
+      usuarioId,
     } = body;
 
     if (!productoId || !sucursalId || !cantidad || !fechaHora || !tipoEntrada) {
@@ -118,7 +119,7 @@ const inventarioService = {
           referenciaId: null,
           productoId: BigInt(productoId),
           sucursalId: BigInt(sucursalId),
-          usuarioId: null,
+          usuarioId: usuarioId,
           proveedorId: proveedorIdFinal,
         },
         tx
@@ -140,6 +141,7 @@ const inventarioService = {
       motivoSalida,
       detalleMotivo,
       observaciones,
+      usuarioId,
     } = body;
 
     if (!productoId || !sucursalId || !cantidad || !fechaHora || !motivoSalida || !detalleMotivo) {
@@ -228,7 +230,7 @@ const inventarioService = {
           referenciaId: null,
           productoId: BigInt(productoId),
           sucursalId: BigInt(sucursalId),
-          usuarioId: null,
+          usuarioId: usuarioId,
           proveedorId: null,
         },
         tx

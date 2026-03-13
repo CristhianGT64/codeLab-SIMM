@@ -10,7 +10,7 @@ import type {
 } from "../../../interfaces/Inventario/InventarioInterface";
 import StatCard from "../../../components/CardsEstadisticosIcon/StatCard";
 import {
-    botonBorrarFiltro,
+  botonBorrarFiltro,
   botonRegistrarEntrada,
   botonRegistrarSalida,
   filtroTipo,
@@ -23,7 +23,7 @@ import { formatFecha } from "../../../lib/settings";
 import TableComponent from "../../../components/Table/TableComponent";
 import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
 
-const ITEMS_POR_PAGINA = 10;
+const ITEMS_POR_PAGINA = 8;
 
 // Mapeo de motivos de salida (enum → texto legible)
 const MOTIVOS: Record<string, string> = {
@@ -36,7 +36,7 @@ const MOTIVOS: Record<string, string> = {
 
 export default function InventarioManagement() {
   const { tienePermiso } = useAuth();
-  // ── Filtros ─────────────────────────────────────────────────
+  // ── Filtros 
   const [busqueda, setBusqueda] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState<"" | "entrada" | "salida">("");
   const [fechaFiltro, setFechaFiltro] = useState("");
@@ -44,7 +44,7 @@ export default function InventarioManagement() {
 
   const [paginaActual, setPaginaActual] = useState(1);
 
-  // ── Datos remotos ────────────────────────────────────────────
+  // ── Datos remotos 
   const filters: HistorialInventarioFilters = {
     ...(tipoFiltro && { tipo: tipoFiltro }),
     ...(fechaFiltro && { fecha: fechaFiltro }),
@@ -56,7 +56,7 @@ export default function InventarioManagement() {
 
   const movimientos: MovimientoInventarioItem[] = historial?.data ?? [];
 
-  // ── Filtrado local por nombre de producto ────────────────────
+  // ── Filtrado local por nombre de producto 
   const movimientosFiltrados = useMemo(() => {
     if (!busqueda.trim()) return movimientos;
     return movimientos.filter((m) =>
@@ -64,7 +64,7 @@ export default function InventarioManagement() {
     );
   }, [movimientos, busqueda]);
 
-  // ── Cálculos de paginación ───────────────────────────────────
+  // ── Cálculos de paginación 
   const totalPaginas = Math.ceil(
     movimientosFiltrados.length / ITEMS_POR_PAGINA,
   );
@@ -268,10 +268,11 @@ export default function InventarioManagement() {
           onChange={(e) => handleTipo(e.target.value)}
           className="py-2.5 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4661b0]/25"
         >
-            {filtroTipo.map((filtro : FiltroTipo) => (
-                <option key={filtro.valor} value={filtro.valor}>{filtro.nombre}</option>
-            )
-            )}
+          {filtroTipo.map((filtro: FiltroTipo) => (
+            <option key={filtro.valor} value={filtro.valor}>
+              {filtro.nombre}
+            </option>
+          ))}
         </select>
 
         {/* Fecha */}
@@ -283,8 +284,8 @@ export default function InventarioManagement() {
         />
 
         <ButtonsComponet
-            {...botonBorrarFiltro}
-            onClick={() => limpiarFiltros}
+          {...botonBorrarFiltro}
+          onClick={limpiarFiltros}
         />
       </div>
 
@@ -295,14 +296,13 @@ export default function InventarioManagement() {
       />
 
       {totalPaginas > 1 && (
-
         <PaginacionComponent
-            inicio={inicio}
-            fin={fin}
-            registros={movimientosFiltrados}
-            paginaActual={paginaActual}
-            totalPaginas={totalPaginas}
-            action={irAPagina}
+          inicio={inicio}
+          fin={fin}
+          registros={movimientosFiltrados}
+          paginaActual={paginaActual}
+          totalPaginas={totalPaginas}
+          action={irAPagina}
         />
       )}
     </section>
