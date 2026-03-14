@@ -212,4 +212,14 @@ SELECT setval('public."Usuario_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM publi
 SELECT setval('public."Producto_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Producto"), true);
 SELECT setval('public."Inventario_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Inventario"), true);
 
+-- Período contable cerrado para pruebas de la regla: no se puede cambiar método si existen períodos cerrados
+INSERT INTO public.periodo_contable (id, fecha_inicio, fecha_fin, estado, created_at) VALUES
+  (1, '2025-01-01 00:00:00', '2025-03-31 23:59:59', 'CERRADO', NOW())
+ON CONFLICT (id) DO UPDATE SET
+  fecha_inicio = EXCLUDED.fecha_inicio,
+  fecha_fin    = EXCLUDED.fecha_fin,
+  estado       = EXCLUDED.estado;
+
+SELECT setval('public.periodo_contable_id_seq', (SELECT COALESCE(MAX(id), 1) FROM public.periodo_contable), true);
+
 COMMIT;

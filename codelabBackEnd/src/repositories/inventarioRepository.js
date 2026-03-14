@@ -9,6 +9,7 @@ const inventarioRepository = {
         nombre: true,
         sku: true,
         estado: true,
+        costo: true,
       },
     });
   },
@@ -110,6 +111,9 @@ const inventarioRepository = {
         observaciones: true,
         cantidad: true,
         stockResultante: true,
+        metodoValuacionAplicado: true,
+        costoUnitario: true,
+        costoTotal: true,
         fechaMovimiento: true,
         estado: true,
         createdAt: true,
@@ -174,6 +178,9 @@ const inventarioRepository = {
         observaciones: true,
         cantidad: true,
         stockResultante: true,
+        metodoValuacionAplicado: true,
+        costoUnitario: true,
+        costoTotal: true,
         fechaMovimiento: true,
         estado: true,
         producto: {
@@ -209,6 +216,9 @@ const inventarioRepository = {
         observaciones: true,
         cantidad: true,
         stockResultante: true,
+        metodoValuacionAplicado: true,
+        costoUnitario: true,
+        costoTotal: true,
         fechaMovimiento: true,
         estado: true,
         proveedor: {
@@ -263,6 +273,29 @@ const inventarioRepository = {
       entradasDelDia,
       salidasDelDia,
     };
+  },
+
+  async getMovimientosValuacion(productoId, sucursalId, fechaCorte, tx = prisma) {
+    return tx.movimientoInventario.findMany({
+      where: {
+        productoId: BigInt(productoId),
+        sucursalId: BigInt(sucursalId),
+        fechaMovimiento: {
+          lte: fechaCorte,
+        },
+      },
+      orderBy: [
+        { fechaMovimiento: 'asc' },
+        { id: 'asc' },
+      ],
+      select: {
+        id: true,
+        tipo: true,
+        cantidad: true,
+        costoUnitario: true,
+        costoTotal: true,
+      },
+    });
   },
 };
 

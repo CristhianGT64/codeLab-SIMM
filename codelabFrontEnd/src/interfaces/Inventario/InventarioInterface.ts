@@ -23,6 +23,9 @@ export interface MovimientoInventarioItem {
   observaciones: string | null;
   cantidad: number;
   stockResultante: number;
+  metodoValuacionAplicado?: "FIFO" | "PROMEDIO_PONDERADO" | null;
+  costoUnitario?: number | null;
+  costoTotal?: number | null;
   fechaMovimiento: string;
   estado: string;
   producto?: ProductoMini;

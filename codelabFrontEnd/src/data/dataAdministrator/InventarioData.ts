@@ -27,6 +27,15 @@ export const botonRegistrarSalida: ButtonsInterface = {
   disabled: false,
 };
 
+export const botonFifoPromedio: ButtonsInterface = {
+  text: "Configurar Metodo FIFO/PEPS",
+  typeButton: "button",
+  className:
+    "h-14 cursor-pointer rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl font-semibold text-[#4661b0] hover:bg-[#edf8fa]",
+  icon: "fa-solid fa-scale-balanced",
+  onClick: () => {},
+  disabled: false,
+};
 export const botonBorrarFiltro: ButtonsInterface = {
   text: "Limpiar filtros",
   typeButton: "button",

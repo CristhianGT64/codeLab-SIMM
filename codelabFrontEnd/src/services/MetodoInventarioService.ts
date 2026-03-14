@@ -6,6 +6,19 @@ import type {
   UpdateMetodoInventarioResponse,
 } from "../interfaces/Configuracion/MetodoInventarioInterface";
 
+const getErrorMessageFromPayload = (payload: unknown, fallback: string) => {
+  if (!payload || typeof payload !== "object") return fallback;
+
+  const withMessage = payload as {
+    message?: string;
+    error?: {
+      message?: string;
+    };
+  };
+
+  return withMessage.error?.message ?? withMessage.message ?? fallback;
+};
+
 export const getMetodoInventario =
   async (): Promise<MetodoInventarioResponse> => {
     const response = await fetch(`${settings.URL}/configuracion/metodo-inventario`, {
@@ -56,11 +69,22 @@ export const updateMetodoInventario = async (
     body: JSON.stringify(credentials),
   });
 
-  const payload =
-    (await response.json()) as UpdateMetodoInventarioResponse | { success?: boolean };
+  let payload: UpdateMetodoInventarioResponse | { success?: boolean } | null = null;
+
+  try {
+    payload =
+      (await response.json()) as UpdateMetodoInventarioResponse | { success?: boolean };
+  } catch {
+    payload = null;
+  }
 
   if (!response.ok) {
-    throw new Error("No se pudo actualizar el método de inventario");
+    throw new Error(
+      getErrorMessageFromPayload(
+        payload,
+        "No se pudo actualizar el método de inventario",
+      ),
+    );
   }
 
   return Boolean(payload?.success);
