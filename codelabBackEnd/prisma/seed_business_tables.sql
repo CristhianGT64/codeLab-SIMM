@@ -153,6 +153,39 @@ ON CONFLICT (id) DO UPDATE SET
   "usuarioId" = EXCLUDED."usuarioId",
   "proveedorId" = EXCLUDED."proveedorId";
 
+-- 8.1) Expansion aditiva de datos de negocio (sin reemplazar existentes)
+INSERT INTO public."TipoCliente" (id, nombre) VALUES
+  (100, 'Mayorista')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public."Cliente" (id, nombre_completo, identificacion, telefono, correo, direccion, "tipoClienteId") VALUES
+  (100, 'Ferreteria Regional', '0801112223334', '2234-5678', 'contacto@ferreteria.hn', 'San Pedro Sula', 100),
+  (101, 'Tienda Centro Comercial', '0801223334445', '2345-6789', 'tienda@comercial.hn', 'Tegucigalpa', 2)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public."Proveedor" (id, nombre, telefono, correo, direccion, disponible) VALUES
+  (100, 'Importadora Global', '2555-0000', 'importadora@global.hn', 'Puerto Cortes', true),
+  (101, 'Distribuidora Local', '2666-0000', 'distrib@local.hn', 'La Ceiba', true)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public."Producto" (id, nombre, sku, costo, precio_venta, unidad_medida, estado, "categoriaId") VALUES
+  (100, 'Audifonos Bluetooth', 'AUDIO-BT-001', 85.00, 150.00, 'Unidad', 'activo', 101),
+  (101, 'Jabon Antibacterial', 'SOAP-AB-002', 15.00, 28.00, 'Docena', 'activo', 102),
+  (102, 'Gorro Deportivo', 'CAP-SPORT-001', 25.00, 45.00, 'Unidad', 'activo', 100)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.producto_proveedor ("productoId", "proveedorId") VALUES
+  (100, 100),
+  (101, 101),
+  (102, 100)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public."Inventario" (stock_actual, "productoId", "sucursalId") VALUES
+  (50, 100, 2),
+  (200, 101, 2),
+  (30, 102, 3)
+ON CONFLICT DO NOTHING;
+
 -- 9) Ajuste de secuencias
 SELECT setval('public."TipoCliente_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."TipoCliente"), true);
 SELECT setval('public."TipoDocumento_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."TipoDocumento"), true);
@@ -163,6 +196,8 @@ SELECT setval('public."PuntoEmision_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM 
 SELECT setval('public."NumeroFactura_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."NumeroFactura"), true);
 SELECT setval('public."Cliente_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Cliente"), true);
 SELECT setval('public."Proveedor_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Proveedor"), true);
+SELECT setval('public."Producto_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Producto"), true);
+SELECT setval('public."Inventario_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Inventario"), true);
 SELECT setval('public."ConfiguracionContable_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."ConfiguracionContable"), true);
 SELECT setval('public."Venta_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Venta"), true);
 SELECT setval('public."DetalleVenta_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."DetalleVenta"), true);

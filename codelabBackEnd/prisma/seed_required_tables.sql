@@ -11,7 +11,7 @@ INSERT INTO public."CategoriaPermiso" (id, "nombreCategoria", disponible) VALUES
   (7, 'Ventas', true),
   (8, 'Facturacion', true),
   (9, 'Roles/Permisos', true),
-  (9, 'Movimiento Inventario', true)
+  (10, 'Movimiento Inventario', true)
 ON CONFLICT (id) DO UPDATE SET
   "nombreCategoria" = EXCLUDED."nombreCategoria",
   disponible = EXCLUDED.disponible;
@@ -70,7 +70,13 @@ INSERT INTO public."Permiso" (id, nombre, descripcion, disponible, created_at, "
   (30, 'Crear usuarios', 'Permite al usuario crear usuarios en el sistema', true, NULL, 3),
   (31, 'Editar usuarios', 'Permite al usuario Editar usuarios', true, NULL, 3),
   (32, 'Eliminar usuarios', 'Permite al usuario eliminar un usuario', true, NULL, 3),
-  (33, 'Eliminar roles', 'Permite al usuario Eliminar Roles', true, NULL, 9)
+  (33, 'Eliminar roles', 'Permite al usuario Eliminar Roles', true, NULL, 9),
+  (34, 'Movimientos inventario', 'Permite al usuario gestionar los movimientos del inventario', true, NULL, 10),
+  (35, 'Salida inventario', 'Permite gestionar las salidas de inventario ya sea por venta u otros motivos.', true, NULL, 10),
+  (36, 'Entrada inventario', 'Permite gestionar la entrada de inventarios, ya sea por surtido o nuevo ingreso', true, NULL, 10),
+  (37, 'Eliminar Producto', 'Permite al usuario eliminar productos', true, NULL, 1),
+  (38, 'Registrar Salidas', 'Permite al usuario registrar salidas de producto', true, NULL, 10),
+  (39, 'Registrar Entradas', 'Permite al usuario registrar entradas de los productos', true, NULL, 10)
 ON CONFLICT (id) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   descripcion = EXCLUDED.descripcion,
@@ -83,7 +89,7 @@ INSERT INTO public."RolPermiso" ("rolId", "permisoId") VALUES
   (9, 1), (9, 5), (9, 15), (9, 14), (9, 2), (9, 4),
   (1, 1), (1, 2), (1, 4), (1, 15), (1, 5), (1, 14), (1, 21),
   (1, 22), (1, 23), (1, 24), (1, 25), (1, 26), (1, 27), (1, 28),
-  (1, 29), (1, 30), (1, 31), (1, 32), (1, 33),
+  (1, 29), (1, 30), (1, 31), (1, 32), (1, 33), (1, 34), (1, 35), (1, 36), (1, 37), (1, 38), (1, 39),
   (10, 25), (10, 21), (10, 26)
 ON CONFLICT ("rolId", "permisoId") DO NOTHING;
 
@@ -111,6 +117,49 @@ ON CONFLICT (id) DO UPDATE SET
   "rolId" = EXCLUDED."rolId",
   eliminado = EXCLUDED.eliminado,
   usuario = EXCLUDED.usuario;
+
+-- 4.1) Expansion aditiva de catalogos base (sin reemplazar existentes)
+INSERT INTO public."CategoriaPermiso" (id, "nombreCategoria", disponible) VALUES
+  (100, 'Proveedores', true),
+  (101, 'Auditoria', true)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public."Categoria" (id, nombre, descripcion, disponible) VALUES
+  (100, 'Accesorios', 'Accesorios de moda y temporada', true),
+  (101, 'Electronica', 'Dispositivos y accesorios electronicos', true),
+  (102, 'Higiene y Limpieza', 'Productos de higiene y limpieza', true)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public."Rol" (id, nombre, descripcion, disponible, created_at) VALUES
+  (100, 'GerenteSucursal', 'Gestion de operaciones y reportes de sucursal', true, NOW()),
+  (101, 'Contador', 'Gestion contable y revision de reportes financieros', true, NOW())
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public."Sucursal" (id, nombre, direccion, telefono, gerente, activa, created_at, "updatedAt") VALUES
+  (100, 'Sucursal Occidente', 'Santa Rosa de Copan', '2444-0000', 'Gerente Occidente', true, NOW(), NOW()),
+  (101, 'Sucursal Sur', 'Choluteca', '2881-0000', 'Gerente Sur', true, NOW(), NOW())
+ON CONFLICT DO NOTHING;
+
+-- 4.2) Expansion aditiva de permisos y asignaciones
+INSERT INTO public."Permiso" (id, nombre, descripcion, disponible, created_at, "categoriaId") VALUES
+  (100, 'Ver proveedores', 'Permite visualizar proveedores', true, NOW(), 100),
+  (101, 'Crear proveedores', 'Permite crear proveedores', true, NOW(), 100),
+  (102, 'Editar proveedores', 'Permite editar proveedores', true, NOW(), 100),
+  (103, 'Exportar reportes', 'Permite exportar reportes en PDF o Excel', true, NOW(), 6),
+  (104, 'Ver auditoria', 'Permite consultar bitacoras de auditoria', true, NOW(), 101),
+  (105, 'Gestionar auditoria', 'Permite administrar eventos de auditoria', true, NOW(), 101)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public."RolPermiso" ("rolId", "permisoId") VALUES
+  (100, 100),
+  (100, 101),
+  (100, 102),
+  (100, 103),
+  (100, 104),
+  (101, 103),
+  (101, 104),
+  (101, 105)
+ON CONFLICT DO NOTHING;
 
 -- 5) Productos e inventario
 INSERT INTO public."Producto" (id, nombre, sku, costo, precio_venta, unidad_medida, estado, created_at, updated_at, "categoriaId", imagen_path, imagen_url) VALUES
