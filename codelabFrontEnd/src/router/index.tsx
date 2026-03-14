@@ -15,6 +15,9 @@ import FormProduct from '../pages/Administration/Products/FormProduct';
 import RolesPermisionManagment from '../pages/Administration/RolesPermission/RolesPermisionManagment';
 import FormRoles from '../pages/Administration/RolesPermission/FormRoles';
 import FormPermissions from '../pages/Administration/RolesPermission/FormPermissions';
+import InventarioManagement from '../pages/Administration/Inventario/InventarioManagement';
+import SalidasInventario from '../pages/Administration/Inventario/SalidasInventario';
+import EntradaInventario from '../pages/Administration/Inventario/EntradaInventario';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -62,6 +65,11 @@ const AppRouter = () => (
             <Route path="/RolesPermision-Management/Create-Permisssion" element={<PermissionGate permiso="Crear permisos"><FormPermissions /></PermissionGate>} />
             <Route path="/RolesPermision-Management/Create-Roles" element={<PermissionGate permiso="Crear roles"><FormRoles /></PermissionGate>} />
             <Route path="/RolesPermision-Management/Update-Roles/:id" element={<PermissionGate permiso="Editar roles"><FormRoles /></PermissionGate>} />
+
+            {/* Gestion de inventarios */}
+            <Route path="/Inventario-Management" element={<PermissionGate permiso="Movimientos inventario"><InventarioManagement /></PermissionGate>} />
+            <Route path="/Inventario-Management/Salida-Inventario" element={<PermissionGate permiso="Salida inventario"><SalidasInventario /></PermissionGate>} />
+            <Route path="/Inventario-Management/Entrada-Inventario" element={<PermissionGate permiso="Entrada inventario"><EntradaInventario /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>

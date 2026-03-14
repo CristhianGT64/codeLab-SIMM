@@ -31,6 +31,13 @@ const navBarData: NavBarInterface = {
       disable : false,
       permiso : "Ver productos"
     },
+    {
+      text: "Movimientos",
+      icon: "fa-solid fa-dolly",
+      url : "/Inventario-Management",
+      disable : false,
+      permiso : "Movimientos inventario"
+    },
   ],
   nameUser : 'Administrador'
 };

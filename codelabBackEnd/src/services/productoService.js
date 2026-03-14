@@ -1,6 +1,5 @@
 import prisma from '../infra/prisma/prismaClient.js';
 import productoRepository from '../repositories/productoRepository.js';
-import inventarioRepository from '../repositories/inventarioRepository.js';
 
 const UNIDADES_VALIDAS = [
   'Unidad',
@@ -43,6 +42,12 @@ const productoService = {
       throw err;
     }
 
+    if (!Number.isInteger(Number(stockInicial)) || Number(stockInicial) < 0) {
+      const err = new Error('stockInicial debe ser un número entero mayor o igual a 0.');
+      err.status = 400;
+      throw err;
+    }
+
     if (!UNIDADES_VALIDAS.includes(unidadMedida)) {
       const err = new Error(`unidadMedida inválida. Valores permitidos: ${UNIDADES_VALIDAS.join(', ')}`);
       err.status = 400;
@@ -72,6 +77,7 @@ const productoService = {
       err.status = 400;
       throw err;
     }
+
     if (cat.disponible === false) {
       const err = new Error('La categoría asignada está deshabilitada.');
       err.status = 400;
@@ -84,16 +90,19 @@ const productoService = {
         where: { id: BigInt(sucursalId) },
         select: { id: true, activa: true },
       });
+
       if (!suc) {
         const err = new Error('La sucursal asignada no existe.');
         err.status = 400;
         throw err;
       }
+
       if (suc.activa === false) {
         const err = new Error('La sucursal asignada está inactiva.');
         err.status = 400;
         throw err;
       }
+
       sucursalFinalId = BigInt(sucursalId);
     } else {
       const sucDefault = await prisma.sucursal.findFirst({
@@ -101,11 +110,13 @@ const productoService = {
         orderBy: { id: 'asc' },
         select: { id: true },
       });
+
       if (!sucDefault) {
         const err = new Error('No hay sucursales activas. Crea una sucursal antes de registrar productos.');
         err.status = 400;
         throw err;
       }
+
       sucursalFinalId = sucDefault.id;
     }
 
@@ -151,6 +162,28 @@ const productoService = {
         },
         select: { id: true, sucursalId: true, stockActual: true },
       });
+
+      if (Number(stockInicial) > 0) {
+        await tx.movimientoInventario.create({
+          data: {
+            tipo: 'entrada',
+            subtipoEntrada: 'PRODUCTO_NUEVO',
+            motivoSalida: null,
+            detalleMotivo: 'Stock inicial del producto',
+            observaciones: 'Movimiento generado automáticamente al crear el producto.',
+            cantidad: Number(stockInicial),
+            stockResultante: Number(stockInicial),
+            fechaMovimiento: new Date(),
+            estado: 'completado',
+            referenciaTipo: 'creacion_producto',
+            referenciaId: null,
+            productoId: producto.id,
+            sucursalId: sucursalFinalId,
+            usuarioId: null,
+            proveedorId: null,
+          },
+        });
+      }
 
       return { producto, inventario };
     });
@@ -220,6 +253,7 @@ const productoService = {
 
     const costoNuevo = body.costo !== undefined ? body.costo : current.costo;
     const precioNuevo = body.precioVenta !== undefined ? body.precioVenta : current.precioVenta;
+
     if (Number(precioNuevo) <= Number(costoNuevo)) {
       const err = new Error('El precio de venta debe ser mayor al costo del producto.');
       err.status = 400;

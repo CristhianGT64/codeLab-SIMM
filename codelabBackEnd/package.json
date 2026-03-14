@@ -82,7 +82,14 @@
   },
   "scripts": {
     "test": "dev",
-    "start": "nodemon src/app.js"
+    "start": "nodemon src/app.js",
+    "dev:bootstrap": "npm run db:rebuild ; npm run start",
+    "db:migrate:status": "prisma migrate status",
+    "db:reset": "prisma migrate reset --force",
+    "db:seed": "node prisma/seed.js all",
+    "db:seed:base": "node prisma/seed.js base",
+    "db:seed:business": "node prisma/seed.js business",
+    "db:rebuild": "npm run db:reset ; npm run db:seed"
   },
   "author": "",
   "license": "ISC",
