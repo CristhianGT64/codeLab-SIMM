@@ -1,4 +1,5 @@
 import configuracionContableRepository from '../repositories/configuracionContableRepository.js';
+import periodoContableRepository from '../repositories/periodoContableRepository.js';
 
 const METODOS_VALIDOS = ['FIFO', 'PROMEDIO_PONDERADO'];
 
@@ -41,6 +42,18 @@ const configuracionContableService = {
       metodoValuacion: body.metodoValuacion,
     };
 
+    const isMethodChange = body.metodoValuacion !== actual.metodoValuacion;
+
+    if (isMethodChange) {
+      const hasClosedPeriods = await periodoContableRepository.existsClosedPeriods();
+
+      if (hasClosedPeriods) {
+        const err = new Error('No se puede cambiar el metodo de valuacion porque existen periodos contables cerrados.');
+        err.status = 409;
+        throw err;
+      }
+    }
+
     if (body.monedaFuncional !== undefined) {
       const moneda = String(body.monedaFuncional).trim().toUpperCase();
 
@@ -58,9 +71,6 @@ const configuracionContableService = {
 
       data.monedaFuncional = moneda;
     }
-
-    // Pendiente:
-    // validar si existen períodos contables cerrados antes de permitir el cambio
 
     return configuracionContableRepository.update(actual.id, data);
   },

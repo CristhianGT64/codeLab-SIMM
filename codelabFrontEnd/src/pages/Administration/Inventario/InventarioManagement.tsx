@@ -16,6 +16,7 @@ import {
   filtroTipo,
   titleInventario,
   tituloTablaInventario,
+  botonFifoPromedio
 } from "../../../data/dataAdministrator/InventarioData";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import useAuth from "../../../hooks/useAuth";
@@ -202,6 +203,13 @@ export default function InventarioManagement() {
           <ButtonsComponet
             {...botonRegistrarSalida}
             onClick={() => navigate("/Inventario-Management/Salida-Inventario")}
+          />
+        )}
+
+        {tienePermiso("Configuracion FIFO/Promedio") && (
+          <ButtonsComponet
+            {...botonFifoPromedio}
+            onClick={() => navigate("/Configuracion/Inventario/FIFO-PEPS")}
           />
         )}
       </div>

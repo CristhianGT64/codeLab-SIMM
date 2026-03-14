@@ -1,8 +1,117 @@
 import prisma from '../infra/prisma/prismaClient.js';
 import inventarioRepository from '../repositories/inventarioRepository.js';
+import configuracionContableService from './configuracionContableService.js';
 
 const SUBTIPOS_ENTRADA = ['REABASTECIMIENTO'];
 const MOTIVOS_SALIDA = ['VENTA', 'DANIO', 'CONSUMO_INTERNO', 'AJUSTE', 'OTRO'];
+
+const toNumber = (value, fallback = 0) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const round2 = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
+
+const buildFifoLayers = (movimientos, costoFallback) => {
+  const capas = [];
+
+  for (const movimiento of movimientos) {
+    if (movimiento.tipo === 'entrada') {
+      const costoUnitario = toNumber(movimiento.costoUnitario, costoFallback);
+      capas.push({
+        cantidadDisponible: Number(movimiento.cantidad),
+        costoUnitario,
+      });
+      continue;
+    }
+
+    let pendiente = Number(movimiento.cantidad);
+
+    while (pendiente > 0 && capas.length > 0) {
+      const capa = capas[0];
+      const consumido = Math.min(capa.cantidadDisponible, pendiente);
+      capa.cantidadDisponible -= consumido;
+      pendiente -= consumido;
+
+      if (capa.cantidadDisponible <= 0) {
+        capas.shift();
+      }
+    }
+  }
+
+  return capas;
+};
+
+const calcularCostoSalidaFIFO = ({ movimientos, cantidadSalida, costoFallback }) => {
+  const capasDisponibles = buildFifoLayers(movimientos, costoFallback).map((capa) => ({ ...capa }));
+
+  let pendiente = Number(cantidadSalida);
+  let costoTotal = 0;
+
+  while (pendiente > 0 && capasDisponibles.length > 0) {
+    const capa = capasDisponibles[0];
+    const consumido = Math.min(capa.cantidadDisponible, pendiente);
+
+    costoTotal += consumido * capa.costoUnitario;
+    capa.cantidadDisponible -= consumido;
+    pendiente -= consumido;
+
+    if (capa.cantidadDisponible <= 0) {
+      capasDisponibles.shift();
+    }
+  }
+
+  if (pendiente > 0) {
+    const err = new Error('No hay capas suficientes para calcular costo FIFO de la salida solicitada.');
+    err.status = 400;
+    throw err;
+  }
+
+  const costoUnitario = round2(costoTotal / Number(cantidadSalida));
+  return {
+    costoUnitario,
+    costoTotal: round2(costoTotal),
+  };
+};
+
+const calcularCostoSalidaPromedio = ({ movimientos, cantidadSalida, costoFallback }) => {
+  let cantidadDisponible = 0;
+  let costoDisponible = 0;
+
+  for (const movimiento of movimientos) {
+    if (movimiento.tipo === 'entrada') {
+      const costoUnitarioEntrada = toNumber(movimiento.costoUnitario, costoFallback);
+      const costoTotalEntrada = round2(Number(movimiento.cantidad) * costoUnitarioEntrada);
+
+      cantidadDisponible += Number(movimiento.cantidad);
+      costoDisponible += costoTotalEntrada;
+      continue;
+    }
+
+    const cantidadSalidaHistorica = Number(movimiento.cantidad);
+    const costoSalidaHistorica =
+      movimiento.costoTotal !== null && movimiento.costoTotal !== undefined
+        ? toNumber(movimiento.costoTotal, 0)
+        : round2(cantidadSalidaHistorica * toNumber(movimiento.costoUnitario, costoFallback));
+
+    cantidadDisponible -= cantidadSalidaHistorica;
+    costoDisponible -= costoSalidaHistorica;
+  }
+
+  if (cantidadDisponible <= 0) {
+    const err = new Error('No hay inventario disponible para calcular costo promedio ponderado.');
+    err.status = 400;
+    throw err;
+  }
+
+  const costoUnitario = round2(costoDisponible / cantidadDisponible);
+  const costoTotal = round2(costoUnitario * Number(cantidadSalida));
+
+  return {
+    costoUnitario,
+    costoTotal,
+  };
+};
 
 const inventarioService = {
   async registrarEntrada(body) {
@@ -97,6 +206,10 @@ const inventarioService = {
     }
 
     return prisma.$transaction(async (tx) => {
+      const configMetodo = await configuracionContableService.getMetodoInventario();
+      const costoUnitario = round2(toNumber(producto.costo, 0));
+      const costoTotal = round2(costoUnitario * Number(cantidad));
+
       const inventario = await inventarioRepository.upsertInventarioEntrada(
         productoId,
         sucursalId,
@@ -113,6 +226,9 @@ const inventarioService = {
           observaciones: observaciones ? String(observaciones).trim() : null,
           cantidad: Number(cantidad),
           stockResultante: inventario.stockActual,
+          metodoValuacionAplicado: configMetodo.metodoValuacion,
+          costoUnitario,
+          costoTotal,
           fechaMovimiento: fecha,
           estado: 'completado',
           referenciaTipo: 'movimiento_manual',
@@ -209,6 +325,28 @@ const inventarioService = {
     }
 
     return prisma.$transaction(async (tx) => {
+      const configMetodo = await configuracionContableService.getMetodoInventario();
+      const movimientosPrevios = await inventarioRepository.getMovimientosValuacion(
+        productoId,
+        sucursalId,
+        fecha,
+        tx
+      );
+
+      const costoFallback = round2(toNumber(producto.costo, 0));
+
+      const valuacionSalida = configMetodo.metodoValuacion === 'PROMEDIO_PONDERADO'
+        ? calcularCostoSalidaPromedio({
+          movimientos: movimientosPrevios,
+          cantidadSalida: Number(cantidad),
+          costoFallback,
+        })
+        : calcularCostoSalidaFIFO({
+          movimientos: movimientosPrevios,
+          cantidadSalida: Number(cantidad),
+          costoFallback,
+        });
+
       const inventario = await inventarioRepository.updateInventarioSalida(
         inventarioActual.id,
         cantidad,
@@ -224,6 +362,9 @@ const inventarioService = {
           observaciones: observaciones ? String(observaciones).trim() : null,
           cantidad: Number(cantidad),
           stockResultante: inventario.stockActual,
+          metodoValuacionAplicado: configMetodo.metodoValuacion,
+          costoUnitario: valuacionSalida.costoUnitario,
+          costoTotal: valuacionSalida.costoTotal,
           fechaMovimiento: fecha,
           estado: 'completado',
           referenciaTipo: 'movimiento_manual',

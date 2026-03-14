@@ -27,9 +27,9 @@ export const notificacionErrorCantidad: NotificationStateInterface = {
 
 export const notificacionRegistroEntradaExitoso: NotificationStateInterface = {
   isVisible: true,
-  variant: "error",
-  title: "Cantidad invalida",
-  message: "La cantidad debe ser mayor a 0.",
+  variant: "success",
+  title: "Entrada registrada",
+  message: "La entrada de inventario se registro correctamente.",
 };
 
 export const notificacionErorrRegistroEntrada: NotificationStateInterface = {
