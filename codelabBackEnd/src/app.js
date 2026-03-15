@@ -111,9 +111,11 @@ app.delete('/permissions/:id', permissionController.remove)
 app.post('/roles/:id/permissions', roleController.assignPermissions)
 app.put('/roles/:id/permissions', roleController.updatePermissions) // modificar permisos del rol
 app.get('/roles/:id/permissions', roleController.getPermissions)
+
 // Usuarios
 app.post('/usuarios', usuarioController.create);
 app.get('/usuarios', usuarioController.getAll);
+
 // Rutas para obtener usuarios por rol y para operaciones CRUD específicas (Opcional por si se necesitan)
 app.get('/usuarios/roles', usuarioController.getUsersByRole);
 app.get('/usuarios/:id', usuarioController.getById);
@@ -122,11 +124,11 @@ app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
 
-
 // Rutas de clientes
 app.post('/clientes', clientController.createClient);
 app.get('/clientes', clientController.getAllClients);
 app.put('/clientes/:id', clientController.updateClient);
+
 // Middleware de errores
 app.use(errorHandler);
 

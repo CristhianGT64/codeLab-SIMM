@@ -15,6 +15,9 @@ import FormProduct from '../pages/Administration/Products/FormProduct';
 import RolesPermisionManagment from '../pages/Administration/RolesPermission/RolesPermisionManagment';
 import FormRoles from '../pages/Administration/RolesPermission/FormRoles';
 import FormPermissions from '../pages/Administration/RolesPermission/FormPermissions';
+import ClientsManagement from '../pages/Facturacion/Clients/ClientsManagement';
+import FormClient from '../pages/Facturacion/Clients/FormClient';
+import ClientDetail from '../pages/Facturacion/Clients/ClientDetail';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -51,6 +54,13 @@ const AppRouter = () => (
             <Route path="/Branches-Management" element={<PermissionGate permiso="Ver sucursales"><Branches /></PermissionGate>} />
             <Route path="/Branches-Management/Create-Sucursal" element={<PermissionGate permiso="Crear sucursales"><FormSucursal /></PermissionGate>} />
             <Route path="/Branches-Management/Update-Sucursal/:id" element={<PermissionGate permiso="Editar sucursales"><FormSucursal /></PermissionGate>} />
+
+
+            {/* Clientes */}
+            <Route path="/Clients-Management" element={<PermissionGate permiso="Ver clientes"><ClientsManagement /></PermissionGate>} />
+            <Route path="/Clients-Management/Create-Client" element={<PermissionGate permiso="Crear clientes"><FormClient /></PermissionGate>} />
+            <Route path="/Clients-Management/Update-Client/:id" element={<PermissionGate permiso="Editar clientes"><FormClient /></PermissionGate>} />
+            <Route path="/Clients-Management/Detail-Client/:id" element={<PermissionGate permiso="Ver clientes"><ClientDetail /></PermissionGate>} />
 
             {/* Productos */}
             <Route path="/Product-Management" element={<PermissionGate permiso="Ver productos"><ProductManagement /></PermissionGate>} />
