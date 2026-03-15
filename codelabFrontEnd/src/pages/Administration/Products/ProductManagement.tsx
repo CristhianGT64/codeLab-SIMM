@@ -136,6 +136,17 @@ export default function ProductManagement() {
               disabled={false}
             />
           )}
+
+          {tienePermiso("Eliminar Producto") && (
+                        <ButtonsComponet
+              text="Eliminar Producto"
+              typeButton="button"
+              className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
+              icon="fa-solid fa-plus"
+              onClick={() => navigate("/Product-Management/Create-Product")}
+              disabled={false}
+            />
+          )}
         </div>
       </div>
 

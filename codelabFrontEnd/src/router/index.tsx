@@ -18,6 +18,10 @@ import FormPermissions from '../pages/Administration/RolesPermission/FormPermiss
 import ClientsManagement from '../pages/Facturacion/Clients/ClientsManagement';
 import FormClient from '../pages/Facturacion/Clients/FormClient';
 import ClientDetail from '../pages/Facturacion/Clients/ClientDetail';
+import InventarioManagement from '../pages/Administration/Inventario/InventarioManagement';
+import SalidasInventario from '../pages/Administration/Inventario/SalidasInventario';
+import EntradaInventario from '../pages/Administration/Inventario/EntradaInventario';
+import FifoPromConfig from '../pages/Administration/configuracion/fifo-prom/FifoPromConfig';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -72,6 +76,12 @@ const AppRouter = () => (
             <Route path="/RolesPermision-Management/Create-Permisssion" element={<PermissionGate permiso="Crear permisos"><FormPermissions /></PermissionGate>} />
             <Route path="/RolesPermision-Management/Create-Roles" element={<PermissionGate permiso="Crear roles"><FormRoles /></PermissionGate>} />
             <Route path="/RolesPermision-Management/Update-Roles/:id" element={<PermissionGate permiso="Editar roles"><FormRoles /></PermissionGate>} />
+
+            {/* Gestion de inventarios */}
+            <Route path="/Inventario-Management" element={<PermissionGate permiso="Movimientos inventario"><InventarioManagement /></PermissionGate>} />
+            <Route path="/Inventario-Management/Salida-Inventario" element={<PermissionGate permiso="Salida inventario"><SalidasInventario /></PermissionGate>} />
+            <Route path="/Inventario-Management/Entrada-Inventario" element={<PermissionGate permiso="Entrada inventario"><EntradaInventario /></PermissionGate>} />
+            <Route path="/Configuracion/Inventario/FIFO-PEPS" element={<PermissionGate permiso="Movimientos inventario"><FifoPromConfig /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>
