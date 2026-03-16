@@ -10,13 +10,11 @@ import clientService from '../services/clientService.js';
 const clientController = {
   /**
    * Obtiene todos los clientes
-   * @param {Object} req - Request de Express
-   * @param {Object} res - Response de Express
-   * @param {Function} next - Función next de Express
    */
   async getAllClients(req, res, next) {
     try {
-      const clientes = await clientService.getAll();
+      const search = req.query.search || '';
+      const clientes = await clientService.getAll(search);
       res.json({
         success: true,
         data: clientes,
@@ -28,9 +26,6 @@ const clientController = {
 
   /**
    * Crea un nuevo cliente
-   * @param {Object} req - Request de Express
-   * @param {Object} res - Response de Express
-   * @param {Function} next - Función next de Express
    */
   async createClient(req, res, next) {
     try {
@@ -46,21 +41,26 @@ const clientController = {
 
   /**
    * Actualiza un cliente existente
-   * @param {Object} req - Request de Express
-   * @param {Object} res - Response de Express
-   * @param {Function} next - Función next de Express
    */
+  async getClientById(req, res, next) {
+    try {
+      const { id } = req.params;
+      const cliente = await clientService.getById(id);
+      res.json({
+        success: true,
+        data: cliente,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async updateClient(req, res, next) {
     try {
       const { id } = req.params;
-      // Remover cualquier campo 'id' accidental del body para evitar conflictos
       const { id: _ignored, ...data } = req.body;
-      // Log para troubleshooting
       console.log('Actualizando cliente', id, data);
-      const cliente = await clientService.update(
-        Number.parseInt(id, 10),
-        data
-      );
+      const cliente = await clientService.update(BigInt(id), data);
       res.json({
         success: true,
         data: cliente,

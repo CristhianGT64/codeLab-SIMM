@@ -1,10 +1,22 @@
+export type ClientType = 'Contado' | 'Crédito' | 'Mayorista' | 'Minorista';
+
+export interface Invoice {
+  id: string;
+  numero: string;
+  fecha: string;
+  total: number;
+  estado: 'Pagada' | 'Pendiente' | 'Vencida';
+}
+
 export interface Client {
-  id: number;
-  nombre: string;
-  dni: string;
+  id: string;
+  nombreCompleto: string;
+  identificacion: string;
   telefono: string;
-  email: string;
-  tipo: 'Minorista' | 'Mayorista' | 'Crédito' | 'Contado';
+  correo: string;
+  direccion: string;
+  tipoClienteId: string;
+  tipoCliente: ClientType;
 }
 
 export interface ClientDetail extends Client {
@@ -14,20 +26,14 @@ export interface ClientDetail extends Client {
   facturas: Invoice[];
 }
 
-export interface Invoice {
-  id: number;
-  numero: string;
-  fecha: string;
-  total: number;
-  estado: 'Pagada' | 'Pendiente' | 'Vencida';
-}
-
 export interface CreateClientPayload {
-  nombre: string;
-  dni: string;
+  nombreCompleto: string;
+  identificacion: string;
   telefono: string;
-  email: string;
-  tipo: 'Minorista' | 'Mayorista' | 'Crédito' | 'Contado';
+  correo: string;
+  direccion: string;
+  tipoClienteId: string;
+  tipoCliente: ClientType;
 }
 
 export interface UpdateClientPayload extends CreateClientPayload {}

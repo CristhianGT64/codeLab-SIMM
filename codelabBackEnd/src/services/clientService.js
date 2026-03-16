@@ -10,19 +10,20 @@ import clientRepository from '../repositories/clientRepository.js';
 const clientService = {
   /**
    * Obtiene todos los clientes
+   * @param {string} search
    * @returns {Promise<Array>} Lista de clientes
    */
-  async getAll() {
-    return await clientRepository.getAllClients();
+  async getAll(search = '') {
+    return await clientRepository.getAllClients(search);
   },
 
   /**
    * Obtiene un cliente por su ID
-   * @param {number} id - ID del cliente
+   * @param {BigInt|number|string} id - ID del cliente
    * @returns {Promise<Object|null>} Cliente encontrado o null
    */
   async getById(id) {
-    const cliente = await clientRepository.getClientById(id);
+    const cliente = await clientRepository.getClientById(BigInt(id));
     if (!cliente) {
       const error = new Error('Cliente no encontrado');
       error.status = 404;
@@ -37,20 +38,28 @@ const clientService = {
    * @returns {Promise<Object>} Cliente creado
    */
   async create(data) {
+    if (data.identificacion) {
+      const existing = await clientRepository.getByIdentificacion(
+        data.identificacion
+      );
+      if (existing) {
+        const error = new Error('El cliente con esta identificación ya existe');
+        error.status = 400;
+        throw error;
+      }
+    }
     return await clientRepository.createClient(data);
   },
 
   /**
    * Actualiza un cliente existente
-   * @param {number} id - ID del cliente
+   * @param {BigInt|number|string} id - ID del cliente
    * @param {Object} data - Datos a actualizar
    * @returns {Promise<Object>} Cliente actualizado
    */
-  
   async update(id, data) {
-    // Verificar que el cliente existe
     await this.getById(id);
-    return await clientRepository.updateClient(id, data);
+    return await clientRepository.updateClient(BigInt(id), data);
   },
 };
 

@@ -153,6 +153,7 @@ app.delete('/usuarios/:id', usuarioController.remove);
 // Rutas de clientes
 app.post('/clientes', clientController.createClient);
 app.get('/clientes', clientController.getAllClients);
+app.get('/clientes/:id', clientController.getClientById);
 app.put('/clientes/:id', clientController.updateClient);
 
 // Middleware de errores
