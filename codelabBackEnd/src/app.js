@@ -12,6 +12,7 @@ import clientController from './controllers/clientController.js';
 import inventarioController from './controllers/inventarioController.js';
 import proveedorController from './controllers/proveedorController.js';
 import configuracionContableController from './controllers/configuracionContableController.js';
+import caiController from './controllers/caiController.js';
 
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
@@ -115,6 +116,11 @@ app.get('/inventario/historial/:productoId', inventarioController.historialPorPr
 app.get('/configuracion/metodo-inventario', configuracionContableController.getMetodoInventario);
 app.put('/configuracion/metodo-inventario', configuracionContableController.updateMetodoInventario);
 app.get('/configuracion/metodo-inventario/opciones', configuracionContableController.opciones);
+
+// CAI
+app.post('/cai', caiController.create);
+app.get('/cai', caiController.list);
+app.get('/cai/vigente/ultimo', caiController.latestVigente);
 
 // Roles
 app.get('/roles', roleController.getAll);
