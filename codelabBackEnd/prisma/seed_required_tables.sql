@@ -203,6 +203,12 @@ ON CONFLICT (id) DO UPDATE SET
   "sucursalId" = EXCLUDED."sucursalId";
 
 -- 6) Ajuste de secuencias para evitar choques de IDs
+INSERT INTO public.configuracion_sistema (id, metodo_valuacion_inventario, moneda_funcional) VALUES
+  (1, 'FIFO', 'HNL')
+ON CONFLICT (id) DO UPDATE SET
+  metodo_valuacion_inventario = EXCLUDED.metodo_valuacion_inventario,
+  moneda_funcional            = EXCLUDED.moneda_funcional;
+
 SELECT setval('public."CategoriaPermiso_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."CategoriaPermiso"), true);
 SELECT setval('public."Categoria_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Categoria"), true);
 SELECT setval('public."Rol_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Rol"), true);
@@ -211,6 +217,7 @@ SELECT setval('public."Permiso_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM publi
 SELECT setval('public."Usuario_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Usuario"), true);
 SELECT setval('public."Producto_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Producto"), true);
 SELECT setval('public."Inventario_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Inventario"), true);
+SELECT setval('public.configuracion_sistema_id_seq', (SELECT COALESCE(MAX(id), 1) FROM public.configuracion_sistema), true);
 
 -- Período contable cerrado para pruebas de la regla: no se puede cambiar método si existen períodos cerrados
 INSERT INTO public.periodo_contable (id, fecha_inicio, fecha_fin, estado, created_at) VALUES

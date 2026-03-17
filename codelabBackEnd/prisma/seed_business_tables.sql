@@ -1,3 +1,4 @@
+-- Active: 1771999720213@@127.0.0.1@5432@erpSIMM
 BEGIN;
 
 -- 1) Catalogos base para clientes y facturacion
@@ -7,53 +8,61 @@ INSERT INTO public."TipoCliente" (id, nombre) VALUES
 ON CONFLICT (id) DO UPDATE SET
   nombre = EXCLUDED.nombre;
 
-INSERT INTO public."TipoDocumento" (id, numero, nombre, disponible) VALUES
+INSERT INTO public."TiposDocumentos" (id_tipo_documento, numero, nombre, disponible) VALUES
   (1, 1, 'Factura', true)
-ON CONFLICT (id) DO UPDATE SET
+ON CONFLICT (id_tipo_documento) DO UPDATE SET
   numero = EXCLUDED.numero,
   nombre = EXCLUDED.nombre,
   disponible = EXCLUDED.disponible;
 
-INSERT INTO public."RangoEmision" (id, inicio, fin) VALUES
-  (1, 1, 99999999)
-ON CONFLICT (id) DO UPDATE SET
-  inicio = EXCLUDED.inicio,
-  fin = EXCLUDED.fin;
-
-INSERT INTO public."Cai" (id, codigo, fecha_inicio, fecha_fin, activo) VALUES
+INSERT INTO public."Cai" (id_cai, codigo, fecha_inicio, fecha_fin, activo) VALUES
   (1, 'CAI-DEMO-2026-0001', '2026-01-01 00:00:00', '2027-01-01 00:00:00', true)
-ON CONFLICT (id) DO UPDATE SET
+ON CONFLICT (id_cai) DO UPDATE SET
   codigo = EXCLUDED.codigo,
   fecha_inicio = EXCLUDED.fecha_inicio,
   fecha_fin = EXCLUDED.fecha_fin,
   activo = EXCLUDED.activo;
 
+INSERT INTO public."RangoEmision" (id_rango_emision, inicio_rango, final_rango, id_cai) VALUES
+  (1, 1, 99999999, 1)
+ON CONFLICT (id_rango_emision) DO UPDATE SET
+  inicio_rango = EXCLUDED.inicio_rango,
+  final_rango = EXCLUDED.final_rango,
+  id_cai = EXCLUDED.id_cai;
+
 -- 2) Estructura de facturacion
-INSERT INTO public."Establecimiento" (id, numero, "tipoDocumentoId", "sucursalId") VALUES
-  (1, 1, 1, 2)
-ON CONFLICT (id) DO UPDATE SET
+INSERT INTO public."Establecimientos" (id_establecimiento, numero, nombre, "sucursalId", disponible) VALUES
+  (1, 1, 'Establecimiento Principal', 2, true)
+ON CONFLICT (id_establecimiento) DO UPDATE SET
   numero = EXCLUDED.numero,
-  "tipoDocumentoId" = EXCLUDED."tipoDocumentoId",
-  "sucursalId" = EXCLUDED."sucursalId";
+  nombre = EXCLUDED.nombre,
+  "sucursalId" = EXCLUDED."sucursalId",
+  disponible = EXCLUDED.disponible;
 
-INSERT INTO public."PuntoEmision" (id, numero, "tipoDocumentoId", "establecimientoId", "rangoEmisionId") VALUES
-  (1, 1, 1, 1, 1)
-ON CONFLICT (id) DO UPDATE SET
+INSERT INTO public.establecimiento_tipo_documeto (id_establecimiento_tipo_documento, id_establecimiento, id_tipo_documento) VALUES
+  (1, 1, 1)
+ON CONFLICT (id_establecimiento_tipo_documento) DO UPDATE SET
+  id_establecimiento = EXCLUDED.id_establecimiento,
+  id_tipo_documento = EXCLUDED.id_tipo_documento;
+
+INSERT INTO public."PuntosEmision" (id_punto_emision, numero, id_tipo_documento, id_establecimiento, id_rango_emision, disponible) VALUES
+  (1, 1, 1, 1, 1, true)
+ON CONFLICT (id_punto_emision) DO UPDATE SET
   numero = EXCLUDED.numero,
-  "tipoDocumentoId" = EXCLUDED."tipoDocumentoId",
-  "establecimientoId" = EXCLUDED."establecimientoId",
-  "rangoEmisionId" = EXCLUDED."rangoEmisionId";
+  id_tipo_documento = EXCLUDED.id_tipo_documento,
+  id_establecimiento = EXCLUDED.id_establecimiento,
+  id_rango_emision = EXCLUDED.id_rango_emision,
+  disponible = EXCLUDED.disponible;
 
-INSERT INTO public."NumeroFactura" (id, numero_formateado, correlativo, usado, "tipoDocumentoId", "establecimientoId", "puntoEmisionId", "caiId") VALUES
-  (1, '001-001-01-00000001', 1, true, 1, 1, 1, 1)
+INSERT INTO public."NumeroFactura" (id, numero_formateado, correlativo, id_tipo_documento, id_establecimiento, id_punto_emision, id_cai) VALUES
+  (1, '001-001-01-00000001', 1, 1, 1, 1, 1)
 ON CONFLICT (id) DO UPDATE SET
   numero_formateado = EXCLUDED.numero_formateado,
   correlativo = EXCLUDED.correlativo,
-  usado = EXCLUDED.usado,
-  "tipoDocumentoId" = EXCLUDED."tipoDocumentoId",
-  "establecimientoId" = EXCLUDED."establecimientoId",
-  "puntoEmisionId" = EXCLUDED."puntoEmisionId",
-  "caiId" = EXCLUDED."caiId";
+  id_tipo_documento = EXCLUDED.id_tipo_documento,
+  id_establecimiento = EXCLUDED.id_establecimiento,
+  id_punto_emision = EXCLUDED.id_punto_emision,
+  id_cai = EXCLUDED.id_cai;
 
 -- 3) Cliente y proveedor
 INSERT INTO public."Cliente" (id, nombre_completo, identificacion, telefono, correo, direccion, "tipoClienteId") VALUES
@@ -76,10 +85,10 @@ ON CONFLICT (id) DO UPDATE SET
   disponible = EXCLUDED.disponible;
 
 -- 4) Configuracion contable
-INSERT INTO public."ConfiguracionContable" (id, metodo_valuacion, moneda_funcional) VALUES
+INSERT INTO public.configuracion_sistema (id, metodo_valuacion_inventario, moneda_funcional) VALUES
   (1, 'FIFO', 'HNL')
 ON CONFLICT (id) DO UPDATE SET
-  metodo_valuacion = EXCLUDED.metodo_valuacion,
+  metodo_valuacion_inventario = EXCLUDED.metodo_valuacion_inventario,
   moneda_funcional = EXCLUDED.moneda_funcional;
 
 -- 5) Relacion producto-proveedor (tabla mapeada producto_proveedor)
@@ -110,20 +119,20 @@ ON CONFLICT (id) DO UPDATE SET
   "productoId" = EXCLUDED."productoId";
 
 -- 7) Factura
-INSERT INTO public."Factura" (id, subtotal, impuesto, total, fecha_emision, "numeroFacturaId", "ventaId", "clienteId", "usuarioId", "sucursalId") VALUES
-  (1, 175.00, 26.25, 201.25, '2026-03-11 10:05:00', 1, 1, 1, 2, 2)
+INSERT INTO public."Facturas" (id, subtotal, impuesto, total, fecha_emision, numero_formateado, "ventaId", "clienteId", "usuarioId", "sucursalId") VALUES
+  (1, 175.00, 26.25, 201.25, '2026-03-11 10:05:00', '001-001-01-00000001', 1, 1, 2, 2)
 ON CONFLICT (id) DO UPDATE SET
   subtotal = EXCLUDED.subtotal,
   impuesto = EXCLUDED.impuesto,
   total = EXCLUDED.total,
   fecha_emision = EXCLUDED.fecha_emision,
-  "numeroFacturaId" = EXCLUDED."numeroFacturaId",
+  numero_formateado = EXCLUDED.numero_formateado,
   "ventaId" = EXCLUDED."ventaId",
   "clienteId" = EXCLUDED."clienteId",
   "usuarioId" = EXCLUDED."usuarioId",
   "sucursalId" = EXCLUDED."sucursalId";
 
--- 8) Movimiento de inventario (esquema actual: requiere stock_resultante y fecha_movimiento)
+-- 8) Movimiento de inventario
 INSERT INTO public."MovimientoInventario" (
   id, tipo, subtipo_entrada, motivo_salida, detalle_motivo, observaciones,
   cantidad, stock_resultante, fecha_movimiento, estado, referencia_tipo, referencia_id,
@@ -188,20 +197,20 @@ ON CONFLICT DO NOTHING;
 
 -- 9) Ajuste de secuencias
 SELECT setval('public."TipoCliente_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."TipoCliente"), true);
-SELECT setval('public."TipoDocumento_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."TipoDocumento"), true);
-SELECT setval('public."RangoEmision_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."RangoEmision"), true);
-SELECT setval('public."Cai_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Cai"), true);
-SELECT setval('public."Establecimiento_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Establecimiento"), true);
-SELECT setval('public."PuntoEmision_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."PuntoEmision"), true);
+SELECT setval('public."TiposDocumentos_id_tipo_documento_seq"', (SELECT COALESCE(MAX(id_tipo_documento), 1) FROM public."TiposDocumentos"), true);
+SELECT setval('public."RangoEmision_id_rango_emision_seq"', (SELECT COALESCE(MAX(id_rango_emision), 1) FROM public."RangoEmision"), true);
+SELECT setval('public."Cai_id_cai_seq"', (SELECT COALESCE(MAX(id_cai), 1) FROM public."Cai"), true);
+SELECT setval('public."Establecimientos_id_establecimiento_seq"', (SELECT COALESCE(MAX(id_establecimiento), 1) FROM public."Establecimientos"), true);
+SELECT setval('public."PuntosEmision_id_punto_emision_seq"', (SELECT COALESCE(MAX(id_punto_emision), 1) FROM public."PuntosEmision"), true);
 SELECT setval('public."NumeroFactura_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."NumeroFactura"), true);
 SELECT setval('public."Cliente_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Cliente"), true);
 SELECT setval('public."Proveedor_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Proveedor"), true);
 SELECT setval('public."Producto_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Producto"), true);
 SELECT setval('public."Inventario_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Inventario"), true);
-SELECT setval('public."ConfiguracionContable_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."ConfiguracionContable"), true);
+SELECT setval('public.configuracion_sistema_id_seq', (SELECT COALESCE(MAX(id), 1) FROM public.configuracion_sistema), true);
 SELECT setval('public."Venta_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Venta"), true);
 SELECT setval('public."DetalleVenta_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."DetalleVenta"), true);
-SELECT setval('public."Factura_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Factura"), true);
+SELECT setval('public."Facturas_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."Facturas"), true);
 SELECT setval('public."MovimientoInventario_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public."MovimientoInventario"), true);
 
 COMMIT;
