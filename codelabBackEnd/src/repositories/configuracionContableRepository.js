@@ -7,27 +7,14 @@ const mapConfiguracionSistema = (row) => {
 
   return {
     id: row.id,
-    metodoValuacion: row.metodoValuacionInventario,
+    metodoValuacion: row.metodoValuacion,
     monedaFuncional: row.monedaFuncional,
   };
 };
 
 const configuracionContableRepository = {
   async findFirst() {
-    const configSistema = await prisma.configuracionSistema.findFirst({
-      orderBy: { id: 'asc' },
-      select: {
-        id: true,
-        metodoValuacionInventario: true,
-        monedaFuncional: true,
-      },
-    });
-
-    if (configSistema) {
-      return mapConfiguracionSistema(configSistema);
-    }
-
-    const legacy = await prisma.configuracionContable.findFirst({
+    const config = await prisma.configuracionContable.findFirst({
       orderBy: { id: 'asc' },
       select: {
         id: true,
@@ -36,34 +23,18 @@ const configuracionContableRepository = {
       },
     });
 
-    if (!legacy) {
-      return null;
-    }
-
-    const created = await prisma.configuracionSistema.create({
-      data: {
-        metodoValuacionInventario: legacy.metodoValuacion,
-        monedaFuncional: legacy.monedaFuncional,
-      },
-      select: {
-        id: true,
-        metodoValuacionInventario: true,
-        monedaFuncional: true,
-      },
-    });
-
-    return mapConfiguracionSistema(created);
+    return mapConfiguracionSistema(config);
   },
 
   async create(data) {
-    const created = await prisma.configuracionSistema.create({
+    const created = await prisma.configuracionContable.create({
       data: {
-        metodoValuacionInventario: data.metodoValuacion,
+        metodoValuacion: data.metodoValuacion,
         monedaFuncional: data.monedaFuncional,
       },
       select: {
         id: true,
-        metodoValuacionInventario: true,
+        metodoValuacion: true,
         monedaFuncional: true,
       },
     });
@@ -72,15 +43,15 @@ const configuracionContableRepository = {
   },
 
   async update(id, data) {
-    const updated = await prisma.configuracionSistema.update({
+    const updated = await prisma.configuracionContable.update({
       where: { id: BigInt(id) },
       data: {
-        metodoValuacionInventario: data.metodoValuacion,
+        metodoValuacion: data.metodoValuacion,
         monedaFuncional: data.monedaFuncional,
       },
       select: {
         id: true,
-        metodoValuacionInventario: true,
+        metodoValuacion: true,
         monedaFuncional: true,
       },
     });
