@@ -1,17 +1,17 @@
 import prisma from '../infra/prisma/prismaClient.js';
 
 const caiSelect = {
-  id_cai: true,
+  id: true,
   codigo: true,
-  fecha_inicio: true,
-  fecha_fin: true,
+  fechaInicio: true,
+  fechaFin: true,
   activo: true,
-  RangoEmision: {
+  rangoEmision: {
     select: {
-      id_rango_emision: true,
-      inicio_rango: true,
-      final_rango: true,
-      id_cai: true,
+      id: true,
+      inicioRango: true,
+      finRango: true,
+      caiId: true,
     },
   },
 };
@@ -22,10 +22,10 @@ function toRangeView(rango) {
   }
 
   return {
-    id_rango_emision: rango.id_rango_emision,
-    inicio_rango: rango.inicio_rango,
-    final_rango: rango.final_rango,
-    id_cai: rango.id_cai,
+    id_rango_emision: rango.id,
+    inicio_rango: rango.inicioRango,
+    final_rango: rango.finRango,
+    id_cai: rango.caiId,
   };
 }
 
@@ -35,12 +35,12 @@ function toCaiView(cai) {
   }
 
   return {
-    id_cai: cai.id_cai,
+    id_cai: cai.id,
     codigo: cai.codigo,
-    fechaInicio: cai.fecha_inicio,
-    fechaFin: cai.fecha_fin,
+    fechaInicio: cai.fechaInicio,
+    fechaFin: cai.fechaFin,
     activo: cai.activo,
-    rangoEmision: toRangeView(cai.RangoEmision),
+    rangoEmision: toRangeView(cai.rangoEmision),
   };
 }
 
@@ -48,8 +48,8 @@ const caiRepository = {
   async findLastByFechaFin() {
     const cai = await prisma.cai.findFirst({
       orderBy: [
-        { fecha_fin: 'desc' },
-        { id_cai: 'desc' },
+        { fechaFin: 'desc' },
+        { id: 'desc' },
       ],
       select: caiSelect,
     });
@@ -60,14 +60,14 @@ const caiRepository = {
   async findLastRangeByFinal() {
     const rango = await prisma.rangoEmision.findFirst({
       orderBy: [
-        { final_rango: 'desc' },
-        { id_rango_emision: 'desc' },
+        { finRango: 'desc' },
+        { id: 'desc' },
       ],
       select: {
-        id_rango_emision: true,
-        inicio_rango: true,
-        final_rango: true,
-        id_cai: true,
+        id: true,
+        inicioRango: true,
+        finRango: true,
+        caiId: true,
       },
     });
 
@@ -78,7 +78,7 @@ const caiRepository = {
     const cai = await prisma.cai.findUnique({
       where: { codigo },
       select: {
-        id_cai: true,
+        id: true,
       },
     });
 
@@ -90,38 +90,38 @@ const caiRepository = {
       const cai = await tx.cai.create({
         data: {
           codigo: data.codigo,
-          fecha_inicio: data.fechaInicio,
-          fecha_fin: data.fechaFin,
+          fechaInicio: data.fechaInicio,
+          fechaFin: data.fechaFin,
           activo: true,
         },
         select: {
-          id_cai: true,
+          id: true,
           codigo: true,
-          fecha_inicio: true,
-          fecha_fin: true,
+          fechaInicio: true,
+          fechaFin: true,
           activo: true,
         },
       });
 
       const rango = await tx.rangoEmision.create({
         data: {
-          inicio_rango: data.inicioRango,
-          final_rango: data.finalRango,
-          id_cai: cai.id_cai,
+          inicioRango: data.inicioRango,
+          finRango: data.finalRango,
+          caiId: cai.id,
         },
         select: {
-          id_rango_emision: true,
-          inicio_rango: true,
-          final_rango: true,
-          id_cai: true,
+          id: true,
+          inicioRango: true,
+          finRango: true,
+          caiId: true,
         },
       });
 
       return {
-        id_cai: cai.id_cai,
+        id_cai: cai.id,
         codigo: cai.codigo,
-        fechaInicio: cai.fecha_inicio,
-        fechaFin: cai.fecha_fin,
+        fechaInicio: cai.fechaInicio,
+        fechaFin: cai.fechaFin,
         activo: cai.activo,
         rangoEmision: toRangeView(rango),
       };
@@ -131,8 +131,8 @@ const caiRepository = {
   async listAll() {
     const cais = await prisma.cai.findMany({
       orderBy: [
-        { fecha_inicio: 'desc' },
-        { id_cai: 'desc' },
+        { fechaInicio: 'desc' },
+        { id: 'desc' },
       ],
       select: caiSelect,
     });
@@ -144,16 +144,16 @@ const caiRepository = {
     const cai = await prisma.cai.findFirst({
       where: {
         activo: true,
-        fecha_inicio: {
+        fechaInicio: {
           lte: now,
         },
-        fecha_fin: {
+        fechaFin: {
           gte: now,
         },
       },
       orderBy: [
-        { fecha_inicio: 'desc' },
-        { id_cai: 'desc' },
+        { fechaInicio: 'desc' },
+        { id: 'desc' },
       ],
       select: caiSelect,
     });
