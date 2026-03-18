@@ -23,13 +23,17 @@ export const loginUser = async (
     body: JSON.stringify(credentials),
   });
 
-  const payload = (await response.json()) as LoginResponse;
+  const payload = (await response.json()) as unknown;
 
   if (!response.ok) {
-    throw new Error(payload.message || "No se pudo iniciar sesión");
+    const message =
+      (payload as { message?: string }).message ||
+      (payload as { error?: { message?: string } }).error?.message ||
+      "No se pudo iniciar sesión";
+    throw new Error(message);
   }
 
-  return payload;
+  return payload as LoginResponse;
 };
 
 export const createUser = async (

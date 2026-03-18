@@ -48,7 +48,7 @@ const Branches = () => {
     <section className="w-full px-4 py-5 md:px-6 bg-[#f3f5f8]">
       <header>
         <h2 className="text-3xl font-bold text-[#0b4d77] md:text-4xl">
-          Gestión de sucursales
+          Gestión de Sucursales
         </h2>
         <p className="mt-1 text-lg text-[#4661b0] md:text-xl">
           Panel administrativo

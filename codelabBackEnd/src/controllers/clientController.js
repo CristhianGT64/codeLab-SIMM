@@ -1,56 +1,74 @@
-import clientService from "../services/clientService.js";
+/**
+ * Este archivo maneja las solicitudes HTTP, llamando al servicio y respondiendo al cliente.
+ */
 
-const createClient = async (req, res, next) => {
-  try {
+import clientService from '../services/clientService.js';
 
-    const client = await clientService.createClient(req.body);
+/**
+ * Controlador para manejar las solicitudes relacionadas con clientes.
+ */
+const clientController = {
+  /**
+   * Obtiene todos los clientes
+   */
+  async getAllClients(req, res, next) {
+    try {
+      const search = req.query.search || '';
+      const clientes = await clientService.getAll(search);
+      res.json({
+        success: true,
+        data: clientes,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    res.status(201).json({
-      success: true,
-      data: client
-    });
+  /**
+   * Crea un nuevo cliente
+   */
+  async createClient(req, res, next) {
+    try {
+      const cliente = await clientService.create(req.body);
+      res.status(201).json({
+        success: true,
+        data: cliente,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 
-  } catch (error) {
-    next(error);
-  }
+  /**
+   * Actualiza un cliente existente
+   */
+  async getClientById(req, res, next) {
+    try {
+      const { id } = req.params;
+      const cliente = await clientService.getById(id);
+      res.json({
+        success: true,
+        data: cliente,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async updateClient(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { id: _ignored, ...data } = req.body;
+      console.log('Actualizando cliente', id, data);
+      const cliente = await clientService.update(BigInt(id), data);
+      res.json({
+        success: true,
+        data: cliente,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
-const getAllClients = async (req, res, next) => {
-  try {
-
-    const { search } = req.query;
-
-    const clients = await clientService.getClients(search);
-
-    res.json({
-      success: true,
-      data: clients
-    });
-
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateClient = async (req, res, next) => {
-  try {
-
-    const { id } = req.params;
-
-    const client = await clientService.updateClient(id, req.body);
-
-    res.json({
-      success: true,
-      data: client
-    });
-
-  } catch (error) {
-    next(error);
-  }
-};
-
-export default {
-  createClient,
-  getAllClients,
-  updateClient
-};
+export default clientController;

@@ -45,6 +45,13 @@ const navBarData: NavBarInterface = {
       disable: false,
       permiso: "Ver configuración CAI",
     },
+    {
+      text: "Clientes",
+      icon: "fa-solid fa-user",
+      url : "/Clients-Management",
+      disable : false,
+      permiso : "Ver clientes"
+    },
   ],
   nameUser: "Administrador",
 };

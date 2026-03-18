@@ -23,6 +23,16 @@ export const DashboardDataAdmin: DashboardInterface[] = [
     permiso: "Ver roles",
   },
   {
+    svg: "M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm2 3a1 1 0 0 0-1 1v1h12V7a1 1 0 0 0-1-1H6zm0 4v7a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V10H6z",
+    title: "Clientes",
+    description: "Gestión de clientes: Creación, edición, historial y facturación",
+    buttonDescription: "Administrar →",
+    colorBorder: "border-[#11a2a5]",
+    colorSvg: "from-[#11a2a5] to-[#00a99d]",
+    url : '/Clients-Management',
+    permiso : 'Ver clientes'
+  },
+  {
     svg: "M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819",
     title: "Sucursales",
     description: "Gestión de sucursales: Creación, eliminación, edición y más",
