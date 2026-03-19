@@ -59,7 +59,6 @@ const AppRouter = () => (
             <Route path="/Branches-Management/Create-Sucursal" element={<PermissionGate permiso="Crear sucursales"><FormSucursal /></PermissionGate>} />
             <Route path="/Branches-Management/Update-Sucursal/:id" element={<PermissionGate permiso="Editar sucursales"><FormSucursal /></PermissionGate>} />
 
-
             {/* Clientes */}
             <Route path="/Clients-Management" element={<PermissionGate permiso="Ver clientes"><ClientsManagement /></PermissionGate>} />
             <Route path="/Clients-Management/Create-Client" element={<PermissionGate permiso="Crear clientes"><FormClient /></PermissionGate>} />
@@ -82,6 +81,7 @@ const AppRouter = () => (
             <Route path="/Inventario-Management/Salida-Inventario" element={<PermissionGate permiso="Salida inventario"><SalidasInventario /></PermissionGate>} />
             <Route path="/Inventario-Management/Entrada-Inventario" element={<PermissionGate permiso="Entrada inventario"><EntradaInventario /></PermissionGate>} />
             <Route path="/Configuracion/Inventario/FIFO-PEPS" element={<PermissionGate permiso="Movimientos inventario"><FifoPromConfig /></PermissionGate>} />
+
           </Route>
         </Route>
       </Routes>
