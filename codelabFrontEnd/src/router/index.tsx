@@ -22,6 +22,7 @@ import InventarioManagement from '../pages/Administration/Inventario/InventarioM
 import SalidasInventario from '../pages/Administration/Inventario/SalidasInventario';
 import EntradaInventario from '../pages/Administration/Inventario/EntradaInventario';
 import FifoPromConfig from '../pages/Administration/configuracion/fifo-prom/FifoPromConfig';
+import ConfiguracionCAI from '../pages/Administration/Facturacion/ConfiguracionCAI';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -82,6 +83,8 @@ const AppRouter = () => (
             <Route path="/Inventario-Management/Entrada-Inventario" element={<PermissionGate permiso="Entrada inventario"><EntradaInventario /></PermissionGate>} />
             <Route path="/Configuracion/Inventario/FIFO-PEPS" element={<PermissionGate permiso="Movimientos inventario"><FifoPromConfig /></PermissionGate>} />
 
+            {/* Configuración de CAI */}
+            <Route path="/Configuracion/CAI" element={<PermissionGate permiso="Ver configuración CAI"><ConfiguracionCAI /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>

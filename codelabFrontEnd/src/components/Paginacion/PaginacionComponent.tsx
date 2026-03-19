@@ -1,17 +1,17 @@
 import type { IpaginacionProps } from "../../interfaces/PaginacionBotones/Ipaginacion";
 import BtnPagina from "../ButtonPaginacion/buttonPaginacion";
 
-export default function PaginacionComponent(props : Readonly<IpaginacionProps>) {
+export default function PaginacionComponent(props: Readonly<IpaginacionProps>) {
   return (
     <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
       {/* Info de registros */}
-      <p className="text-[#6b7a8f]">
+      <p className="text-[#4661b0] md:text-xl mb-2">
         Mostrando{" "}
-        <span className="font-semibold text-[#24364d]">
+        <span className="font-semibold text-[#4661b0] md:text-xl mb-2">
           {`${props.inicio + 1} - ${Math.min(props.fin, props.registros.length)}`}
         </span>{" "}
         de{" "}
-        <span className="font-semibold text-[#24364d]">
+        <span className="font-semibold text-[#4661b0] md:text-xl mb-2">
           {props.registros.length}
         </span>{" "}
         registros
@@ -26,14 +26,16 @@ export default function PaginacionComponent(props : Readonly<IpaginacionProps>) 
           label="←"
         />
         {/* Números de página */}
-        {Array.from({ length: props.totalPaginas }, (_, i) => i + 1).map((p) => (
-          <BtnPagina
-            key={p}
-            onClick={() => props.action(p)}
-            activa={p === props.paginaActual}
-            label={String(p)}
-          />
-        ))}
+        {Array.from({ length: props.totalPaginas }, (_, i) => i + 1).map(
+          (p) => (
+            <BtnPagina
+              key={p}
+              onClick={() => props.action(p)}
+              activa={p === props.paginaActual}
+              label={String(p)}
+            />
+          ),
+        )}
 
         {/* → Siguiente */}
         <BtnPagina

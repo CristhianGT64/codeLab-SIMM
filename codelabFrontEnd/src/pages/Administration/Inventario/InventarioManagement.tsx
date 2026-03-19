@@ -133,17 +133,17 @@ export default function InventarioManagement() {
         }`}
       >
         {/* Fecha */}
-        <td className="px-4 py-3 text-[#24364d] whitespace-nowrap">
+        <td className="px-6 py-4 text-[#24364d] whitespace-nowrap">
           {formatFecha(m.fechaMovimiento)}
         </td>
 
         {/* Producto */}
-        <td className="px-4 py-3 font-medium text-[#0b4d77]">
+        <td className="px-6 py-4 font-medium text-[#0b4d77]">
           {m.producto?.nombre ?? "-"}
         </td>
 
         {/* Tipo */}
-        <td className="px-4 py-3">
+        <td className="px-6 py-4">
           <span
             className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
               m.tipo === "entrada"
@@ -158,7 +158,7 @@ export default function InventarioManagement() {
 
         {/* Cantidad */}
         <td
-          className={`px-4 py-3 font-semibold ${
+          className={`px-6 py-4 font-semibold ${
             m.tipo === "entrada" ? "text-green-600" : "text-red-500"
           }`}
         >
@@ -166,15 +166,15 @@ export default function InventarioManagement() {
         </td>
 
         {/* Proveedor / Motivo */}
-        <td className="px-4 py-3 text-[#4661b0]">{proveedorOMotivo(m)}</td>
+        <td className="px-6 py-4 text-[#4661b0]">{proveedorOMotivo(m)}</td>
 
         {/* Stock Resultante */}
-        <td className="px-4 py-3 font-medium text-[#24364d]">
+        <td className="px-6 py-4 font-medium text-[#24364d]">
           {m.stockResultante}
         </td>
 
         {/* Estado */}
-        <td className="px-4 py-3">
+        <td className="px-6 py-4">
           <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
             {m.estado}
           </span>
