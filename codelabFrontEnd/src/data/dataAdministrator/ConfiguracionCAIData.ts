@@ -1,7 +1,11 @@
+import type { ReactNode } from "react";
 import type { Ialertas } from "../../interfaces/Alertas/Ialertas";
 import type { ButtonsInterface } from "../../interfaces/ButtonInterface/ButtonsInterface";
 import type { HeaderAdmin } from "../../interfaces/Headers/HeaderInterface";
 import type { IestadosObjetos } from "../../interfaces/IestadosObjetos";
+import type React from "react";
+import type { Icai } from "../../interfaces/CAI/Icai";
+import EstadosObjetos from "../../components/EstadosObjetos/EstadosObjetos";
 
 export const titleConfiguracionCAI: HeaderAdmin = {
   title: "Configuración CAI",

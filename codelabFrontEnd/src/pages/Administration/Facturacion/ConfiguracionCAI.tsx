@@ -24,6 +24,7 @@ import ButtonsComponet from "../../../components/buttonsComponents/ButtonsCompon
 import useListCaiEmitidos from "../../../hooks/CaiHooks/useListCaiEmitidos";
 import TableComponent from "../../../components/Table/TableComponent";
 import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
+import { contenidoTablaCaiEmitidos } from "../../../data/dataAdministrator/TablesData/TableConfifCaiData";
 
 const ITEMS_POR_PAGINA = 8;
 
@@ -59,67 +60,6 @@ export default function ConfiguracionCAI() {
   };
 
   /* Contenido de la tabla */
-
-  const contenidoTabla = (() => {
-    if (isLoadingCaisEmitidos) {
-      return (
-        <tr>
-          <td colSpan={7} className="text-center py-12 text-[#6b7a8f]">
-            Cargando CAI Emitidos…
-          </td>
-        </tr>
-      );
-    }
-
-    if (caisPaginados.length === 0) {
-      return (
-        <tr>
-          <td colSpan={7} className="text-center py-12 text-[#6b7a8f]">
-            Sin CAI Emitidos
-          </td>
-        </tr>
-      );
-    }
-
-    return caisPaginados.map((cai, i) => (
-      <tr
-        key={cai.id_cai}
-        className={`border-b border-gray-100 hover:bg-[#f0f6ff] transition-colors ${
-          i % 2 === 0 ? "bg-white" : "bg-gray-50/60"
-        }`}
-      >
-        {/* Numero CAI */}
-        <td className="px-6 py-4 text-[#24364d] whitespace-nowrap">
-          {cai.codigo}
-        </td>
-
-        {/* Rango */}
-        <td className="px-6 py-4 font-medium text-[#0b4d77]">
-          {cai.rangoEmision?.inicio_rango} - {cai.rangoEmision?.final_rango}
-        </td>
-
-        {/* Vencimiento */}
-        <td className="px-6 py-4">{cai.fechaFin}</td>
-
-        {/* ultima Factura */}
-        <td>{cai.cantidadFacturasEmitidas + cai.rangoEmision?.inicio_rango}</td>
-
-        {/* Estado */}
-        <td className="px-6 py-4 text-[#4661b0]">
-          {isNaN(new Date(cai.fechaFin).getTime()) ||
-          Number(
-            cai.cantidadFacturasEmitidas / Number(cai.rangoEmision.final_rango),
-          ) *
-            100 >=
-            100 ? (
-            <EstadosObjetos {...estadoCaiVencido} />
-          ) : (
-            <EstadosObjetos {...estadoCaiValido} />
-          )}
-        </td>
-      </tr>
-    ));
-  })();
 
   const { porcentajeEmitido, diasRestantes, facturasRestantes } =
     useMemo(() => {
@@ -222,10 +162,13 @@ export default function ConfiguracionCAI() {
             </div>
             <div>
               <h3 className="text-[#4661b0] md:text-xl mb-2">
-                Ultima Facura Emitida
+                Última Factura Emitida
               </h3>
               <div className="text-s font-semibold text-[#0b4d77] mt-1">
-                N° de factura: {caiVigente.cantidadFacturasEmitidas}
+                N° de factura:{" "}
+                {Number(caiVigente.cantidadFacturasEmitidas) +
+                  Number(caiVigente.rangoEmision?.inicio_rango) -
+                  1}
               </div>
             </div>
           </div>
@@ -273,7 +216,10 @@ export default function ConfiguracionCAI() {
 
       <TableComponent
         tituloTablaInventario={tituloTablaCaisEmitidos}
-        contenidoTabla={contenidoTabla}
+        contenidoTabla={contenidoTablaCaiEmitidos(
+          isLoadingCaisEmitidos,
+          caisPaginados,
+        )}
         /* Paginacion */
       />
 
