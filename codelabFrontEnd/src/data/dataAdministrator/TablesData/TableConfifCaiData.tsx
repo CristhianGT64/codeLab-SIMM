@@ -45,7 +45,9 @@ export const contenidoTablaCaiEmitidos = (
       </td>
 
       {/* Vencimiento */}
-      <td className="px-6 py-4">{cai.fechaFin}</td>
+      <td className="px-6 py-4">
+        {new Date(cai.fechaFin).toLocaleDateString()}
+      </td>
 
       {/* ultima Factura */}
       <td>
