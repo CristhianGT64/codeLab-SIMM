@@ -5,7 +5,7 @@ export interface Icai {
   fechaFin: string;
   activo: string;
   rangoEmision: IrangoEmision;
-  cantidadFacturasEmitidas : number;
+  cantidadFacturasEmitidas: number;
 }
 
 export interface IrangoEmision {
@@ -20,6 +20,11 @@ export interface ResponseCaiVigente {
   data: Icai;
 }
 
+export interface ResponseListarCais {
+  success: boolean;
+  data: Icai[];
+}
+
 export const caiEmpty: Icai = {
   id_cai: "",
   codigo: "",
@@ -32,5 +37,5 @@ export const caiEmpty: Icai = {
     final_rango: "",
     id_cai: "",
   },
-  cantidadFacturasEmitidas : 0
+  cantidadFacturasEmitidas: 0,
 };

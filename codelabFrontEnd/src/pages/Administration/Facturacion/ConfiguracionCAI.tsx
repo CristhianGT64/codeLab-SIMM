@@ -1,14 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import {
   alertaCaiPorAgotar,
   alertaCaiRangoAgotado,
   alertaCaiVencido,
+  botonGenerarNuevoCAI,
   estadoCaiProxVencer,
   estadoCaiRangoAgotado,
   estadoCaiValido,
   estadoCaiVencido,
   titleConfiguracionCAI,
+  tituloTablaCaisEmitidos,
 } from "../../../data/dataAdministrator/ConfiguracionCAIData";
 import useReadCaiVigente from "../../../hooks/CaiHooks/useReadCaiVigente";
 import { caiEmpty, type Icai } from "../../../interfaces/CAI/Icai";
@@ -18,6 +20,12 @@ import {
   type IestadosObjetos,
 } from "../../../interfaces/IestadosObjetos";
 import AlertaComponent from "../../../components/Alertas/AlertaComponent";
+import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
+import useListCaiEmitidos from "../../../hooks/CaiHooks/useListCaiEmitidos";
+import TableComponent from "../../../components/Table/TableComponent";
+import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
+
+const ITEMS_POR_PAGINA = 8;
 
 export default function ConfiguracionCAI() {
   const { data: CaiVigenteData, isLoading: isLoadingCaiVigente } =
@@ -25,10 +33,93 @@ export default function ConfiguracionCAI() {
   const caiVigente: Icai = CaiVigenteData?.data ?? caiEmpty;
   const fechaInicio = new Date(caiVigente.fechaInicio);
   const fechaFin = new Date(caiVigente.fechaFin);
+  const { data: CaisEmitidosData, isLoading: isLoadingCaisEmitidos } =
+    useListCaiEmitidos();
+
+  const caisEmitidos: Icai[] = CaisEmitidosData?.data ?? [];
+
+  const [paginaActual, setPaginaActual] = useState(1);
+
   let estadoCaiVigente: IestadosObjetos = emptyEstado;
 
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
+
+  /* Paginacion */
+
+  const totalPaginas: number = Math.ceil(
+    caisEmitidos.length / ITEMS_POR_PAGINA,
+  );
+  const inicio: number = (paginaActual - 1) * ITEMS_POR_PAGINA;
+  const fin: number = inicio + ITEMS_POR_PAGINA;
+  const caisPaginados: Icai[] = caisEmitidos.slice(inicio, fin);
+
+  const irAPagina = (pagina: number) => {
+    if (pagina >= 1 && pagina <= totalPaginas) setPaginaActual(pagina);
+  };
+
+  /* Contenido de la tabla */
+
+  const contenidoTabla = (() => {
+    if (isLoadingCaisEmitidos) {
+      return (
+        <tr>
+          <td colSpan={7} className="text-center py-12 text-[#6b7a8f]">
+            Cargando CAI Emitidos…
+          </td>
+        </tr>
+      );
+    }
+
+    if (caisPaginados.length === 0) {
+      return (
+        <tr>
+          <td colSpan={7} className="text-center py-12 text-[#6b7a8f]">
+            Sin CAI Emitidos
+          </td>
+        </tr>
+      );
+    }
+
+    return caisPaginados.map((cai, i) => (
+      <tr
+        key={cai.id_cai}
+        className={`border-b border-gray-100 hover:bg-[#f0f6ff] transition-colors ${
+          i % 2 === 0 ? "bg-white" : "bg-gray-50/60"
+        }`}
+      >
+        {/* Numero CAI */}
+        <td className="px-6 py-4 text-[#24364d] whitespace-nowrap">
+          {cai.codigo}
+        </td>
+
+        {/* Rango */}
+        <td className="px-6 py-4 font-medium text-[#0b4d77]">
+          {cai.rangoEmision?.inicio_rango} - {cai.rangoEmision?.final_rango}
+        </td>
+
+        {/* Vencimiento */}
+        <td className="px-6 py-4">{cai.fechaFin}</td>
+
+        {/* ultima Factura */}
+        <td>{cai.cantidadFacturasEmitidas + cai.rangoEmision?.inicio_rango}</td>
+
+        {/* Estado */}
+        <td className="px-6 py-4 text-[#4661b0]">
+          {isNaN(new Date(cai.fechaFin).getTime()) ||
+          Number(
+            cai.cantidadFacturasEmitidas / Number(cai.rangoEmision.final_rango),
+          ) *
+            100 >=
+            100 ? (
+            <EstadosObjetos {...estadoCaiVencido} />
+          ) : (
+            <EstadosObjetos {...estadoCaiValido} />
+          )}
+        </td>
+      </tr>
+    ));
+  })();
 
   const { porcentajeEmitido, diasRestantes, facturasRestantes } =
     useMemo(() => {
@@ -68,8 +159,12 @@ export default function ConfiguracionCAI() {
 
   return (
     <section className="px-6 py-8 min-h-screen">
-      <div className="flex justify-between">
+      <div className="flex justify-between items-centers">
         <HeaderTitleAdmin {...titleConfiguracionCAI} />
+        {(isNaN(fechaFin.getTime()) ||
+          Number(porcentajeEmitido) * 100 >= 100) && (
+          <ButtonsComponet {...botonGenerarNuevoCAI} />
+        )}
       </div>
 
       {/* Título */}
@@ -82,7 +177,7 @@ export default function ConfiguracionCAI() {
           </h1>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow p-6 mb-8 mt-6 border-white hover:border-t-[#1498b2] border-6 rounded-2xl bg-[#f3f5f8] p-4 shadow-[0_6px_18px_rgba(0,0,0,0.08)]">
+        <div className="p-6 mb-8 mt-6 border-[#f3f5f8] hover:border-t-[#1498b2] border-6 rounded-2xl bg-[#f3f5f8] shadow-[0_6px_18px_rgba(0,0,0,0.1)]">
           {" "}
           {/* Comienzo de cai Vigente */}
           <div className="flex justify-between items-center mb-4">
@@ -174,74 +269,25 @@ export default function ConfiguracionCAI() {
         </div>
       )}
 
-      {/* Historial de CAIs */}
-      <div className="bg-white rounded-lg shadow mb-8 rounded-2xl bg-[#f3f5f8] p-4 shadow-[0_6px_18px_rgba(0,0,0,0.08)]">
-        <h2 className="text-lg font-semibold text-[#22223B] mb-4">
-          Historial de CAIs
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="bg-[#F4F6F8] text-[#4A4E69]">
-                <th className="px-4 py-2 text-left">Número de CAI</th>
-                <th className="px-4 py-2 text-left">Rango</th>
-                <th className="px-4 py-2 text-left">Vencimiento</th>
-                <th className="px-4 py-2 text-left">Última Factura</th>
-                <th className="px-4 py-2 text-left">Estado</th>
-                <th className="px-4 py-2 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b">
-                <td className="px-4 py-2 font-mono text-[#22223B]">
-                  F8A3E2-4D5C6B-7E8F9A-0B1C2D-3E4F5A-6B
-                </td>
-                <td className="px-4 py-2">1,000,000 - 1,005,000</td>
-                <td className="px-4 py-2">30 de diciembre de 2024</td>
-                <td className="px-4 py-2 text-[#2B7A78]">1,004,800</td>
-                <td className="px-4 py-2">
-                  <span className="bg-[#FFF4E5] text-[#FF9900] px-3 py-1 rounded-full text-xs font-medium flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3"
-                      />
-                    </svg>
-                    Próximo a vencer
-                  </span>
-                </td>
-                <td className="px-4 py-2">
-                  <button className="border border-[#2B7A78] text-[#2B7A78] px-2 py-1 rounded hover:bg-[#E6F0F8] transition">
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Tabla */}
+
+      <TableComponent
+        tituloTablaInventario={tituloTablaCaisEmitidos}
+        contenidoTabla={contenidoTabla}
+        /* Paginacion */
+      />
+
+      <PaginacionComponent
+        inicio={inicio}
+        fin={fin}
+        registros={caisEmitidos}
+        paginaActual={paginaActual}
+        totalPaginas={totalPaginas}
+        action={irAPagina}
+      />
 
       {/* Registrar Nuevo CAI */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-6 mt-30">
         <h2 className="text-lg font-semibold text-[#22223B] mb-4">
           Registrar Nuevo CAI
         </h2>
@@ -305,7 +351,7 @@ export default function ConfiguracionCAI() {
             </button>
             <button
               type="submit"
-              className="bg-gradient-to-r from-[#2B7A78] to-[#3A86FF] text-white px-6 py-2 rounded font-medium hover:opacity-90 transition flex items-center"
+              className="bg-linear-to-r from-[#2B7A78] to-[#3A86FF] text-white px-6 py-2 rounded font-medium hover:opacity-90 transition flex items-center"
             >
               <svg
                 className="w-5 h-5 mr-2"
