@@ -134,10 +134,23 @@ const caiRepository = {
         { fechaInicio: 'desc' },
         { id: 'desc' },
       ],
-      select: caiSelect,
+      select: {
+        ...caiSelect,
+        numerosFactura: true,
+      },
     });
 
-    return cais.map(toCaiView);
+    return cais.map(cai => {
+      const caiView = toCaiView(cai);
+      let cantidadFacturasEmitidas = 0;
+      if (cai && cai.numerosFactura && Array.isArray(cai.numerosFactura)) {
+        cantidadFacturasEmitidas = cai.numerosFactura.length;
+      }
+      return {
+        ...caiView,
+        cantidadFacturasEmitidas,
+      };
+    });
   },
 
   async findLatestVigente(now = new Date()) {
@@ -155,10 +168,21 @@ const caiRepository = {
         { fechaInicio: 'desc' },
         { id: 'desc' },
       ],
-      select: caiSelect,
+      select: {
+        ...caiSelect,
+        numerosFactura: true,
+      },
     });
 
-    return toCaiView(cai);
+    const caiView = toCaiView(cai);
+    let cantidadFacturasEmitidas = 0;
+    if (cai && cai.numerosFactura && Array.isArray(cai.numerosFactura)) {
+      cantidadFacturasEmitidas = cai.numerosFactura.length;
+    }
+    return {
+      ...caiView,
+      cantidadFacturasEmitidas,
+    };
   },
 };
 
