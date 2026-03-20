@@ -5,11 +5,11 @@
   - You are about to drop the `rol` table. If the table is not empty, all the data it contains will be lost.
 
 */
--- DropForeignKey
 ALTER TABLE "RolPermiso" DROP CONSTRAINT "RolPermiso_rolId_fkey";
-
 -- DropForeignKey
 ALTER TABLE "Usuario" DROP CONSTRAINT "Usuario_rolId_fkey";
+
+-- DropForeignKey
 
 -- DropTable
 DROP TABLE "ConfiguracionContable";
@@ -31,10 +31,7 @@ CREATE TABLE "Rol" (
 -- CreateIndex
 CREATE UNIQUE INDEX "Rol_nombre_key" ON "Rol"("nombre");
 
--- AddForeignKey
 ALTER TABLE "RolPermiso" ADD CONSTRAINT "RolPermiso_rolId_fkey" FOREIGN KEY ("rolId") REFERENCES "Rol"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Usuario" ADD CONSTRAINT "Usuario_rolId_fkey" FOREIGN KEY ("rolId") REFERENCES "Rol"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -46,8 +43,7 @@ ALTER TABLE "Venta" ADD CONSTRAINT "Venta_usuarioId_fkey" FOREIGN KEY ("usuarioI
 -- AddForeignKey
 ALTER TABLE "Venta" ADD CONSTRAINT "Venta_sucursalId_fkey" FOREIGN KEY ("sucursalId") REFERENCES "Sucursal"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "DetalleVenta" ADD CONSTRAINT "DetalleVenta_ventaId_fkey" FOREIGN KEY ("ventaId") REFERENCES "Venta"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
 
 -- AddForeignKey
 ALTER TABLE "Facturas" ADD CONSTRAINT "Facturas_clienteId_fkey" FOREIGN KEY ("clienteId") REFERENCES "Cliente"("id") ON DELETE SET NULL ON UPDATE CASCADE;

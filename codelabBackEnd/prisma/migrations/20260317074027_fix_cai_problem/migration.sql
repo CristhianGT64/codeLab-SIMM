@@ -37,12 +37,14 @@
 
 */
 -- CreateEnum
-CREATE TYPE "EstadoPeriodoContable" AS ENUM ('ABIERTO', 'CERRADO');
+DO $$ BEGIN
+    CREATE TYPE "EstadoPeriodoContable" AS ENUM ('ABIERTO', 'CERRADO');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
--- CreateEnum
 CREATE TYPE "MotivoSalidaInventario" AS ENUM ('VENTA', 'DANIO', 'CONSUMO_INTERNO', 'AJUSTE', 'OTRO');
 
--- CreateEnum
 CREATE TYPE "SubtipoEntradaInventario" AS ENUM ('PRODUCTO_NUEVO', 'REABASTECIMIENTO');
 
 -- DropForeignKey
@@ -263,11 +265,9 @@ CREATE UNIQUE INDEX "RangoEmision_final_rango_key" ON "RangoEmision"("final_rang
 -- CreateIndex
 CREATE UNIQUE INDEX "RangoEmision_id_cai_key" ON "RangoEmision"("id_cai");
 
--- AddForeignKey
 ALTER TABLE "producto_proveedor" ADD CONSTRAINT "producto_proveedor_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "producto_proveedor" ADD CONSTRAINT "producto_proveedor_proveedorId_fkey" FOREIGN KEY ("proveedorId") REFERENCES "Proveedor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
 
 -- AddForeignKey
 ALTER TABLE "Inventario" ADD CONSTRAINT "Inventario_sucursalId_fkey" FOREIGN KEY ("sucursalId") REFERENCES "Sucursal"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

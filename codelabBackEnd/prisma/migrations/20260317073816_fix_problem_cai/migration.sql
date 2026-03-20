@@ -40,7 +40,6 @@
 
 */
 -- DropForeignKey
-ALTER TABLE "DetalleVenta" DROP CONSTRAINT "DetalleVenta_ventaId_fkey";
 
 -- DropForeignKey
 ALTER TABLE "Establecimientos" DROP CONSTRAINT "Establecimientos_sucursalId_fkey";

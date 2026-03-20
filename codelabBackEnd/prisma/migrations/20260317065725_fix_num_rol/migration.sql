@@ -4,11 +4,11 @@
   - You are about to drop the `Rol` table. If the table is not empty, all the data it contains will be lost.
 
 */
--- DropForeignKey
 ALTER TABLE "RolPermiso" DROP CONSTRAINT "RolPermiso_rolId_fkey";
-
 -- DropForeignKey
 ALTER TABLE "Usuario" DROP CONSTRAINT "Usuario_rolId_fkey";
+
+-- DropForeignKey
 
 -- DropTable
 DROP TABLE "Rol";
