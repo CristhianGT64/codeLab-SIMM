@@ -11,13 +11,6 @@ import { HeaderTableClientData } from "../../../data/dataAdministrator/ClienteDa
 import TableClientData from "../../../data/dataAdministrator/TablesData/TablaClientes";
 import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
 
-const typeStyles: Record<string, string> = {
-  Contado: "bg-[#f8f9fc] text-[#013f84] border border-[#d7e0f7]",
-  Crédito: "bg-[#fdf0ed] text-[#9d2710] border border-[#f5c6be]",
-  Mayorista: "bg-[#e8f8f8] text-[#0a6b7d] border border-[#bfe6e6]",
-  Minorista: "bg-[#eefaf1] text-[#0b6b2d] border border-[#cfe8d1]",
-};
-
 const ITEMS_POR_PAGINA = 8;
 
 const ClientsManagement = () => {
