@@ -21,6 +21,7 @@ const rolRepository = {
       select: { id: true },
     });
   },
+
 };
 
 export default rolRepository;
