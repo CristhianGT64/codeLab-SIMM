@@ -304,6 +304,7 @@ model DetalleVenta {
   productoId     BigInt
   venta          Venta    @relation(fields: [ventaId], references: [id])
   producto       Producto @relation(fields: [productoId], references: [id])
+  venta    Venta    @relation(fields: [ventaId], references: [id])
 }
 
 model Factura {

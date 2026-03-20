@@ -205,7 +205,17 @@ const productoService = {
     }
     return prod;
   },
+  /// Búsqueda de productos por nombre o SKU (query)
+  async searchProducts(query) {
 
+    if (!query) {
+      throw new Error("Query requerida para búsqueda");
+    }
+
+    return productoRepository.search(query);
+
+  },
+  ///
   async update(idParam, body = {}) {
     const id = BigInt(idParam);
 
