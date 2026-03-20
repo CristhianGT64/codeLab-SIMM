@@ -1,4 +1,5 @@
 import type {
+  FormNuevoCai,
   ResponseCaiVigente,
   ResponseListarCais,
 } from "../interfaces/CAI/Icai";
@@ -33,6 +34,26 @@ export const ListarCaiEmitidos = async (): Promise<ResponseListarCais> => {
 
   if (!response.ok) {
     throw new Error("No se encontraron los CAI emitidos");
+  }
+
+  return payload;
+};
+
+export const createCategoriaPermission = async (
+  credentials: FormNuevoCai,
+): Promise<boolean> => {
+  const response = await fetch(`${settings.URL}/cai`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(credentials),
+  });
+
+  const payload = (await response.json()) as boolean;
+
+  if (!response.ok) {
+    throw new Error("No se pudo crear el CAI");
   }
 
   return payload;

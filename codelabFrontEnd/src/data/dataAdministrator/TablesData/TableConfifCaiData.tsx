@@ -59,7 +59,10 @@ export const contenidoTablaCaiEmitidos = (
       <td className="px-6 py-4 text-[#4661b0]">
         {isNaN(new Date(cai.fechaFin).getTime()) ||
         Number(
-          cai.cantidadFacturasEmitidas / Number(cai.rangoEmision.final_rango),
+          (cai.cantidadFacturasEmitidas +
+            Number(cai.rangoEmision?.inicio_rango) -
+            1) /
+            Number(cai.rangoEmision.final_rango),
         ) *
           100 >=
           100 ? (

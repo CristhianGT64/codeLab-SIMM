@@ -85,7 +85,16 @@ const caiRepository = {
     return cai;
   },
 
-  createWithRange(data) {
+  async createWithRange(data) {
+    // Obtener el último rango de emisión
+    const lastRango = await caiRepository.findLastRangeByFinal();
+    if (lastRango) {
+      // Validar que el nuevo rango no sea menor que el último
+      if (data.inicioRango < lastRango.final_rango || data.finalRango < lastRango.final_rango) {
+        throw new Error('El rango de emisión no puede ser menor que el último registrado.');
+      }
+    }
+
     return prisma.$transaction(async (tx) => {
       const cai = await tx.cai.create({
         data: {
@@ -157,15 +166,8 @@ const caiRepository = {
     const cai = await prisma.cai.findFirst({
       where: {
         activo: true,
-        fechaInicio: {
-          lte: now,
-        },
-        fechaFin: {
-          gte: now,
-        },
       },
       orderBy: [
-        { fechaInicio: 'desc' },
         { id: 'desc' },
       ],
       select: {

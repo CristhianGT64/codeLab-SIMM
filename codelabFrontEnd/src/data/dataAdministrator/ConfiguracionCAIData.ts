@@ -1,11 +1,8 @@
-import type { ReactNode } from "react";
 import type { Ialertas } from "../../interfaces/Alertas/Ialertas";
 import type { ButtonsInterface } from "../../interfaces/ButtonInterface/ButtonsInterface";
 import type { HeaderAdmin } from "../../interfaces/Headers/HeaderInterface";
 import type { IestadosObjetos } from "../../interfaces/IestadosObjetos";
-import type React from "react";
-import type { Icai } from "../../interfaces/CAI/Icai";
-import EstadosObjetos from "../../components/EstadosObjetos/EstadosObjetos";
+import type { NotificationStateInterface } from "../../interfaces/NotificacionesInterface";
 
 export const titleConfiguracionCAI: HeaderAdmin = {
   title: "Configuración CAI",
@@ -92,3 +89,52 @@ export const tituloTablaCaisEmitidos: string[] = [
   "Última Factura",
   "Estado",
 ];
+
+export const botonCancelarNuevoCai: ButtonsInterface = {
+  typeButton: "button",
+  onClick: () => {},
+  disabled: false,
+  className:
+    "h-14 w-1/2 cursor-pointer rounded-2xl border-2 border-[#9adce2] bg-white text-2xl font-semibold text-[#4661b0] hover:bg-[#edf8fa] disabled:cursor-not-allowed disabled:opacity-70",
+  text: "Cancelar",
+  icon: "",
+};
+
+export const botonGuardarNuevoCai: ButtonsInterface = {
+  typeButton: "submit",
+  onClick: () => {},
+  disabled: false,
+  className:
+    "inline-flex h-14 w-1/2 cursor-pointer items-center justify-center gap-3 rounded-2xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-2xl font-bold text-white hover:from-[#06706d] hover:to-[#334c8b] disabled:cursor-not-allowed disabled:opacity-70",
+  text: "Guardar CAI",
+  icon: "fa-solid fa-floppy-disk",
+};
+
+/* Notificaciones */
+export const notificacionRangoCero: NotificationStateInterface = {
+  isVisible: true,
+  variant: "error",
+  title: "Rangos no pueden ser cero",
+  message: "Los rangos de emision no pueden ser cero.",
+};
+
+export const notificacionRangoMayor: NotificationStateInterface = {
+  isVisible: true,
+  variant: "error",
+  title: "Rangos no pueden ser cero",
+  message: "El rango final no puede ser menor al rango inicial.",
+};
+
+export const notificacionRegistroCaiExitoso: NotificationStateInterface = {
+  isVisible: true,
+  variant: "success",
+  title: "CAI registrado exitosamente",
+  message: "El CAI se ha registrado exitosamente.",
+};
+
+export const notificacionRegistroCaiError: NotificationStateInterface = {
+  isVisible: true,
+  variant: "error",
+  title: "Error al registrar el CAI",
+  message: "El CAI no se ha podido registrar.",
+};

@@ -5,7 +5,7 @@ export default function TableComponent({
   contenidoTabla,
 }: Readonly<TableComponentProps>) {
   return (
-    <div className="mt-6 rounded-xl overflow-x-auto shadow-[0_6px_18px_rgba(10,64,89,0.08)]">
+    <div className="rounded-xl overflow-x-auto shadow-[0_6px_18px_rgba(10,64,89,0.08)]">
       <table className="w-full text-lg min-w-175">
         <thead>
           <tr className="bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-white">

@@ -6,10 +6,7 @@ import {
 } from "react";
 import { useNavigate } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faArrowLeft,
-  faArrowTrendUp,
-} from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faArrowTrendUp } from "@fortawesome/free-solid-svg-icons";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import StatusNotification from "../../../components/notifications/StatusNotification";

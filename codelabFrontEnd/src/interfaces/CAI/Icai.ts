@@ -39,3 +39,19 @@ export const caiEmpty: Icai = {
   },
   cantidadFacturasEmitidas: 0,
 };
+
+export interface FormNuevoCai {
+  codigo: string;
+  fechaInicio: Date;
+  fechaFin: Date;
+  inicioRango: string;
+  finalRango: string;
+}
+
+export const formNuevoCaiEmpty: FormNuevoCai = {
+  codigo: "",
+  fechaInicio: new Date(),
+  fechaFin: new Date(),
+  inicioRango: "",
+  finalRango: "",
+};

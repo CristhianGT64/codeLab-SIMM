@@ -60,21 +60,12 @@ const caiService = {
       throw buildError('Ya existe un CAI con ese codigo.', 409);
     }
 
-    const ultimoCai = await caiRepository.findLastByFechaFin();
-    if (ultimoCai) {
-      if (fechaInicio <= ultimoCai.fechaFin || fechaFin <= ultimoCai.fechaFin) {
-        throw buildError(
-          'Las nuevas fechas de CAI deben ser mayores a las fechas anteriormente ingresadas.',
-          409,
-        );
-      }
-    }
-
+    // Validación de rango de emisión respecto al último registrado
     const ultimoRango = await caiRepository.findLastRangeByFinal();
     if (ultimoRango) {
       if (inicioRango <= ultimoRango.final_rango || finalRango <= ultimoRango.final_rango) {
         throw buildError(
-          'El nuevo rango debe iniciar y finalizar despues del rango final anterior.',
+          'El nuevo rango de emisión debe ser estrictamente mayor al último registrado.',
           409,
         );
       }

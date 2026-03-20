@@ -1,4 +1,9 @@
-import { useMemo, useState } from "react";
+import {
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type SyntheticEvent,
+} from "react";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import {
   alertaCaiPorAgotar,
@@ -9,11 +14,20 @@ import {
   estadoCaiRangoAgotado,
   estadoCaiValido,
   estadoCaiVencido,
+  notificacionRangoCero,
+  notificacionRangoMayor,
+  notificacionRegistroCaiError,
+  notificacionRegistroCaiExitoso,
   titleConfiguracionCAI,
   tituloTablaCaisEmitidos,
 } from "../../../data/dataAdministrator/ConfiguracionCAIData";
 import useReadCaiVigente from "../../../hooks/CaiHooks/useReadCaiVigente";
-import { caiEmpty, type Icai } from "../../../interfaces/CAI/Icai";
+import {
+  caiEmpty,
+  formNuevoCaiEmpty,
+  type FormNuevoCai,
+  type Icai,
+} from "../../../interfaces/CAI/Icai";
 import EstadosObjetos from "../../../components/EstadosObjetos/EstadosObjetos";
 import {
   emptyEstado,
@@ -25,6 +39,13 @@ import useListCaiEmitidos from "../../../hooks/CaiHooks/useListCaiEmitidos";
 import TableComponent from "../../../components/Table/TableComponent";
 import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
 import { contenidoTablaCaiEmitidos } from "../../../data/dataAdministrator/TablesData/TableConfifCaiData";
+import { FormNuevoCAI } from "../../../components/Forms/FormNuevoCAI";
+import useCreateCai from "../../../hooks/CaiHooks/useCreateCai";
+import {
+  NotificacionData,
+  type NotificationStateInterface,
+} from "../../../interfaces/NotificacionesInterface";
+import StatusNotification from "../../../components/notifications/StatusNotification";
 
 const ITEMS_POR_PAGINA = 8;
 
@@ -36,12 +57,15 @@ export default function ConfiguracionCAI() {
   const fechaFin = new Date(caiVigente.fechaFin);
   const { data: CaisEmitidosData, isLoading: isLoadingCaisEmitidos } =
     useListCaiEmitidos();
-
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const caisEmitidos: Icai[] = CaisEmitidosData?.data ?? [];
-
   const [paginaActual, setPaginaActual] = useState(1);
+  let estadoCai: IestadosObjetos = emptyEstado;
+  const createCai = useCreateCai();
 
-  let estadoCaiVigente: IestadosObjetos = emptyEstado;
+  const [notification, setNotification] = useState<NotificationStateInterface>({
+    ...NotificacionData,
+  });
 
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
@@ -55,8 +79,76 @@ export default function ConfiguracionCAI() {
   const fin: number = inicio + ITEMS_POR_PAGINA;
   const caisPaginados: Icai[] = caisEmitidos.slice(inicio, fin);
 
+  const [form, setForm] = useState<FormNuevoCai>(formNuevoCaiEmpty);
+
   const irAPagina = (pagina: number) => {
     if (pagina >= 1 && pagina <= totalPaginas) setPaginaActual(pagina);
+  };
+
+  /* Mostrar formulario */
+
+  const mostrarFormularioNuevoCai = () => {
+    setMostrarFormulario(true);
+    setTimeout(() => handleScroll("formularioNuevoCai"), 100);
+  };
+
+  const ocultarFormularioNuevoCai = () => {
+    setMostrarFormulario(false);
+    setForm(formNuevoCaiEmpty);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let rawValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+    if (rawValue.length > 32) return;
+
+    const formattedValue = rawValue.match(/.{1,6}/g)?.join("-") || "";
+
+    setForm((prev) => ({ ...prev, codigo: formattedValue }));
+  };
+
+  const onChangeField =
+    (field: keyof FormNuevoCai) =>
+    (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const value = event.target.value;
+      setForm((prev) => ({
+        ...prev,
+        [field]:
+          field === "fechaInicio" || field === "fechaFin"
+            ? new Date(value + "T00:00:00")
+            : value,
+      }));
+    };
+
+  const onSubmitForm = async (event: SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (Number(form.inicioRango) <= 0 || Number(form.finalRango) <= 0) {
+      setNotification({ ...notificacionRangoCero });
+      return;
+    }
+
+    if (Number(form.inicioRango) > Number(form.finalRango)) {
+      setNotification({ ...notificacionRangoMayor });
+      return;
+    }
+
+    try {
+      const processed = await createCai.mutateAsync({
+        ...form,
+      });
+
+      if (processed) {
+        setNotification({ ...notificacionRegistroCaiExitoso });
+        setForm(formNuevoCaiEmpty);
+        setMostrarFormulario(false);
+        return;
+      }
+
+      setNotification({ ...notificacionRegistroCaiError });
+    } catch {
+      setNotification({ ...notificacionRegistroCaiError });
+    }
   };
 
   /* Contenido de la tabla */
@@ -65,9 +157,14 @@ export default function ConfiguracionCAI() {
     useMemo(() => {
       const finalRango = Number(caiVigente.rangoEmision?.final_rango || 0);
       const facturasEmitidas = Number(caiVigente.cantidadFacturasEmitidas || 0);
+      const inicioRango = Number(caiVigente.rangoEmision?.inicio_rango || 0);
 
-      const porcentaje = finalRango > 0 ? facturasEmitidas / finalRango : 0;
-      const restantes = Math.max(0, finalRango - facturasEmitidas);
+      const porcentaje =
+        finalRango > 0 ? facturasEmitidas / (finalRango - inicioRango + 1) : 0;
+      const restantes = Math.max(
+        0,
+        finalRango - (facturasEmitidas + inicioRango - 1),
+      );
 
       const diffTime = fechaFin.getTime() - hoy.getTime();
       const dias = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -82,30 +179,58 @@ export default function ConfiguracionCAI() {
   /* Validar mensaje actual */
 
   if (hoy > fechaFin || isNaN(fechaFin.getTime())) {
-    estadoCaiVigente = estadoCaiVencido;
+    estadoCai = estadoCaiVencido;
   } else if (
     Number(porcentajeEmitido) * 100 < 80 &&
-    Number(porcentajeEmitido) * 100 > 0
+    Number(porcentajeEmitido) * 100 >= 0
   ) {
-    estadoCaiVigente = estadoCaiValido;
+    estadoCai = estadoCaiValido;
   } else if (
     Number(porcentajeEmitido) * 100 >= 80 &&
     Number(porcentajeEmitido) * 100 < 100
   ) {
-    estadoCaiVigente = estadoCaiProxVencer;
+    estadoCai = estadoCaiProxVencer;
   } else if (Number(porcentajeEmitido) * 100 >= 100) {
-    estadoCaiVigente = estadoCaiRangoAgotado;
+    estadoCai = estadoCaiRangoAgotado;
   }
 
+  const handleScroll = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start", // o 'center' si prefieres
+      });
+    }
+  };
+
+  /* Conseguir informacion del formulario */
+
   return (
-    <section className="px-6 py-8 min-h-screen">
+    <main className="px-6 py-8 min-h-screen">
       <div className="flex justify-between items-centers">
         <HeaderTitleAdmin {...titleConfiguracionCAI} />
         {(isNaN(fechaFin.getTime()) ||
           Number(porcentajeEmitido) * 100 >= 100) && (
-          <ButtonsComponet {...botonGenerarNuevoCAI} />
+          <ButtonsComponet
+            {...botonGenerarNuevoCAI}
+            onClick={mostrarFormularioNuevoCai}
+          />
         )}
       </div>
+
+      <StatusNotification
+        isVisible={notification.isVisible}
+        variant={notification.variant}
+        title={notification.title}
+        message={notification.message}
+        onClose={() =>
+          setNotification((prev) => ({
+            ...prev,
+            isVisible: false,
+          }))
+        }
+      />
 
       {/* Título */}
 
@@ -127,7 +252,7 @@ export default function ConfiguracionCAI() {
               CAI Vigente Activo
             </h2>
             {/* Mensaje de estado */}
-            <EstadosObjetos {...estadoCaiVigente} />
+            <EstadosObjetos {...estadoCai} />
             {/* Mensaje final de estado de cai */}
           </div>
           {/* Primera fila */}
@@ -183,7 +308,7 @@ export default function ConfiguracionCAI() {
                 Final: {caiVigente.rangoEmision?.final_rango || "0"}
               </span>
             </div>
-            <div className="relative h-3 bg-[#F4F6F8] rounded">
+            <div className="relative h-3  border-[#747c7e] bg-[#bfc5c7] rounded">
               <div
                 className="absolute left-0 top-0 h-3 rounded"
                 style={{
@@ -212,16 +337,31 @@ export default function ConfiguracionCAI() {
         </div>
       )}
 
-      {/* Tabla */}
+      {/* Registrar Nuevo CAI */}
+      {mostrarFormulario && (
+        <FormNuevoCAI
+          ocultarFormularioNuevoCai={ocultarFormularioNuevoCai}
+          form={form}
+          onChangeField={onChangeField}
+          onSubmitForm={onSubmitForm}
+          handleChange={handleChange}
+        />
+      )}
 
-      <TableComponent
-        tituloTablaInventario={tituloTablaCaisEmitidos}
-        contenidoTabla={contenidoTablaCaiEmitidos(
-          isLoadingCaisEmitidos,
-          caisPaginados,
-        )}
-        /* Paginacion */
-      />
+      {/* Tabla */}
+      <div>
+        <h3 className="text-lg font-bold text-[#0b4d77] md:text-xl bg-[#f3f5f8] p-6  mt-3 border-[#f3f5f8] hover:border-t-[#1498b2] border-6 rounded-t-2xl shadow-[0_6px_18px_rgba(0,0,0,0.1)]">
+          Cais Emitidos
+        </h3>
+        <TableComponent
+          tituloTablaInventario={tituloTablaCaisEmitidos}
+          contenidoTabla={contenidoTablaCaiEmitidos(
+            isLoadingCaisEmitidos,
+            caisPaginados,
+          )}
+          /* Paginacion */
+        />
+      </div>
 
       <PaginacionComponent
         inicio={inicio}
@@ -231,92 +371,6 @@ export default function ConfiguracionCAI() {
         totalPaginas={totalPaginas}
         action={irAPagina}
       />
-
-      {/* Registrar Nuevo CAI */}
-      <div className="bg-white rounded-lg shadow p-6 mt-30">
-        <h2 className="text-lg font-semibold text-[#22223B] mb-4">
-          Registrar Nuevo CAI
-        </h2>
-        <form>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-[#22223B] mb-1">
-              Número de CAI <span className="text-[#FF4B4B]">*</span>
-            </label>
-            <input
-              type="text"
-              className="w-full border border-[#E6E6E6] rounded px-3 py-2 text-sm font-mono focus:border-[#2B7A78] focus:outline-none"
-              placeholder="F8A3E2-4D5C6B-7E8F9A-0B1C2D-3E4F5A-6B"
-            />
-            <span className="text-xs text-[#4A4E69] mt-1 block">
-              Ingrese el número de CAI autorizado por la DEI
-            </span>
-          </div>
-          <div className="flex gap-4 mb-4">
-            <div className="w-1/2">
-              <label className="block text-sm font-medium text-[#22223B] mb-1">
-                Rango Inicial <span className="text-[#FF4B4B]">*</span>
-              </label>
-              <input
-                type="number"
-                className="w-full border border-[#E6E6E6] rounded px-3 py-2 text-sm focus:border-[#2B7A78] focus:outline-none"
-                placeholder="1000000"
-              />
-            </div>
-            <div className="w-1/2">
-              <label className="block text-sm font-medium text-[#22223B] mb-1">
-                Rango Final <span className="text-[#FF4B4B]">*</span>
-              </label>
-              <input
-                type="number"
-                className="w-full border border-[#E6E6E6] rounded px-3 py-2 text-sm focus:border-[#2B7A78] focus:outline-none"
-                placeholder="1005000"
-              />
-            </div>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-[#22223B] mb-1">
-              Fecha de Vencimiento <span className="text-[#FF4B4B]">*</span>
-            </label>
-            <input
-              type="text"
-              className="w-full border border-[#E6E6E6] rounded px-3 py-2 text-sm focus:border-[#2B7A78] focus:outline-none"
-              placeholder="dd/mm/aaaa"
-            />
-          </div>
-          <div className="bg-[#E6F0F8] rounded p-3 mb-4 text-xs text-[#2B7A78]">
-            <span className="font-semibold">Importante:</span> Verifique que
-            todos los datos coincidan exactamente con la autorización emitida
-            por la DEI (Dirección Ejecutiva de Ingresos).
-          </div>
-          <div className="flex justify-between">
-            <button
-              type="button"
-              className="border border-[#E6E6E6] text-[#22223B] px-6 py-2 rounded font-medium hover:bg-[#F4F6F8] transition"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="bg-linear-to-r from-[#2B7A78] to-[#3A86FF] text-white px-6 py-2 rounded font-medium hover:opacity-90 transition flex items-center"
-            >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              Guardar CAI
-            </button>
-          </div>
-        </form>
-      </div>
-    </section>
+    </main>
   );
 }
