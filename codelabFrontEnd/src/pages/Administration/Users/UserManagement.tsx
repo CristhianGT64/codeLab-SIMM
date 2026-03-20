@@ -45,7 +45,6 @@ export default function UserManagement() {
   );
 
   const [searchUser, setSearchUser] = useState<string>("");
-  const [paginaActual, setPaginaActual] = useState(1);
 
   const filtredUser = useMemo(() => {
     if (!searchUser.trim()) return users;
@@ -60,6 +59,7 @@ export default function UserManagement() {
   }, [users, searchUser]);
 
   /* Paginacion */
+  const [paginaActual, setPaginaActual] = useState(1);
 
   const totalPaginas: number = Math.ceil(filtredUser.length / ITEMS_POR_PAGINA);
   const inicio: number = (paginaActual - 1) * ITEMS_POR_PAGINA;

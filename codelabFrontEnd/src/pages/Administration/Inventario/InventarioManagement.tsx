@@ -16,7 +16,7 @@ import {
   filtroTipo,
   titleInventario,
   tituloTablaInventario,
-  botonFifoPromedio
+  botonFifoPromedio,
 } from "../../../data/dataAdministrator/InventarioData";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import useAuth from "../../../hooks/useAuth";
@@ -37,7 +37,7 @@ const MOTIVOS: Record<string, string> = {
 
 export default function InventarioManagement() {
   const { tienePermiso } = useAuth();
-  // ── Filtros 
+  // ── Filtros
   const [busqueda, setBusqueda] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState<"" | "entrada" | "salida">("");
   const [fechaFiltro, setFechaFiltro] = useState("");
@@ -45,7 +45,7 @@ export default function InventarioManagement() {
 
   const [paginaActual, setPaginaActual] = useState(1);
 
-  // ── Datos remotos 
+  // ── Datos remotos
   const filters: HistorialInventarioFilters = {
     ...(tipoFiltro && { tipo: tipoFiltro }),
     ...(fechaFiltro && { fecha: fechaFiltro }),
@@ -57,7 +57,7 @@ export default function InventarioManagement() {
 
   const movimientos: MovimientoInventarioItem[] = historial?.data ?? [];
 
-  // ── Filtrado local por nombre de producto 
+  // ── Filtrado local por nombre de producto
   const movimientosFiltrados = useMemo(() => {
     if (!busqueda.trim()) return movimientos;
     return movimientos.filter((m) =>
@@ -65,7 +65,7 @@ export default function InventarioManagement() {
     );
   }, [movimientos, busqueda]);
 
-  // ── Cálculos de paginación 
+  // ── Cálculos de paginación
   const totalPaginas = Math.ceil(
     movimientosFiltrados.length / ITEMS_POR_PAGINA,
   );
@@ -243,7 +243,7 @@ export default function InventarioManagement() {
       </div>
 
       {/* Filtros */}
-      <div className="mt-6 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+      <div className="mt-6 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center mb-6">
         {/* Búsqueda */}
         <div className="relative flex-1 min-w-0">
           <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
@@ -291,10 +291,7 @@ export default function InventarioManagement() {
           className="py-2.5 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4661b0]/25"
         />
 
-        <ButtonsComponet
-          {...botonBorrarFiltro}
-          onClick={limpiarFiltros}
-        />
+        <ButtonsComponet {...botonBorrarFiltro} onClick={limpiarFiltros} />
       </div>
 
       {/* Tabla */}
@@ -303,16 +300,14 @@ export default function InventarioManagement() {
         contenidoTabla={contenidoTabla}
       />
 
-      {totalPaginas > 1 && (
-        <PaginacionComponent
-          inicio={inicio}
-          fin={fin}
-          registros={movimientosFiltrados}
-          paginaActual={paginaActual}
-          totalPaginas={totalPaginas}
-          action={irAPagina}
-        />
-      )}
+      <PaginacionComponent
+        inicio={inicio}
+        fin={fin}
+        registros={movimientosFiltrados}
+        paginaActual={paginaActual}
+        totalPaginas={totalPaginas}
+        action={irAPagina}
+      />
     </section>
   );
 }

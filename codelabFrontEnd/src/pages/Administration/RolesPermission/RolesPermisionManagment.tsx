@@ -11,24 +11,30 @@ import useListRols from "../../../hooks/RolesHooks/useListRols";
 import useListPermisos from "../../../hooks/PermisosHook/useListPermisos";
 import useDeleteRol from "../../../hooks/RolesHooks/useDeleteRol";
 import useAuth from "../../../hooks/useAuth";
+import type { Rol } from "../../../interfaces/RolesInterface/RolesInterface";
+import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
+
+const ITEMS_POR_PAGINA = 6;
 
 export default function RolesPermisionManagment() {
   const { data: rolesData } = useListRols();
-  const {data : permisosData} = useListPermisos();
+  const { data: permisosData } = useListPermisos();
   const roles = rolesData?.data ?? [];
   const Permisos = permisosData?.data ?? [];
   const navigate = useNavigate();
   const deleteRolMutation = useDeleteRol();
   const { tienePermiso } = useAuth();
-  const [searchRol, setSearchRol] = useState<string>('');
+  const [searchRol, setSearchRol] = useState<string>("");
 
-  const rolesFiltred = roles.filter((rol) => rol.disponible === true)
+  const rolesFiltred = roles.filter((rol) => rol.disponible === true);
 
-  const {totalRoles, totalRolesSistema, totalPermisos} = useMemo(
+  const { totalRoles, totalRolesSistema, totalPermisos } = useMemo(
     () => ({
       totalRoles: roles.length,
-      totalRolesSistema : roles.filter((rol) => rol.nombre.toLowerCase() === 'administrador').length,
-      totalPermisos : Permisos.length,
+      totalRolesSistema: roles.filter(
+        (rol) => rol.nombre.toLowerCase() === "administrador",
+      ).length,
+      totalPermisos: Permisos.length,
     }),
     [roles],
   );
@@ -37,13 +43,26 @@ export default function RolesPermisionManagment() {
     if (!searchRol.trim()) return rolesFiltred;
 
     const searchLower = searchRol.toLocaleLowerCase();
-    return rolesFiltred.filter((rol) => rol.nombre.toLocaleLowerCase().includes(searchLower))
-  }, [searchRol, rolesFiltred])
+    return rolesFiltred.filter((rol) =>
+      rol.nombre.toLocaleLowerCase().includes(searchLower),
+    );
+  }, [searchRol, rolesFiltred]);
 
-  const handleDeleteRole = async (id : string) => {
-     deleteRolMutation.mutate(id);
-  }
+  const handleDeleteRole = async (id: string) => {
+    deleteRolMutation.mutate(id);
+  };
 
+  /* Paginacion */
+  const [paginaActual, setPaginaActual] = useState(1);
+
+  const totalPaginas: number = Math.ceil(filtredRol.length / ITEMS_POR_PAGINA);
+  const inicio: number = (paginaActual - 1) * ITEMS_POR_PAGINA;
+  const fin: number = inicio + ITEMS_POR_PAGINA;
+  const clientesPaginados: Rol[] = filtredRol.slice(inicio, fin);
+
+  const irAPagina = (pagina: number) => {
+    if (pagina >= 1 && pagina <= totalPaginas) setPaginaActual(pagina);
+  };
   return (
     <section className="w-full px-4 py-5 md:px-6">
       <HeaderTitleAdmin {...HeaderRolesPermission} />
@@ -115,7 +134,7 @@ export default function RolesPermisionManagment() {
       {/* Grid de tarjetas de roles */}
 
       <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filtredRol.map((rol) => (
+        {clientesPaginados.map((rol) => (
           <CardPermissionRolesComponent
             key={`${rol.id}-${rol.nombre}`}
             id={String(rol.id)}
@@ -128,6 +147,16 @@ export default function RolesPermisionManagment() {
           />
         ))}
       </div>
+
+      {/* Paginacion */}
+      <PaginacionComponent
+        paginaActual={paginaActual}
+        totalPaginas={totalPaginas}
+        action={irAPagina}
+        registros={filtredRol}
+        inicio={inicio}
+        fin={fin}
+      />
     </section>
   );
 }
