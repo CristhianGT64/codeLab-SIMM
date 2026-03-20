@@ -1,12 +1,7 @@
 import { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
-import {
-  faMagnifyingGlass,
-  faPowerOff,
-  faPenToSquare,
-  faTrashCan,
-} from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import CardTtoalComponent from "../../../components/cardTotalComponent/CardTotalComponent";
 import useUsers from "../../../hooks/UsersHooks/useUsers";
 import { useNavigate } from "react-router";
@@ -17,12 +12,12 @@ import { TableUserData } from "../../../data/dataAdministrator/UserManagmentData
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import type { HeaderAdmin } from "../../../interfaces/Headers/HeaderInterface";
 import useAuth from "../../../hooks/useAuth";
+import TableComponent from "../../../components/Table/TableComponent";
+import TableUsersData from "../../../data/dataAdministrator/TablesData/TableUsersData";
+import type { User } from "../../../interfaces/Users/UserInterface";
+import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
 
-const roleStyles: Record<string, string> = {
-  ADMIN: "bg-[#104f78] text-white",
-  EDITOR: "bg-[#0aa6a2] text-white",
-  VISUALIZADOR: "bg-[#9dd8df] text-[#0a4d76]",
-};
+const ITEMS_POR_PAGINA = 5;
 
 export default function UserManagement() {
   const navigate = useNavigate();
@@ -33,10 +28,10 @@ export default function UserManagement() {
   const { data, isLoading, isError, error } = useUsers();
   const users = data?.data ?? [];
   const tableHeader: string[] = TableUserData;
-  const headerAdmin : HeaderAdmin = {
-    title : 'Gestión de Usuarios',
-    subTitle : 'Administra los usuarios del sistema'
-  }
+  const headerAdmin: HeaderAdmin = {
+    title: "Gestión de Usuarios",
+    subTitle: "Administra los usuarios del sistema",
+  };
 
   const { totalUsers, activeUsers, inactiveUsers } = useMemo(
     () => ({
@@ -50,6 +45,7 @@ export default function UserManagement() {
   );
 
   const [searchUser, setSearchUser] = useState<string>("");
+  const [paginaActual, setPaginaActual] = useState(1);
 
   const filtredUser = useMemo(() => {
     if (!searchUser.trim()) return users;
@@ -63,14 +59,20 @@ export default function UserManagement() {
     );
   }, [users, searchUser]);
 
-  /* Generar nuevo arreglo en base a nueva busqueda */
+  /* Paginacion */
+
+  const totalPaginas: number = Math.ceil(filtredUser.length / ITEMS_POR_PAGINA);
+  const inicio: number = (paginaActual - 1) * ITEMS_POR_PAGINA;
+  const fin: number = inicio + ITEMS_POR_PAGINA;
+  const usersPaginados: User[] = filtredUser.slice(inicio, fin);
+
+  const irAPagina = (pagina: number) => {
+    if (pagina >= 1 && pagina <= totalPaginas) setPaginaActual(pagina);
+  };
 
   return (
     <section className="w-full px-4 py-5 md:px-6">
-
-      <HeaderTitleAdmin
-        {...headerAdmin}
-      />
+      <HeaderTitleAdmin {...headerAdmin} />
 
       <div className="mt-6 rounded-2xl bg-[#f3f5f8] p-4 shadow-[0_6px_18px_rgba(0,0,0,0.08)]">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -100,7 +102,7 @@ export default function UserManagement() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
+      <div className="mt-6 grid gap-4 md:grid-cols-3 mb-6">
         <CardTtoalComponent
           title="Total de Usuarios"
           total={totalUsers}
@@ -118,105 +120,31 @@ export default function UserManagement() {
         />
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-2xl bg-white shadow-[0_8px_18px_rgba(0,0,0,0.08)]">
-        {isLoading && (
-          <p className="px-6 py-4 text-[#4661b0]">Cargando usuarios...</p>
-        )}
-        {isError && (
-          <p className="px-6 py-4 text-[#c20000]">
-            {error instanceof Error ? error.message : "Error cargando usuarios"}
-          </p>
-        )}
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-left text-white">
-              {tableHeader.map((item: string, index: number) => (
-                <th
-                  key={`${item}-${index}`}
-                  className="px-6 py-4 text-base font-semibold md:text-lg"
-                >
-                  {item}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtredUser.map((user) => (
-              <tr
-                key={user.id}
-                className="border-b border-[#9adce2] last:border-b-0"
-              >
-                <td className="px-6 py-4 text-base font-semibold text-[#0a4d76] md:text-xl">
-                  {user.nombreCompleto}
-                </td>
-                <td className="px-4 py-4 text-sm text-[#4661b0] md:text-lg">
-                  {user.usuario}
-                </td>
-                <td className="px-4 py-4 text-sm text-[#4661b0] md:text-lg">
-                  {user.correo}
-                </td>
-                <td className="px-4 py-4">
-                  <span
-                    className={`inline-flex rounded-full px-4 py-1 text-sm font-semibold md:text-base ${roleStyles[user.rol.nombre] ?? "bg-[#9dd8df] text-[#0a4d76]"}`}
-                  >
-                    {user.rol.nombre}
-                  </span>
-                </td>
-                <td className="px-4 py-4 text-sm text-[#4661b0] md:text-lg">
-                  {user.sucursal.nombre}
-                </td>
-                <td className="px-4 py-4">
-                  <span
-                    className={`inline-flex rounded-full ${user.estado === "activo" ? "bg-[#b7e4ca] text-[#008444]" : "bg-[#86817f] text-[#efeeee]"} px-4 py-1 text-sm font-semibold  md:text-base`}
-                  >
-                    {user.estado === "activo" ? "Activo" : "Inactivo"}
-                  </span>
-                </td>
-                <td className="px-4 py-4">
-                  <div className="flex items-center gap-4 text-lg md:text-xl">
-                    {tienePermiso("Editar usuarios") && (
-                      <button
-                        type="button"
-                        className={`cursor-pointer ${user.estado === "activo" ? "text-[#ff5e00] hover:text-[#b64402]" : "text-[#24e775] hover:text-[#008444]"} `}
-                        aria-label={`Cambiar estado de ${user.nombreCompleto}`}
-                        onClick={
-                          user.estado === "activo"
-                            ? () => inactiveUser.mutate(user.id)
-                            : () => activeUser.mutate(user.id)
-                        }
-                      >
-                        <FontAwesomeIcon icon={faPowerOff} />
-                      </button>
-                    )}
-                    {tienePermiso("Editar usuarios") && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          navigate(`/Users-Management/Update-User/${user.id}`)
-                        }
-                        className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
-                        aria-label={`Editar ${user.nombreCompleto}`}
-                      >
-                        <FontAwesomeIcon icon={faPenToSquare} />
-                      </button>
-                    )}
-                    {tienePermiso("Eliminar usuarios") && (
-                      <button
-                        type="button"
-                        onClick={() => deleteUserMutation.mutate(user.id)}
-                        className="cursor-pointer text-[#ff0000] hover:text-[#7d0202] "
-                        aria-label={`Eliminar ${user.nombreCompleto}`}
-                      >
-                        <FontAwesomeIcon icon={faTrashCan} />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <TableComponent
+        tituloTablaInventario={tableHeader}
+        contenidoTabla={
+          <TableUsersData
+            isLoading={isLoading}
+            isError={isError}
+            error={error}
+            users={usersPaginados}
+            inactiveUser={inactiveUser.mutate}
+            activeUser={activeUser.mutate}
+            deleteUserMutation={deleteUserMutation.mutate}
+            tienePermiso={tienePermiso}
+            navigate={navigate}
+          />
+        }
+      />
+
+      <PaginacionComponent
+        paginaActual={paginaActual}
+        totalPaginas={totalPaginas}
+        action={irAPagina}
+        inicio={inicio}
+        fin={fin}
+        registros={filtredUser}
+      />
     </section>
   );
 }
