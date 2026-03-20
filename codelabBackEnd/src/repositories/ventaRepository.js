@@ -8,17 +8,13 @@ const ventaRepository = {
     });
   },
 
-  async getVentas() {
-    return await prisma.venta.findMany({
-      include: {
-        usuario: true,
-        cliente: true
-      },
-      orderBy: {
-        createdAt: "desc"
-      }
-    });
-  },
+ async getVentas() {
+  return await prisma.venta.findMany({
+    orderBy: {
+      createdAt: "desc"
+    }
+  });
+},
 
   async getVentaById(id) {
     return await prisma.venta.findUnique({
