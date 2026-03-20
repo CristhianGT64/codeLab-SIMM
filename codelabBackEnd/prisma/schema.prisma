@@ -223,6 +223,7 @@ model Venta {
   clienteId  BigInt?
   usuarioId  BigInt?
   sucursalId BigInt?
+   detalles DetalleVenta[]
 }
 
 model DetalleVenta {
@@ -233,6 +234,7 @@ model DetalleVenta {
   ventaId        BigInt
   productoId     BigInt
   producto       Producto @relation(fields: [productoId], references: [id])
+  venta    Venta    @relation(fields: [ventaId], references: [id])
 }
 
 model Factura {

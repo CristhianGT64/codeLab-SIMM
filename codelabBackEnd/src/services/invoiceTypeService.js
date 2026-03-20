@@ -1,4 +1,4 @@
-import invoiceTypeRepository from '../repositories/invoiceTypeRepository.js';
+import invoiceTypeRepository from '../repositories/typeInvoiceTypeRepository.js';
 
 const invoiceTypeService = {
 
