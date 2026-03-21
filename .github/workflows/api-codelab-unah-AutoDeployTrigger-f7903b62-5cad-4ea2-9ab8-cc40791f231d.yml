@@ -1,0 +1,69 @@
+name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches: [Despliegue]
+    paths:
+      - 'codelabBackEnd/**'
+      - 'codelabFrontEnd/**'
+      - '.github/workflows/api-codelab-unah-AutoDeployTrigger-f7903b62-5cad-4ea2-9ab8-cc40791f231d.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.APICODELABUNAH_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.APICODELABUNAH_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.APICODELABUNAH_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}/codelabBackEnd
+          dockerfilePath: Dockerfile
+          registryUrl: acrcodelaunah.azurecr.io
+          registryUsername: ${{ secrets.APICODELABUNAH_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.APICODELABUNAH_REGISTRY_PASSWORD }}
+          containerAppName: api-codelab-unah
+          resourceGroup: codelabUNAH
+          imageToBuild: acrcodelaunah.azurecr.io/api-codelab-unah:${{ github.sha }}
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.UICODELABUNAH_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.UICODELABUNAH_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.UICODELABUNAH_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}/codelabFrontEnd
+          dockerfilePath: Dockerfile
+          registryUrl: acrcodelaunah.azurecr.io
+          registryUsername: ${{ secrets.UICODELABUNAH_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.UICODELABUNAH_REGISTRY_PASSWORD }}
+          containerAppName: uicodelabunah
+          resourceGroup: codelabUNAH
+          imageToBuild: acrcodelaunah.azurecr.io/uicodelabunah:${{ github.sha }}

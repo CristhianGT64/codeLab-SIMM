@@ -13,9 +13,10 @@ export default function Login() {
 	const loginMutation = useLogin();
 	const { login } = useAuth();
 	const isLoading = loginMutation.isPending;
-	const loginError = loginMutation.error?.message ?? null;
+	const [authError, setAuthError] = useState<string | null>(null);
 
 		const handleLogin = async (): Promise<void> => {
+			setAuthError(null);
 			try {
 				loginMutation.reset();
 
@@ -25,13 +26,15 @@ export default function Login() {
 				});
 
 				if (!result.success) {
-					throw new Error(result.message || "Credenciales inválidas");
+					setAuthError(result.message || "Credenciales inválidas");
+					return;
 				}
 
-				// Usar el contexto de autenticación para guardar el usuario
 				await login(result.data);
 				navigate("/dashboard");
 			} catch (error) {
+				const message = error instanceof Error ? error.message : "Error de inicio de sesión";
+				setAuthError(message);
 				console.error(error);
 			}
 		};
@@ -52,14 +55,14 @@ export default function Login() {
 						className="grid gap-5 px-7 pb-8 pt-7"
 					>
 						<label className="grid gap-2 text-[20px] font-semibold text-[#1f4f6f]">
-							<span>Correo electrónico</span>
+							<span>Usuario</span>
 							<input
 								type="email"
 								value={email}
 								onChange={(event) => setEmail(event.target.value)}
 								disabled={isLoading}
 								required
-								placeholder="tu@email.com"
+								placeholder="user43"
 								className="rounded-[14px] border-2 border-[#9dd0d8] bg-transparent px-4 py-3 text-[22px] text-[#3a5b74] outline-none placeholder:text-[#93a4b2] focus:border-[#4a6eb0]"
 							/>
 						</label>
@@ -77,9 +80,9 @@ export default function Login() {
 							/>
 						</label>
 
-						{loginError && (
-							<p className="rounded-lg bg-[#ffe5e5] px-3 py-2 text-sm font-semibold text-[#c20000]">
-								{loginError}
+{authError && (
+				<p className="rounded-lg bg-[#ffe5e5] px-3 py-2 text-sm font-semibold text-[#c20000]">
+					{authError}
 							</p>
 						)}
 

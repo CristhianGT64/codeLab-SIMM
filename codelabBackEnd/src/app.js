@@ -9,6 +9,11 @@ import sucursalController from './controllers/sucursalController.js';
 import authController from './controllers/authController.js';
 import usuarioController from './controllers/usuarioController.js';
 import clientController from './controllers/clientController.js';
+import inventarioController from './controllers/inventarioController.js';
+import proveedorController from './controllers/proveedorController.js';
+import configuracionContableController from './controllers/configuracionContableController.js';
+import caiController from './controllers/caiController.js';
+
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
 import * as permissionController from './controllers/permissionController.js';
@@ -94,6 +99,33 @@ app.get('/sucursales/:id', sucursalController.getSucursalById);
 app.put('/sucursales/:id', sucursalController.updateSucursal);
 app.patch('/sucursales/:id/estado', sucursalController.changeSucursalStatus);
 
+// Proveedores
+app.post('/proveedores', proveedorController.create);
+app.get('/proveedores', proveedorController.list);
+app.get('/proveedores/:id', proveedorController.getById);
+app.put('/proveedores/:id', proveedorController.update);
+app.patch('/proveedores/:id', proveedorController.patch);
+app.delete('/proveedores/:id', proveedorController.remove);
+
+// Inventario
+app.get('/inventario/dashboard', inventarioController.dashboard);
+app.get('/inventario/tipos-entrada', inventarioController.tiposEntrada);
+app.get('/inventario/motivos-salida', inventarioController.motivosSalida);
+app.post('/inventario/entrada', inventarioController.registrarEntrada);
+app.post('/inventario/salida', inventarioController.registrarSalida);
+app.get('/inventario/historial', inventarioController.historial);
+app.get('/inventario/historial/:productoId', inventarioController.historialPorProducto);
+
+// Configuración método de inventario
+app.get('/configuracion/metodo-inventario', configuracionContableController.getMetodoInventario);
+app.put('/configuracion/metodo-inventario', configuracionContableController.updateMetodoInventario);
+app.get('/configuracion/metodo-inventario/opciones', configuracionContableController.opciones);
+
+// CAI
+app.post('/cai', caiController.create);
+app.get('/cai', caiController.list);
+app.get('/cai/vigente/ultimo', caiController.latestVigente);
+
 // Roles
 app.get('/roles', roleController.getAll);
 app.get('/roles/:id', roleController.getById);
@@ -115,9 +147,11 @@ app.delete('/permissions/:id', permissionController.remove)
 app.post('/roles/:id/permissions', roleController.assignPermissions)
 app.put('/roles/:id/permissions', roleController.updatePermissions) // modificar permisos del rol
 app.get('/roles/:id/permissions', roleController.getPermissions)
+
 // Usuarios
 app.post('/usuarios', usuarioController.create);
 app.get('/usuarios', usuarioController.getAll);
+
 // Rutas para obtener usuarios por rol y para operaciones CRUD específicas (Opcional por si se necesitan)
 app.get('/usuarios/roles', usuarioController.getUsersByRole);
 app.get('/usuarios/:id', usuarioController.getById);
@@ -126,6 +160,7 @@ app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
 
+<<<<<<< HEAD
 // Invoice Types (Tipos de Documento o facturas)
 app.post('/invoice-types', invoiceTypeController.create);
 app.get('/invoice-types', invoiceTypeController.getAll);
@@ -138,10 +173,14 @@ app.post('/ventas', ventaController.createVenta);
 app.get('/ventas', ventaController.getVentas);
 app.get('/ventas/:id', ventaController.getVentaById);
 
+=======
+>>>>>>> devCristhianLopez
 // Rutas de clientes
 app.post('/clientes', clientController.createClient);
 app.get('/clientes', clientController.getAllClients);
+app.get('/clientes/:id', clientController.getClientById);
 app.put('/clientes/:id', clientController.updateClient);
+
 // Middleware de errores
 app.use(errorHandler);
 

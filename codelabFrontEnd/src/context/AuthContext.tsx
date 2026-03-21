@@ -1,9 +1,18 @@
-import { createContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  type ReactNode,
+} from "react";
 import type { LoginUserData } from "../interfaces/LoginResponse";
 import type { AuthContextType } from "../interfaces/Auth/AuthContextTypeInterface";
 import { getRolById } from "../services/RolesService";
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -84,9 +93,5 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     [user, permisos, isLoading, tienePermiso],
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

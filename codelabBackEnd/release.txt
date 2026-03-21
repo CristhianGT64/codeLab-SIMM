@@ -1,5 +1,7 @@
-# Construir y ejecutar
-docker-compose up -d --build
+
+docker buildx build --platform linux/amd64 -t apicodelaberp:latest . --load
+docker buildx build --platform linux/amd64 -t apicodelaberp:1.0.0 . --load
+
 
 # Ver logs
 docker-compose logs -f
@@ -7,15 +9,16 @@ docker-compose logs -f
 # Detener
 docker-compose down
 
-docker run -d -p 3000:3000 --name codelaberpbackend-container codelaberpbackend:latest
+docker run -d -p 3000:3000 --name apicodelaberp-container apicodelaberp:latest
 
 
 Por si toca hacer despliegue en la nube con Azure ACR
 az login
-az acr login --name "nombre del app service plan"
+az acr login --name "acrcodelaunah"
+## nombre del container
 
-docker tag codelaberp:latest acrpokequequepcaiiidev.azurecr.io/codelaberp:latest
-docker tag codelaberp:latest acrpokequequepcaiiidev.azurecr.io/codelaberp:0.3.0
-
-docker push acrpokequequepcaiiidev.azurecr.io/codelaberp:latest
-docker push acrpokequequepcaiiidev.azurecr.io/codelaberp:0.3.0
+docker tag apicodelaberp:latest acrcodelaunah.azurecr.io/apicodelaberp:latest
+docker tag apicodelaberp:latest acrcodelaunah.azurecr.io/apicodelaberp:1.0.1
+    `
+docker push acrcodelaunah.azurecr.io/apicodelaberp:latest
+docker push acrcodelaunah.azurecr.io/apicodelaberp:1.0.1

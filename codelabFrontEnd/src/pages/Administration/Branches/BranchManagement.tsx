@@ -1,16 +1,19 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import ButtonsComponet from '../../../components/buttonsComponents/ButtonsComponet';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faPowerOff,
-  faPenToSquare,
-  faMagnifyingGlass,
-} from '@fortawesome/free-solid-svg-icons';
-import useListSucursales from '../../../hooks/SucursalesHooks/useListSucursales';
-import useChangeSucursalStatus from '../../../hooks/SucursalesHooks/useChangeSucursalStatus';
-import CardTotalComponent from '../../../components/cardTotalComponent/CardTotalComponent';
-import useAuth from '../../../hooks/useAuth';
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import useListSucursales from "../../../hooks/SucursalesHooks/useListSucursales";
+import useChangeSucursalStatus from "../../../hooks/SucursalesHooks/useChangeSucursalStatus";
+import CardTotalComponent from "../../../components/cardTotalComponent/CardTotalComponent";
+import useAuth from "../../../hooks/useAuth";
+import TableComponent from "../../../components/Table/TableComponent";
+import TableSucursalesData from "../../../data/dataAdministrator/TablesData/TableSucursalesData";
+import { TableSucursalesData as branchHeaders } from "../../../data/dataAdministrator/SucursalesData";
+import type { Sucursal } from "../../../interfaces/SucursalInterface";
+import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
+
+const ITEMS_POR_PAGINA = 8;
 
 const Branches = () => {
   const sucursalesQuery = useListSucursales();
@@ -18,11 +21,13 @@ const Branches = () => {
   const navigate = useNavigate();
   const { tienePermiso } = useAuth();
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   const sucursales = (sucursalesQuery.data?.data || []) as any[];
   const totalSucursales: number = sucursales.length;
-  const sucursalesActivas: number = sucursales.filter((s: any) => s.activa).length;
+  const sucursalesActivas: number = sucursales.filter(
+    (s: any) => s.activa,
+  ).length;
   const sucursalesInactivas: number = totalSucursales - sucursalesActivas;
 
   // filtrar y ordenar: las activas arriba, luego inactivas
@@ -40,15 +45,29 @@ const Branches = () => {
     if (sucursal && sucursal.id) {
       navigate(`/Branches-Management/Update-Sucursal/${sucursal.id}`);
     } else {
-      navigate('/Branches-Management/Create-Sucursal');
+      navigate("/Branches-Management/Create-Sucursal");
     }
+  };
+
+  /* Paginacion */
+  const [paginaActual, setPaginaActual] = useState(1);
+
+  const totalPaginas: number = Math.ceil(
+    filteredSucursales.length / ITEMS_POR_PAGINA,
+  );
+  const inicio: number = (paginaActual - 1) * ITEMS_POR_PAGINA;
+  const fin: number = inicio + ITEMS_POR_PAGINA;
+  const sucursalesPaginadas: Sucursal[] = filteredSucursales.slice(inicio, fin);
+
+  const irAPagina = (pagina: number) => {
+    if (pagina >= 1 && pagina <= totalPaginas) setPaginaActual(pagina);
   };
 
   return (
     <section className="w-full px-4 py-5 md:px-6 bg-[#f3f5f8]">
       <header>
         <h2 className="text-3xl font-bold text-[#0b4d77] md:text-4xl">
-          Gestión de sucursales
+          Gestión de Sucursales
         </h2>
         <p className="mt-1 text-lg text-[#4661b0] md:text-xl">
           Panel administrativo
@@ -84,7 +103,7 @@ const Branches = () => {
       </div>
 
       {/* Tarjetas de resumen (Total/Activas/Inactivas) */}
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
+      <div className="mt-6 grid gap-4 md:grid-cols-3 mb-6">
         <CardTotalComponent
           title="Total de Suscursales"
           total={totalSucursales}
@@ -103,89 +122,31 @@ const Branches = () => {
       </div>
 
       {/* Tabla de Sucursales */}
-      <div className="mt-6 overflow-hidden rounded-2xl bg-white shadow-[0_8px_18px_rgba(0,0,0,0.08)]">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-left text-white">
-              <th className="px-6 py-4 text-base font-semibold md:text-lg">
-                Sucursal / Dirección
-              </th>
-              <th className="px-4 py-4 text-base font-semibold md:text-lg">
-                Gerente
-              </th>
-              <th className="px-4 py-4 text-base font-semibold md:text-lg text-center">
-                Estado
-              </th>
-              <th className="px-4 py-4 text-base font-semibold md:text-lg text-center">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredSucursales.length > 0 ? (
-              filteredSucursales.map((s: any) => (
-                <tr
-                  key={s.id}
-                  className="border-b border-[#9adce2] last:border-b-0"
-                >
-                  <td className="px-6 py-4 text-base font-semibold text-[#0a4d76] md:text-xl">
-                    {s.nombre}
-                    <div className="text-sm text-gray-500 italic">{s.direccion}</div>
-                  </td>
-                  <td className="px-4 py-4 text-sm text-[#4661b0] md:text-lg">
-                    {s.gerente}
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <span className={`inline-flex rounded-full ${
-                      s.activa
-                        ? 'bg-[#b7e4ca] text-[#008444]'
-                        : 'bg-[#86817f] text-[#efeeee]'
-                    } px-4 py-1 text-sm font-semibold  md:text-base`}>
-                      {s.activa ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <div className="flex items-center justify-center gap-4 text-lg md:text-xl">
-                      {tienePermiso("Editar sucursales") && (
-                        <button
-                          type="button"
-                          className={`cursor-pointer ${
-                            s.activa
-                              ? 'text-[#ff5e00] hover:text-[#b64402]'
-                              : 'text-[#24e775] hover:text-[#008444]'
-                          } `}
-                          aria-label={`Cambiar estado de ${s.nombre}`}
-                          onClick={() =>
-                            statusMutation.mutate(s.id)
-                          }
-                        >
-                          <FontAwesomeIcon icon={faPowerOff} />
-                        </button>
-                      )}
-                      {tienePermiso("Editar sucursales") && (
-                        <button
-                          type="button"
-                          onClick={() => goToForm(s)}
-                          className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
-                          aria-label={`Editar ${s.nombre}`}
-                        >
-                          <FontAwesomeIcon icon={faPenToSquare} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={4} className="px-6 py-4 text-center text-gray-400 italic">
-                  No hay datos disponibles en este momento.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <TableComponent
+        tituloTablaInventario={branchHeaders}
+        contenidoTabla={
+          <TableSucursalesData
+            sucursales={sucursalesPaginadas}
+            statusMutation={statusMutation}
+            tienePermiso={tienePermiso}
+            goToForm={goToForm}
+            isLoading={sucursalesQuery.isLoading}
+            isError={sucursalesQuery.isError}
+            error={sucursalesQuery.error}
+          />
+        }
+      />
+
+      {/* Paginacion */}
+
+      <PaginacionComponent
+        paginaActual={paginaActual}
+        totalPaginas={totalPaginas}
+        action={irAPagina}
+        inicio={inicio}
+        fin={fin}
+        registros={sucursalesPaginadas}
+      />
     </section>
   );
 };
