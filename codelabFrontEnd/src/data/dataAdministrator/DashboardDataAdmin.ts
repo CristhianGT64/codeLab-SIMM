@@ -73,4 +73,14 @@ export const DashboardDataAdmin: DashboardInterface[] = [
     url: "/Configuracion/CAI",
     permiso: "Ver configuración CAI",
   },
+  {
+    svg: "M9 12.75 11.25 15 15 9.75m6 3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+    title: "Tipos de Documento",
+    description: "Configuracion de tipos de documento para facturacion",
+    buttonDescription: "Administrar →",
+    colorBorder: "border-[#4a6eb0]",
+    colorSvg: "from-[#0aa6a2] to-[#4661b0]",
+    url: "/Tipos-Documento-Management",
+    permiso: "Ver tipos de documento",
+  },
 ];

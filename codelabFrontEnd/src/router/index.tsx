@@ -23,6 +23,8 @@ import SalidasInventario from '../pages/Administration/Inventario/SalidasInventa
 import EntradaInventario from '../pages/Administration/Inventario/EntradaInventario';
 import FifoPromConfig from '../pages/Administration/configuracion/fifo-prom/FifoPromConfig';
 import ConfiguracionCAI from '../pages/Administration/Facturacion/ConfiguracionCAI';
+import TiposDocumentoManagement from '../pages/Administration/Tiposdedocumento/TiposDocumentoManagement';
+import FormTipoDocumento from '../pages/Administration/Tiposdedocumento/FormTipoDocumento';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -85,6 +87,11 @@ const AppRouter = () => (
 
             {/* Configuración de CAI */}
             <Route path="/Configuracion/CAI" element={<PermissionGate permiso="Ver configuración CAI"><ConfiguracionCAI /></PermissionGate>} />
+
+            {/* Tipos de documento */}
+            <Route path="/Tipos-Documento-Management" element={<PermissionGate permiso="Ver tipos de documento"><TiposDocumentoManagement /></PermissionGate>} />
+            <Route path="/Tipos-Documento-Management/Create" element={<PermissionGate permiso="Crear tipos de documento"><FormTipoDocumento /></PermissionGate>} />
+            <Route path="/Tipos-Documento-Management/Update/:id" element={<PermissionGate permiso="Editar tipos de documento"><FormTipoDocumento /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>
