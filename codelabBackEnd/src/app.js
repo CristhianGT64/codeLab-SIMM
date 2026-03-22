@@ -13,6 +13,7 @@ import inventarioController from './controllers/inventarioController.js';
 import proveedorController from './controllers/proveedorController.js';
 import configuracionContableController from './controllers/configuracionContableController.js';
 import caiController from './controllers/caiController.js';
+import tipoDocumentoController from './controllers/tipoDocumentoController.js';
 
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
@@ -40,10 +41,13 @@ const allowedOrigins = (process.env.allowedOrigins || process.env.ALLOWED_ORIGIN
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const localDevOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+const effectiveAllowedOrigins = allowedOrigins.length > 0 ? allowedOrigins : localDevOrigins;
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  if (origin && allowedOrigins.includes(origin)) {
+  if (origin && effectiveAllowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
 
@@ -177,6 +181,18 @@ app.post('/clientes', clientController.createClient);
 app.get('/clientes', clientController.getAllClients);
 app.get('/clientes/:id', clientController.getClientById);
 app.put('/clientes/:id', clientController.updateClient);
+
+// Tipo de documento por establecimiento
+// --- RUTAS MAESTRAS (Tipos de Documento) ---
+app.get('/tipos-documento', tipoDocumentoController.getAllTiposDocumento);
+app.get('/tipos-documento/:id', tipoDocumentoController.getTipoDocumentoById);
+app.post('/tipos-documento', tipoDocumentoController.createTipoDocumento);
+app.put('/tipos-documento/:id', tipoDocumentoController.updateTipoDocumento);
+app.patch('/tipos-documento/:id/estado', tipoDocumentoController.changeTipoDocumentoStatus);
+// --- RUTAS DE RELACIÓN (Establecimientos) ---
+app.get('/establecimientos/:id/documentos', tipoDocumentoController.getDocumentosByEstablecimiento);
+app.post('/establecimientos/:id/documentos', tipoDocumentoController.assignDocumentoToEstablecimiento);
+app.patch('/establecimiento-documento/:id/estado', tipoDocumentoController.patchEstadoEstablecimientoDocumento);
 
 // Middleware de errores
 app.use(errorHandler);

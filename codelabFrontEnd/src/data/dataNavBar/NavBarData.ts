@@ -59,6 +59,13 @@ const navBarData: NavBarInterface = {
       disable : false,
       permiso : "Ver clientes"
     },
+    {
+      text: "Tipos Doc.",
+      icon: "fa-solid fa-file-invoice",
+      url: "/Tipos-Documento-Management",
+      disable: false,
+      permiso: "Ver tipos de documento",
+    },
   ],
   nameUser: "Administrador",
 };

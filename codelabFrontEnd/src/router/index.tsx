@@ -24,6 +24,8 @@ import EntradaInventario from '../pages/Administration/Inventario/EntradaInventa
 import FifoPromConfig from '../pages/Administration/configuracion/fifo-prom/FifoPromConfig';
 import ConfiguracionCAI from '../pages/Administration/Facturacion/ConfiguracionCAI';
 import VentasManagement from '../pages/Ventas/VentasManagement';
+import TiposDocumentoManagement from '../pages/Administration/Tiposdedocumento/TiposDocumentoManagement';
+import FormTipoDocumento from '../pages/Administration/Tiposdedocumento/FormTipoDocumento';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -61,7 +63,6 @@ const AppRouter = () => (
             <Route path="/Branches-Management/Create-Sucursal" element={<PermissionGate permiso="Crear sucursales"><FormSucursal /></PermissionGate>} />
             <Route path="/Branches-Management/Update-Sucursal/:id" element={<PermissionGate permiso="Editar sucursales"><FormSucursal /></PermissionGate>} />
 
-
             {/* Clientes */}
             <Route path="/Clients-Management" element={<PermissionGate permiso="Ver clientes"><ClientsManagement /></PermissionGate>} />
             <Route path="/Clients-Management/Create-Client" element={<PermissionGate permiso="Crear clientes"><FormClient /></PermissionGate>} />
@@ -87,9 +88,6 @@ const AppRouter = () => (
 
             {/* Configuración de CAI */}
             <Route path="/Configuracion/CAI" element={<PermissionGate permiso="Ver configuración CAI"><ConfiguracionCAI /></PermissionGate>} />
-
-            {/* Ventas */}
-            <Route path="/Ventas-Management" element={<PermissionGate permiso="Ver punto de ventas POS"><VentasManagement /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>
