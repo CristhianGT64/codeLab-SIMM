@@ -342,6 +342,21 @@ model EstablecimientoTipoDocumento {
   @@map("establecimiento_tipo_documeto")
 }
 
+model ConfiguracionContable {
+  id              BigInt          @id @default(autoincrement())
+  metodoValuacion MetodoValuacion @map("metodo_valuacion")
+  monedaFuncional String          @map("moneda_funcional") @db.VarChar(10)
+}
+
+model ConfiguracionSistema {
+  id                        BigInt          @id @default(autoincrement())
+  metodoValuacionInventario MetodoValuacion @map("metodo_valuacion_inventario")
+  monedaFuncional           String          @map("moneda_funcional") @db.VarChar(10)
+
+  @@map("configuracion_sistema")
+}
+
+
 model PeriodoContable {
   id         BigInt                @id @default(autoincrement())
   fechaInicio DateTime              @map("fecha_inicio")
