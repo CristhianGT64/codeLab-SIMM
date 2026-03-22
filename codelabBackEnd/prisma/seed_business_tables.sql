@@ -1,3 +1,4 @@
+-- Active: 1771999720213@@127.0.0.1@5432@erpSIMM
 BEGIN;
 
 -- Seed generado a partir del dump 20-03-2026.sql
@@ -79,7 +80,8 @@ INSERT INTO public."NumeroFactura" (id, numero_formateado, correlativo, id_cai, 
   (12, '001-001-01-00000012', 12, 10, 1, 1, 1),
   (13, '001-001-01-00000013', 13, 10, 1, 1, 1),
   (14, '001-001-01-00000014', 14, 10, 1, 1, 1),
-  (15, '001-001-01-00000015', 15, 10, 1, 1, 1)
+  (15, '001-001-01-00000015', 15, 10, 1, 1, 1),
+  (16, '001-001-01-00000016', 16, 11, 1, 1, 1)
 ON CONFLICT (id) DO UPDATE SET
   numero_formateado = EXCLUDED.numero_formateado,
   correlativo = EXCLUDED.correlativo,
@@ -127,9 +129,27 @@ INSERT INTO public.producto_proveedor ("productoId", "proveedorId") VALUES
 ON CONFLICT ("productoId", "proveedorId") DO NOTHING;
 
 -- 5) Operación comercial
--- Sin registros en public."Venta" al 20-03-2026.
+INSERT INTO public."Venta" (id, total, estado, created_at, "clienteId", "usuarioId", "sucursalId") VALUES
+  (1, 28.00, 'completada', NULL, NULL, 2, 2),
+  (2, 328.00, 'completada', NULL, NULL, 2, 2)
+ON CONFLICT (id) DO UPDATE SET
+  total = EXCLUDED.total,
+  estado = EXCLUDED.estado,
+  created_at = EXCLUDED.created_at,
+  "clienteId" = EXCLUDED."clienteId",
+  "usuarioId" = EXCLUDED."usuarioId",
+  "sucursalId" = EXCLUDED."sucursalId";
 
--- Sin registros en public."DetalleVenta" al 20-03-2026.
+INSERT INTO public."DetalleVenta" (id, cantidad, precio_unitario, subtotal, "ventaId", "productoId") VALUES
+  (1, 1, 28.00, 28.00, 1, 101),
+  (2, 1, 28.00, 28.00, 2, 101),
+  (3, 2, 150.00, 300.00, 2, 100)
+ON CONFLICT (id) DO UPDATE SET
+  cantidad = EXCLUDED.cantidad,
+  precio_unitario = EXCLUDED.precio_unitario,
+  subtotal = EXCLUDED.subtotal,
+  "ventaId" = EXCLUDED."ventaId",
+  "productoId" = EXCLUDED."productoId";
 
 -- Sin registros en public."Facturas" al 20-03-2026.
 

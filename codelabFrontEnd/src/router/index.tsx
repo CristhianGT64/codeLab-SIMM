@@ -88,6 +88,15 @@ const AppRouter = () => (
 
             {/* Configuración de CAI */}
             <Route path="/Configuracion/CAI" element={<PermissionGate permiso="Ver configuración CAI"><ConfiguracionCAI /></PermissionGate>} />
+
+            {/* Punto de ventas POS */}
+            <Route path="/Ventas-Management" element={<PermissionGate permiso="Ver punto de ventas POS"><VentasManagement /></PermissionGate>} />
+
+
+            {/* Tipos de documento */}
+            <Route path="/Tipos-Documento-Management" element={<PermissionGate permiso="Ver tipos de documento"><TiposDocumentoManagement /></PermissionGate>} />
+            <Route path="/Tipos-Documento-Management/Create" element={<PermissionGate permiso="Crear tipos de documento"><FormTipoDocumento /></PermissionGate>} />
+            <Route path="/Tipos-Documento-Management/Update/:id" element={<PermissionGate permiso="Editar tipos de documento"><FormTipoDocumento /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>
