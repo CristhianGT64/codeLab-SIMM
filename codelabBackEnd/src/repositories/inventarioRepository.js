@@ -2,12 +2,15 @@ import prisma from '../infra/prisma/prismaClient.js';
 
 const inventarioRepository = {
 
-  upsertStock({ productoId, sucursalId, stockActual }) {
+
+  async upsertStock({ productoId, sucursalId, stockActual }) {
     return prisma.inventario.upsert({
-      where: { productoId_sucursalId: { productoId, sucursalId } },
-      create: { productoId, sucursalId, stockActual },
-      update: { stockActual },
+      where: { productoId_sucursalId: { productoId: BigInt(productoId), sucursalId: BigInt(sucursalId) } },
+      create: { productoId: BigInt(productoId), sucursalId: BigInt(sucursalId), stockActual: Number(stockActual) },
+      update: { stockActual: Number(stockActual) },
       select: { id: true, productoId: true, sucursalId: true, stockActual: true },
+    });
+  },
 
   async findProductoById(productoId) {
     return prisma.producto.findUnique({
@@ -337,7 +340,7 @@ const inventarioRepository = {
         }
       }
     });
-  }
+  },
 
 };
 
