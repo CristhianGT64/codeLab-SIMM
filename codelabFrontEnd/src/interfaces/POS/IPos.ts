@@ -22,3 +22,25 @@ export interface Sale {
   subtotal: number;
   total: number;
 }
+
+export interface SaleRequest {
+  usuarioId: string | number;
+  sucursalId: string | number;
+  productos: {
+    productoId: string | number;
+    cantidad: number;
+  }[];
+}
+
+export interface SaleResponse {
+  success: boolean;
+  data: {
+    id: string;
+    total: string;
+    estado: string;
+    createdAt: string | null;
+    clienteId: string | null;
+    usuarioId: string;
+    sucursalId: string;
+  };
+}

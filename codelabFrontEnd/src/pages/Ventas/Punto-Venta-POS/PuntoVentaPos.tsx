@@ -12,6 +12,9 @@ import ConfirmarVentas from "../../../components/POS/ConfirmarVenta";
 import CarritoVenta from "../../../components/POS/CarritoVenta";
 import TotalSubTotalVenta from "../../../components/POS/TotalSubTotalVenta";
 import ResultadosVenta from "../../../components/POS/ResultadosVenta";
+import useAuth from "../../../hooks/useAuth";
+import { useCreateVenta } from "../../../hooks/POSHooks/useCreateVenta";
+import type { SaleResponse } from "../../../interfaces/POS/IPos";
 
 export function POSMain() {
   /* Hooks */
@@ -23,6 +26,8 @@ export function POSMain() {
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [completedSale, setCompletedSale] = useState<Sale | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const { user, permisos } = useAuth();
+  const createVentaMutation = useCreateVenta();
 
   // Sincronizar productos desde la API
   useEffect(() => {
@@ -114,7 +119,7 @@ export function POSMain() {
           ? {
               ...item,
               quantity: newQuantity,
-              subtotal: newQuantity * item.product.price,
+              subtotal: newQuantity * Number(item.product.price),
             }
           : item,
       ),
@@ -129,7 +134,7 @@ export function POSMain() {
 
   // Calcular totales
   const calculateTotals = () => {
-    const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+    const subtotal = cart.reduce((sum, item) => sum + Number(item.subtotal), 0);
     const total = subtotal; // Aquí se podría agregar ISV u otros impuestos
     return { subtotal, total };
   };
@@ -159,33 +164,39 @@ export function POSMain() {
   };
 
   // Confirmar venta
-  const confirmSale = () => {
+  const confirmSale = async () => {
+    if (!user) return;
+
     const totals = calculateTotals();
-    const sale: Sale = {
-      id: Date.now().toString(),
-      saleNumber: Math.floor(Math.random() * 10000) + 1000,
-      date: new Date().toISOString(),
-      cashier: "Usuario Cajero", // En producción vendría del contexto
-      items: cart,
-      subtotal: totals.subtotal,
-      total: totals.total,
+
+    const saleRequest = {
+      usuarioId: user.id || 1, // Fallback to 1 if id is missing, though useAuth should have it
+      sucursalId: 2, // Hardcoded as per user example
+      productos: cart.map((item) => ({
+        productoId: item.product.id,
+        cantidad: item.quantity,
+      })),
     };
 
-    // Actualizar stock de forma inmutable
-    setProducts((prevProducts) =>
-      prevProducts.map((p) => {
-        const cartItem = cart.find((item) => item.product.id === p.id);
-        return cartItem ? { ...p, stock: p.stock - cartItem.quantity } : p;
-      }),
-    );
+    createVentaMutation.mutate(saleRequest, {
+      onSuccess: (response: SaleResponse) => {
+        if (response.success) {
+          const sale: Sale = {
+            id: response.data.id,
+            saleNumber: Number(response.data.id), // Using ID as sale number for now
+            date: response.data.createdAt || new Date().toISOString(),
+            cashier: user?.nombreCompleto || "Usuario",
+            items: cart,
+            subtotal: totals.subtotal,
+            total: Number(response.data.total),
+          };
 
-    setCompletedSale(sale);
-    setShowConfirmModal(false);
-    setCart([]);
-    setSearchTerm("");
-
-    toast.success("Venta registrada correctamente", {
-      description: `Venta #${sale.saleNumber} - Total: L ${sale.total.toFixed(2)}`,
+          setCompletedSale(sale);
+          setShowConfirmModal(false);
+          setCart([]);
+          setSearchTerm("");
+        }
+      },
     });
   };
 
@@ -288,6 +299,7 @@ export function POSMain() {
               cart={cart}
               totals={totals}
               completeSale={completeSale}
+              permisos={permisos}
             />
           </div>
         </div>
@@ -299,9 +311,9 @@ export function POSMain() {
           totals={totals}
           confirmSale={confirmSale}
           setShowConfirmModal={setShowConfirmModal}
+          user={user}
         />
-      )}{" "}
-      {/* Final de la confirmacion de venta */}
+      )}
     </div>
   );
 }

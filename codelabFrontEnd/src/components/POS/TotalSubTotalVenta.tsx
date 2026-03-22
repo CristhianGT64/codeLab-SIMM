@@ -6,10 +6,12 @@ export default function TotalSubTotalVenta({
   cart,
   totals,
   completeSale,
+  permisos
 }: {
   cart: CartItem[];
   totals: { subtotal: number; total: number };
   completeSale: () => void;
+  permisos: string[];
 }) {
   return (
     <div className="p-4 border-t-2 border-gray-200">
@@ -34,16 +36,18 @@ export default function TotalSubTotalVenta({
         </div>
       </div>
 
-      <ButtonsComponet
-        {...botonFinalizarVenta}
-        onClick={completeSale}
-        disabled={cart.length === 0}
+      {permisos.includes("Finalizar Venta") && (
+        <ButtonsComponet
+          {...botonFinalizarVenta}
+          onClick={completeSale}
+          disabled={cart.length === 0}
         className={`w-full px-6 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
           cart.length === 0
             ? "bg-gray-300 text-gray-500 cursor-not-allowed"
             : "bg-linear-to-r from-[#079f9b] to-[#4a6eb0] text-white hover:shadow-lg"
         }`}
       />
+      )}
     </div>
   );
 }
