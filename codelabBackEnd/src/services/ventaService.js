@@ -3,13 +3,26 @@ import ventaRepository from "../repositories/ventaRepository.js";
 import detalleVentaRepository from "../repositories/detalleVentaRepository.js";
 import productoRepository from "../repositories/productoRepository.js";
 import inventarioRepository from "../repositories/inventarioRepository.js";
+import clienteRepository from "../repositories/clientRepository.js";
 
 const ventaService = {
 
   async createVenta({ clienteId, usuarioId, sucursalId, productos }) {
 
+    if (!usuarioId) {
+      throw new Error("usuarioId es requerido");
+    }
+
     if (!productos || productos.length === 0) {
       throw new Error("La venta debe contener productos");
+    }
+
+    if (clienteId) {
+      const cliente = await clienteRepository.findById(clienteId);
+
+      if (!cliente) {
+        throw new Error("Cliente no existe");
+      }
     }
 
     let total = 0;
@@ -54,15 +67,6 @@ const ventaService = {
 
     }
 
-    /**
-     * Se utiliza una transacción para asegurar consistencia de datos.
-     * Si ocurre un error en cualquier paso (venta, detalles o inventario),
-     * la base de datos revierte todos los cambios automáticamente.
-     * Esto evita inconsistencias como:
-     * - venta creada pero inventario no actualizado
-     * - detalles creados sin descontar stock
-     */
-
     return await prisma.$transaction(async () => {
 
       const venta = await ventaRepository.createVenta({
@@ -81,13 +85,11 @@ const ventaService = {
       await detalleVentaRepository.createManyDetalleVenta(detallesVenta);
 
       for (const detalle of detalles) {
-
         await inventarioRepository.decreaseStock(
           detalle.productoId,
           sucursalId,
           detalle.cantidad
         );
-
       }
 
       return venta;
@@ -96,8 +98,8 @@ const ventaService = {
 
   },
 
-  async getVentas() {
-    return await ventaRepository.getVentas();
+  async getVentas(filtros) {
+    return await ventaRepository.getVentas(filtros);
   },
 
   async getVentaById(id) {

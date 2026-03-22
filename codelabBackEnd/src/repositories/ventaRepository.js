@@ -8,16 +8,29 @@ const ventaRepository = {
     });
   },
 
-  async getVentas() {
+  async getVentas({ usuarioId, clienteId }) {
+
+    const where = {};
+
+    if (usuarioId) {
+      where.usuarioId = Number(usuarioId);
+    }
+
+    if (clienteId) {
+      where.clienteId = Number(clienteId);
+    }
+
     return await prisma.venta.findMany({
+      where,
       include: {
-        usuario: true,
+        detalles: true,
         cliente: true
       },
       orderBy: {
-        createdAt: "desc"
+        id: "desc"
       }
     });
+
   },
 
   async getVentaById(id) {
@@ -26,11 +39,8 @@ const ventaRepository = {
         id: Number(id)
       },
       include: {
-        detalles: {
-          include: {
-            producto: true
-          }
-        }
+        detalles: true,
+        cliente: true
       }
     });
   }
