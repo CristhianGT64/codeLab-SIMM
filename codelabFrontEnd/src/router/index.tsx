@@ -88,9 +88,8 @@ const AppRouter = () => (
             {/* Configuración de CAI */}
             <Route path="/Configuracion/CAI" element={<PermissionGate permiso="Ver configuración CAI"><ConfiguracionCAI /></PermissionGate>} />
 
-            {/* Punto de ventas POS */}
-            <Route path="/POS" element={<PermissionGate permiso="Ver punto de ventas POS"><VentasManagement /></PermissionGate>} />
-
+            {/* Ventas */}
+            <Route path="/Ventas-Management" element={<PermissionGate permiso="Ver punto de ventas POS"><VentasManagement /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>
@@ -99,3 +98,6 @@ const AppRouter = () => (
 );
 
 export default AppRouter;
+
+
+

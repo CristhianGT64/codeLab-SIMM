@@ -80,7 +80,7 @@ export const DashboardDataAdmin: DashboardInterface[] = [
     buttonDescription: "Administrar →",
     colorBorder: "border-[#4a6eb0]",
     colorSvg: "from-[#4a6eb0] to-[#11a2a5]",
-    url: "/POS",
+    url: "/Ventas-Management",
     permiso: "Ver punto de ventas POS",
   },
 ];

@@ -48,7 +48,7 @@ const navBarData: NavBarInterface = {
     {
       text: "Ventas POS",
       icon: "fa-solid fa-cart-shopping",
-      url : "/POS",
+      url : "/Ventas-Management",
       disable : false,
       permiso : "Ver punto de ventas POS"
     },
