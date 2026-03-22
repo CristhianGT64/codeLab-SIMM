@@ -8,13 +8,30 @@ const ventaRepository = {
     });
   },
 
- async getVentas() {
-  return await prisma.venta.findMany({
-    orderBy: {
-      createdAt: "desc"
+  async getVentas({ usuarioId, clienteId }) {
+
+    const where = {};
+
+    if (usuarioId) {
+      where.usuarioId = Number(usuarioId);
     }
-  });
-},
+
+    if (clienteId) {
+      where.clienteId = Number(clienteId);
+    }
+
+    return await prisma.venta.findMany({
+      where,
+      include: {
+        detalles: true,
+        cliente: true
+      },
+      orderBy: {
+        id: "desc"
+      }
+    });
+
+  },
 
   async getVentaById(id) {
     return await prisma.venta.findUnique({
@@ -22,11 +39,8 @@ const ventaRepository = {
         id: Number(id)
       },
       include: {
-        detalles: {
-          include: {
-            producto: true
-          }
-        }
+        detalles: true,
+        cliente: true
       }
     });
   }

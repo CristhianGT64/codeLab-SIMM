@@ -160,7 +160,6 @@ app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
 
-<<<<<<< HEAD
 // Invoice Types (Tipos de Documento o facturas)
 app.post('/invoice-types', invoiceTypeController.create);
 app.get('/invoice-types', invoiceTypeController.getAll);
@@ -173,8 +172,6 @@ app.post('/ventas', ventaController.createVenta);
 app.get('/ventas', ventaController.getVentas);
 app.get('/ventas/:id', ventaController.getVentaById);
 
-=======
->>>>>>> devCristhianLopez
 // Rutas de clientes
 app.post('/clientes', clientController.createClient);
 app.get('/clientes', clientController.getAllClients);
