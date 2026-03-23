@@ -198,6 +198,7 @@ model TipoDocumento {
   numero                    Int                            @unique
   nombre                    String                         @unique @db.VarChar(150)
   disponible                Boolean                        @default(true)
+  cais                      Cai[]
   establecimientoDocumentos EstablecimientoTipoDocumento[]
 
   @@map("TiposDocumentos")
@@ -206,8 +207,8 @@ model TipoDocumento {
 
 model RangoEmision {
   id           BigInt        @id @default(autoincrement()) @map("id_rango_emision")
-  inicioRango  BigInt        @map("inicio_rango") @unique
-  finRango     BigInt        @map("final_rango") @unique
+  inicioRango  BigInt        @map("inicio_rango")
+  finRango     BigInt        @map("final_rango")
   caiId        BigInt        @unique @map("id_cai")
   cai          Cai           @relation(fields: [caiId], references: [id])
   puntosEmision PuntoEmision[]
@@ -237,6 +238,8 @@ model Cai {
   fechaInicio    DateTime         @map("fecha_inicio")
   fechaFin       DateTime         @map("fecha_fin")
   activo         Boolean
+  tipoDocumentoId BigInt          @default(1) @map("id_tipo_documento")
+  tipoDocumento  TipoDocumento    @relation(fields: [tipoDocumentoId], references: [id])
   rangoEmision   RangoEmision?
   numerosFactura NumeroFactura[]
 

@@ -47,7 +47,7 @@ import {
 } from "../../../interfaces/NotificacionesInterface";
 import StatusNotification from "../../../components/notifications/StatusNotification";
 
-const ITEMS_POR_PAGINA = 8;
+const ITEMS_POR_PAGINA = 4;
 
 export default function ConfiguracionCAI() {
   const { data: CaiVigenteData, isLoading: isLoadingCaiVigente } =
