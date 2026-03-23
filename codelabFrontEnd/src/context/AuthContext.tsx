@@ -20,6 +20,13 @@ interface AuthProviderProps {
 
 const PERMISOS_KEY = "permisos";
 
+const normalizePermissionName = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<LoginUserData | null>(null);
   const [permisos, setPermisos] = useState<string[]>([]);
@@ -37,29 +44,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Cargar usuario y permisos desde localStorage al iniciar
+  // Cargar usuario desde localStorage y refrescar permisos desde API.
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedPermisos = localStorage.getItem(PERMISOS_KEY);
+    const initAuth = async () => {
+      const storedUser = localStorage.getItem("user");
+      const storedPermisos = localStorage.getItem(PERMISOS_KEY);
 
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser) as LoginUserData;
-        setUser(parsedUser);
-      } catch {
-        localStorage.removeItem("user");
+      let parsedUser: LoginUserData | null = null;
+
+      if (storedUser) {
+        try {
+          parsedUser = JSON.parse(storedUser) as LoginUserData;
+          setUser(parsedUser);
+        } catch {
+          localStorage.removeItem("user");
+        }
       }
-    }
 
-    if (storedPermisos) {
-      try {
-        setPermisos(JSON.parse(storedPermisos) as string[]);
-      } catch {
-        localStorage.removeItem(PERMISOS_KEY);
+      if (storedPermisos) {
+        try {
+          setPermisos(JSON.parse(storedPermisos) as string[]);
+        } catch {
+          localStorage.removeItem(PERMISOS_KEY);
+        }
       }
-    }
 
-    setIsLoading(false);
+      if (parsedUser?.rol?.id) {
+        await fetchPermisos(parsedUser.rol.id);
+      }
+
+      setIsLoading(false);
+    };
+
+    void initAuth();
   }, []);
 
   const login = async (userData: LoginUserData) => {
@@ -76,7 +93,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const tienePermiso = useCallback(
-    (nombre: string) => permisos.includes(nombre),
+    (nombre: string) => {
+      const normalizedTarget = normalizePermissionName(nombre);
+      return permisos.some(
+        (permiso) => normalizePermissionName(permiso) === normalizedTarget,
+      );
+    },
     [permisos],
   );
 

@@ -46,11 +46,25 @@ const navBarData: NavBarInterface = {
       permiso: "Ver configuración CAI",
     },
     {
+      text: "Ventas POS",
+      icon: "fa-solid fa-cart-shopping",
+      url : "/Ventas-Management",
+      disable : false,
+      permiso : "Ver punto de ventas POS"
+    },
+    {
       text: "Clientes",
       icon: "fa-solid fa-user",
       url : "/Clients-Management",
       disable : false,
       permiso : "Ver clientes"
+    },
+    {
+      text: "Tipos Doc.",
+      icon: "fa-solid fa-file-invoice",
+      url: "/Tipos-Documento-Management",
+      disable: false,
+      permiso: "Ver tipos de documento",
     },
   ],
   nameUser: "Administrador",

@@ -24,7 +24,7 @@ export default function NavBar(navBarData: Readonly<NavBarInterface>) {
   );
 
   return (
-    <header className="w-full bg-linear-to-r from-[#12a4a6] via-[#3f8cb4] to-[#4e6fb2] px-6 py-2">
+    <header className="w-full bg-linear-to-r from-[#12a4a6] via-[#3f8cb4] to-[#4e6fb2] px-6 py-3">
       <div className="mx-auto flex w-full max-w-400 items-center justify-between gap-4">
         <button
           className="flex items-center gap-3 text-white cursor-pointer"

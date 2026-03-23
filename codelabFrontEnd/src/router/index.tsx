@@ -23,6 +23,9 @@ import SalidasInventario from '../pages/Administration/Inventario/SalidasInventa
 import EntradaInventario from '../pages/Administration/Inventario/EntradaInventario';
 import FifoPromConfig from '../pages/Administration/configuracion/fifo-prom/FifoPromConfig';
 import ConfiguracionCAI from '../pages/Administration/Facturacion/ConfiguracionCAI';
+import VentasManagement from '../pages/Ventas/VentasManagement';
+import TiposDocumentoManagement from '../pages/Administration/Tiposdedocumento/TiposDocumentoManagement';
+import FormTipoDocumento from '../pages/Administration/Tiposdedocumento/FormTipoDocumento';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -60,7 +63,6 @@ const AppRouter = () => (
             <Route path="/Branches-Management/Create-Sucursal" element={<PermissionGate permiso="Crear sucursales"><FormSucursal /></PermissionGate>} />
             <Route path="/Branches-Management/Update-Sucursal/:id" element={<PermissionGate permiso="Editar sucursales"><FormSucursal /></PermissionGate>} />
 
-
             {/* Clientes */}
             <Route path="/Clients-Management" element={<PermissionGate permiso="Ver clientes"><ClientsManagement /></PermissionGate>} />
             <Route path="/Clients-Management/Create-Client" element={<PermissionGate permiso="Crear clientes"><FormClient /></PermissionGate>} />
@@ -86,6 +88,15 @@ const AppRouter = () => (
 
             {/* Configuración de CAI */}
             <Route path="/Configuracion/CAI" element={<PermissionGate permiso="Ver configuración CAI"><ConfiguracionCAI /></PermissionGate>} />
+
+            {/* Punto de ventas POS */}
+            <Route path="/Ventas-Management" element={<PermissionGate permiso="Ver punto de ventas POS"><VentasManagement /></PermissionGate>} />
+
+
+            {/* Tipos de documento */}
+            <Route path="/Tipos-Documento-Management" element={<PermissionGate permiso="Ver tipos de documento"><TiposDocumentoManagement /></PermissionGate>} />
+            <Route path="/Tipos-Documento-Management/Create" element={<PermissionGate permiso="Crear tipos de documento"><FormTipoDocumento /></PermissionGate>} />
+            <Route path="/Tipos-Documento-Management/Update/:id" element={<PermissionGate permiso="Editar tipos de documento"><FormTipoDocumento /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>
@@ -94,3 +105,6 @@ const AppRouter = () => (
 );
 
 export default AppRouter;
+
+
+

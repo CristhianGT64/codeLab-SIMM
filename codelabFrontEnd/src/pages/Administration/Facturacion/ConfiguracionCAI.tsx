@@ -351,7 +351,7 @@ export default function ConfiguracionCAI() {
       {/* Tabla */}
       <div>
         <h3 className="text-lg font-bold text-[#0b4d77] md:text-xl bg-[#f3f5f8] p-6  mt-3 border-[#f3f5f8] hover:border-t-[#1498b2] border-6 rounded-t-2xl shadow-[0_6px_18px_rgba(0,0,0,0.1)]">
-          Cais Emitidos
+          CAI Emitidos
         </h3>
         <TableComponent
           tituloTablaInventario={tituloTablaCaisEmitidos}

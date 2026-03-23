@@ -103,7 +103,12 @@ INSERT INTO public."Permiso" (id, nombre, descripcion, disponible, created_at, "
   (108, 'Ver configuración CAI', 'Permite al usuario ver la configuración del CAI, así como agregar un nuevo CAI, ver el historial de estos.', true, NULL, 104),
   (109, 'Ver clientes', 'Permite ver los clientes', true, NULL, 2),
   (110, 'Crear clientes', 'Crear un nuevo cliente', true, NULL, 2),
-  (111, 'Editar clientes', 'Editar clientes', true, NULL, 2)
+  (111, 'Editar clientes', 'Editar clientes', true, NULL, 2),
+  (112, 'Ver punto de ventas POS', 'Permite ver el POS para cotizaciones.', true, NULL, 7),
+  (113, 'Finalizar Venta', 'Permite finalizar venta de productos en el carrito.', true, NULL, 7),
+  (114, 'Ver tipos de documento', 'Permite ver los tipos de documentos de facturacion', true, NULL, 8),
+  (115, 'Crear tipos de documento', 'Permite crear nuevos tipos de documento', true, NULL, 8),
+  (116, 'Editar tipos de documento', 'Permite al usuario editar tipos de documentos', true, NULL, 8)
 ON CONFLICT (id) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   descripcion = EXCLUDED.descripcion,
@@ -165,7 +170,12 @@ INSERT INTO public."RolPermiso" ("rolId", "permisoId") VALUES
   (1, 108),
   (1, 109),
   (1, 110),
-  (1, 111)
+  (1, 111),
+  (1, 112),
+  (1, 113),
+  (1, 114),
+  (1, 115),
+  (1, 116)
 ON CONFLICT ("rolId", "permisoId") DO NOTHING;
 
 -- 3) Usuarios

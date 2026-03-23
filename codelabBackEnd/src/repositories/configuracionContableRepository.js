@@ -7,18 +7,18 @@ const mapConfiguracionSistema = (row) => {
 
   return {
     id: row.id,
-    metodoValuacion: row.metodoValuacion,
+    metodoValuacion: row.metodoValuacionInventario,
     monedaFuncional: row.monedaFuncional,
   };
 };
 
 const configuracionContableRepository = {
   async findFirst() {
-    const config = await prisma.configuracionContable.findFirst({
+    const config = await prisma.configuracionSistema.findFirst({
       orderBy: { id: 'asc' },
       select: {
         id: true,
-        metodoValuacion: true,
+        metodoValuacionInventario: true,
         monedaFuncional: true,
       },
     });
@@ -27,14 +27,14 @@ const configuracionContableRepository = {
   },
 
   async create(data) {
-    const created = await prisma.configuracionContable.create({
+    const created = await prisma.configuracionSistema.create({
       data: {
-        metodoValuacion: data.metodoValuacion,
+        metodoValuacionInventario: data.metodoValuacion,
         monedaFuncional: data.monedaFuncional,
       },
       select: {
         id: true,
-        metodoValuacion: true,
+        metodoValuacionInventario: true,
         monedaFuncional: true,
       },
     });
@@ -43,15 +43,15 @@ const configuracionContableRepository = {
   },
 
   async update(id, data) {
-    const updated = await prisma.configuracionContable.update({
+    const updated = await prisma.configuracionSistema.update({
       where: { id: BigInt(id) },
       data: {
-        metodoValuacion: data.metodoValuacion,
+        metodoValuacionInventario: data.metodoValuacion,
         monedaFuncional: data.monedaFuncional,
       },
       select: {
         id: true,
-        metodoValuacion: true,
+        metodoValuacionInventario: true,
         monedaFuncional: true,
       },
     });
