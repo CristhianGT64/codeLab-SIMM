@@ -44,31 +44,33 @@ model CategoriaPermiso {
 }
 
 model Sucursal {
-  id        BigInt    @id @default(autoincrement())
-  nombre    String    @db.VarChar(150)
-  direccion String?   @db.VarChar(255)
-  telefono  String?   @db.VarChar(50)
-  gerente   String?   @db.VarChar(150)
-  activa    Boolean   @default(true)
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime
-  usuarios  Usuario[]
+  id                    BigInt                 @id @default(autoincrement())
+  nombre                String                 @db.VarChar(150)
+  direccion             String?                @db.VarChar(255)
+  telefono              String?                @db.VarChar(50)
+  gerente               String?                @db.VarChar(150)
+  activa                Boolean                @default(true)
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime
+  usuarios              Usuario[]
+  movimientoInventarios MovimientoInventario[]
 }
 
 model Usuario {
-  id             BigInt        @id @default(autoincrement())
-  nombreCompleto String        @map("nombre_completo") @db.VarChar(150)
-  correo         String        @unique @db.VarChar(150)
-  password       String        @db.VarChar(255)
-  estado         EstadoUsuario @default(activo)
-  createdAt      DateTime?     @map("created_at")
-  updatedAt      DateTime?     @map("updated_at")
-  sucursalId     BigInt?
-  rolId          BigInt?
-  eliminado      Boolean       @default(false)
-  usuario        String        @unique @db.VarChar(100)
-  rol            Rol?          @relation(fields: [rolId], references: [id])
-  sucursal       Sucursal?     @relation(fields: [sucursalId], references: [id])
+  id                    BigInt                 @id @default(autoincrement())
+  nombreCompleto        String                 @map("nombre_completo") @db.VarChar(150)
+  correo                String                 @unique @db.VarChar(150)
+  password              String                 @db.VarChar(255)
+  estado                EstadoUsuario          @default(activo)
+  createdAt             DateTime?              @map("created_at")
+  updatedAt             DateTime?              @map("updated_at")
+  sucursalId            BigInt?
+  rolId                 BigInt?
+  eliminado             Boolean                @default(false)
+  usuario               String                 @unique @db.VarChar(100)
+  rol                   Rol?                   @relation(fields: [rolId], references: [id])
+  sucursal              Sucursal?              @relation(fields: [sucursalId], references: [id])
+  movimientoInventarios MovimientoInventario[]
 }
 
 model Categoria {
@@ -80,13 +82,14 @@ model Categoria {
 }
 
 model Proveedor {
-  id         BigInt     @id @default(autoincrement())
-  nombre     String     @db.VarChar(150)
-  telefono   String?    @db.VarChar(50)
-  correo     String?    @db.VarChar(150)
-  direccion  String?    @db.VarChar(255)
-  disponible Boolean    @default(true)
-  Producto   Producto[] @relation("ProductoProveedor")
+  id                    BigInt                 @id @default(autoincrement())
+  nombre                String                 @db.VarChar(150)
+  telefono              String?                @db.VarChar(50)
+  correo                String?                @db.VarChar(150)
+  direccion             String?                @db.VarChar(255)
+  disponible            Boolean                @default(true)
+  Producto              Producto[]             @relation("ProductoProveedor")
+  movimientoInventarios MovimientoInventario[]
 }
 
 model Producto {
@@ -120,16 +123,37 @@ model Inventario {
 }
 
 model MovimientoInventario {
-  id             BigInt                   @id @default(autoincrement())
-  tipo           TipoMovimientoInventario
-  cantidad       Int
-  referenciaTipo String?                  @map("referencia_tipo") @db.VarChar(50)
-  referenciaId   BigInt?                  @map("referencia_id")
-  createdAt      DateTime?                @map("created_at")
-  productoId     BigInt
-  sucursalId     BigInt
-  usuarioId      BigInt?
-  producto       Producto                 @relation(fields: [productoId], references: [id])
+  id                      BigInt                    @id @default(autoincrement())
+  tipo                    TipoMovimientoInventario
+  subtipoEntrada          SubtipoEntradaInventario? @map("subtipo_entrada")
+  motivoSalida            MotivoSalidaInventario?   @map("motivo_salida")
+  detalleMotivo           String?                   @map("detalle_motivo") @db.VarChar(255)
+  observaciones           String?                   @db.Text
+  cantidad                Int
+  stockResultante         Int                       @map("stock_resultante")
+  fechaMovimiento         DateTime                  @map("fecha_movimiento")
+  estado                  String                    @default("completado") @db.VarChar(30)
+  referenciaTipo          String?                   @map("referencia_tipo") @db.VarChar(50)
+  referenciaId            BigInt?                   @map("referencia_id")
+  createdAt               DateTime                  @default(now()) @map("created_at")
+  productoId              BigInt
+  sucursalId              BigInt
+  usuarioId               BigInt?
+  proveedorId             BigInt?
+  metodoValuacionAplicado MetodoValuacion?          @map("metodo_valuacion_aplicado")
+  costoUnitario           Decimal?                  @map("costo_unitario") @db.Decimal(10, 2)
+  costoTotal              Decimal?                  @map("costo_total") @db.Decimal(10, 2)
+
+  producto  Producto   @relation(fields: [productoId], references: [id])
+  sucursal  Sucursal   @relation(fields: [sucursalId], references: [id])
+  usuario   Usuario?   @relation(fields: [usuarioId], references: [id])
+  proveedor Proveedor? @relation(fields: [proveedorId], references: [id])
+
+  @@index([productoId])
+  @@index([sucursalId])
+  @@index([usuarioId])
+  @@index([proveedorId])
+  @@index([fechaMovimiento])
 }
 
 model TipoCliente {
@@ -261,6 +285,96 @@ model EstablecimientoTipoDocumento {
   @@map("EstablecimientoTipoDocumento")
 }
 
+model DiccNaturalezaCuenta {
+  id                  BigInt               @id @default(autoincrement()) @map("id_naturaleza")
+  uuidNaturaleza      String               @unique @map("uuid_naturaleza") @db.VarChar(64)
+  nombre              String               @db.VarChar(50)
+  disponible          Boolean              @default(true)
+
+  elementosContables  ElementoContable[]
+  subCuentasContables SubCuentaContable[]
+
+  @@map("DICC_NATURALEZA_CUENTA")
+}
+
+model ElementoContable {
+  id                           BigInt                           @id @default(autoincrement()) @map("id_elemento_contable")
+  uuidElementoContable         String                           @unique @map("uuid_elemento_contable") @db.VarChar(64)
+  nombre                       String                           @db.VarChar(50)
+  disponible                   Boolean                          @default(true)
+  codigoNumerico               Int                              @map("codigo_numerico")
+  idNaturaleza                 BigInt                           @map("id_naturaleza")
+
+  naturaleza                   DiccNaturalezaCuenta            @relation(fields: [idNaturaleza], references: [id])
+  clasificacionesContables     ClasificacionElementoContable[]
+  cuentasContables             CuentaContable[]
+  subCuentasContables          SubCuentaContable[]
+
+  @@unique([codigoNumerico])
+  @@index([idNaturaleza])
+  @@map("ELEMENTO_CONTABLE")
+}
+
+model ClasificacionElementoContable {
+  id                           BigInt               @id @default(autoincrement()) @map("id_clasificacion_elemento_contable")
+  uuidClasificacionContable    String               @unique @map("uuid_clasificacion_contable") @db.VarChar(64)
+  nombre                       String               @db.VarChar(50)
+  disponible                   Boolean              @default(true)
+  codigoNumerico               Int                  @map("codigo_numerico")
+  uuidElementoContable         String               @map("uuid_elemento_contable") @db.VarChar(64)
+
+  elementoContable             ElementoContable     @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
+  cuentasContables             CuentaContable[]
+  subCuentasContables          SubCuentaContable[]
+
+  @@unique([uuidElementoContable, codigoNumerico])
+  @@index([uuidElementoContable])
+  @@map("CLASIFICACION_ELEMENTO_CONTABLE")
+}
+
+model CuentaContable {
+  id                           BigInt                           @id @default(autoincrement()) @map("id_cuenta_contable")
+  uuidCuentaContable           String                           @unique @map("uuid_cuenta_contable") @db.VarChar(64)
+  nombre                       String                           @db.VarChar(50)
+  disponible                   Boolean                          @default(true)
+  uuidElementoContable         String                           @map("uuid_elemento_contable") @db.VarChar(64)
+  uuidClasificacionContable    String                           @map("uuid_clasificacion_contable") @db.VarChar(64)
+  codigoNumerico               Int                              @map("codigo_numerico")
+
+  elementoContable             ElementoContable                 @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
+  clasificacionContable        ClasificacionElementoContable    @relation(fields: [uuidClasificacionContable], references: [uuidClasificacionContable])
+  subCuentasContables          SubCuentaContable[]
+
+  @@unique([uuidClasificacionContable, codigoNumerico])
+  @@index([uuidElementoContable])
+  @@index([uuidClasificacionContable])
+  @@map("CUENTA_CONTABLE")
+}
+
+model SubCuentaContable {
+  id                           BigInt                           @id @default(autoincrement()) @map("id_sub_cuenta_contable")
+  uuidSubCuentaContable        String                           @unique @map("uuid_sub_cuenta_contable") @db.VarChar(64)
+  nombre                       String                           @db.VarChar(50)
+  disponible                   Boolean                          @default(true)
+  uuidElementoContable         String                           @map("uuid_elemento_contable") @db.VarChar(64)
+  uuidClasificacionContable    String                           @map("uuid_clasificacion_contable") @db.VarChar(64)
+  uuidCuentaContable           String                           @map("uuid_cuenta_contable") @db.VarChar(64)
+  codigoNumerico               Int                              @map("codigo_numerico")
+  idNaturaleza                 BigInt                           @map("id_naturaleza")
+
+  elementoContable             ElementoContable                 @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
+  clasificacionContable        ClasificacionElementoContable    @relation(fields: [uuidClasificacionContable], references: [uuidClasificacionContable])
+  cuentaContable               CuentaContable                   @relation(fields: [uuidCuentaContable], references: [uuidCuentaContable])
+  naturaleza                   DiccNaturalezaCuenta            @relation(fields: [idNaturaleza], references: [id])
+
+  @@unique([uuidCuentaContable, codigoNumerico])
+  @@index([uuidElementoContable])
+  @@index([uuidClasificacionContable])
+  @@index([uuidCuentaContable])
+  @@index([idNaturaleza])
+  @@map("SUB_CUENTA_CONTABLE")
+}
+
 enum EstadoUsuario {
   activo
   inactivo
@@ -284,4 +398,17 @@ enum TipoMovimientoInventario {
 enum MetodoValuacion {
   FIFO
   PROMEDIO_PONDERADO
+}
+
+enum SubtipoEntradaInventario {
+  PRODUCTO_NUEVO
+  REABASTECIMIENTO
+}
+
+enum MotivoSalidaInventario {
+  VENTA
+  DANIO
+  CONSUMO_INTERNO
+  AJUSTE
+  OTRO
 }

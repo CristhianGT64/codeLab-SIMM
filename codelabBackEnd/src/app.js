@@ -14,6 +14,10 @@ import proveedorController from './controllers/proveedorController.js';
 import configuracionContableController from './controllers/configuracionContableController.js';
 import caiController from './controllers/caiController.js';
 import tipoDocumentoController from './controllers/tipoDocumentoController.js';
+import elementoContableController from './controllers/elementoContableController.js';
+import clasificacionElementoContableController from './controllers/clasificacionElementoContableController.js';
+import cuentaContableController from './controllers/cuentaContableController.js';
+import subCuentaContableController from './controllers/subCuentaContableController.js';
 
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
@@ -21,8 +25,8 @@ import * as permissionController from './controllers/permissionController.js';
 import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
 
-//Parche: convierte de BigInt a String para que lo soporte Json.
-BigInt.prototype.toJSON = function() {
+// Parche: convierte de BigInt a String para que lo soporte Json.
+BigInt.prototype.toJSON = function () {
   return this.toString();
 };
 
@@ -130,29 +134,27 @@ app.get('/cai/vigente/ultimo', caiController.latestVigente);
 app.get('/roles', roleController.getAll);
 app.get('/roles/:id', roleController.getById);
 app.post('/roles', roleController.create);
-app.put('/roles/:id', roleController.update); // modificar nombre de rol
-app.delete('/roles/:id', roleController.remove); // eliminar rol validando usuarios
+app.put('/roles/:id', roleController.update);
+app.delete('/roles/:id', roleController.remove);
 
-// permission categories
-app.post('/permission-categories', permissionCategoryController.create)
-app.get('/permission-categories', permissionCategoryController.getAll)
+// Permission categories
+app.post('/permission-categories', permissionCategoryController.create);
+app.get('/permission-categories', permissionCategoryController.getAll);
 
-// permissions
-app.post('/permissions', permissionController.create)
-app.get('/permissions', permissionController.getAll)
-app.put('/permissions/:id', permissionController.update)
-app.delete('/permissions/:id', permissionController.remove)
+// Permissions
+app.post('/permissions', permissionController.create);
+app.get('/permissions', permissionController.getAll);
+app.put('/permissions/:id', permissionController.update);
+app.delete('/permissions/:id', permissionController.remove);
 
-// role permissions
-app.post('/roles/:id/permissions', roleController.assignPermissions)
-app.put('/roles/:id/permissions', roleController.updatePermissions) // modificar permisos del rol
-app.get('/roles/:id/permissions', roleController.getPermissions)
+// Role permissions
+app.post('/roles/:id/permissions', roleController.assignPermissions);
+app.put('/roles/:id/permissions', roleController.updatePermissions);
+app.get('/roles/:id/permissions', roleController.getPermissions);
 
 // Usuarios
 app.post('/usuarios', usuarioController.create);
 app.get('/usuarios', usuarioController.getAll);
-
-// Rutas para obtener usuarios por rol y para operaciones CRUD específicas (Opcional por si se necesitan)
 app.get('/usuarios/roles', usuarioController.getUsersByRole);
 app.get('/usuarios/:id', usuarioController.getById);
 app.put('/usuarios/:id', usuarioController.update);
@@ -160,23 +162,54 @@ app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
 
-// Rutas de clientes
+// Clientes
 app.post('/clientes', clientController.createClient);
 app.get('/clientes', clientController.getAllClients);
 app.get('/clientes/:id', clientController.getClientById);
 app.put('/clientes/:id', clientController.updateClient);
 
-// Tipo de documento por establecimiento
-// --- RUTAS MAESTRAS (Tipos de Documento) ---
+// Tipos de documento por establecimiento
 app.get('/tipos-documento', tipoDocumentoController.getAllTiposDocumento);
 app.get('/tipos-documento/:id', tipoDocumentoController.getTipoDocumentoById);
 app.post('/tipos-documento', tipoDocumentoController.createTipoDocumento);
 app.put('/tipos-documento/:id', tipoDocumentoController.updateTipoDocumento);
 app.patch('/tipos-documento/:id/estado', tipoDocumentoController.changeTipoDocumentoStatus);
-// --- RUTAS DE RELACIÓN (Establecimientos) ---
+
 app.get('/establecimientos/:id/documentos', tipoDocumentoController.getDocumentosByEstablecimiento);
 app.post('/establecimientos/:id/documentos', tipoDocumentoController.assignDocumentoToEstablecimiento);
 app.patch('/establecimiento-documento/:id/estado', tipoDocumentoController.patchEstadoEstablecimientoDocumento);
+
+// =========================
+// CATÁLOGO CONTABLE
+// =========================
+
+// Elementos contables
+app.post('/elementos-contables', elementoContableController.create);
+app.get('/elementos-contables', elementoContableController.list);
+app.get('/elementos-contables/:id', elementoContableController.getById);
+app.put('/elementos-contables/:id', elementoContableController.update);
+app.patch('/elementos-contables/:id/estado', elementoContableController.patch);
+
+// Clasificaciones contables
+app.post('/clasificaciones-contables', clasificacionElementoContableController.create);
+app.get('/clasificaciones-contables', clasificacionElementoContableController.list);
+app.get('/clasificaciones-contables/:id', clasificacionElementoContableController.getById);
+app.put('/clasificaciones-contables/:id', clasificacionElementoContableController.update);
+app.patch('/clasificaciones-contables/:id/estado', clasificacionElementoContableController.patch);
+
+// Cuentas contables
+app.post('/cuentas-contables', cuentaContableController.create);
+app.get('/cuentas-contables', cuentaContableController.list);
+app.get('/cuentas-contables/:id', cuentaContableController.getById);
+app.put('/cuentas-contables/:id', cuentaContableController.update);
+app.patch('/cuentas-contables/:id/estado', cuentaContableController.patch);
+
+// Subcuentas contables
+app.post('/subcuentas-contables', subCuentaContableController.create);
+app.get('/subcuentas-contables', subCuentaContableController.list);
+app.get('/subcuentas-contables/:id', subCuentaContableController.getById);
+app.put('/subcuentas-contables/:id', subCuentaContableController.update);
+app.patch('/subcuentas-contables/:id/estado', subCuentaContableController.patch);
 
 // Middleware de errores
 app.use(errorHandler);
