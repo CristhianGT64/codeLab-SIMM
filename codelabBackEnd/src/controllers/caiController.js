@@ -28,9 +28,11 @@ const caiController = {
     }
   },
 
-  async latestVigente(req, res, next) {
+  async getByIdOrLatest(req, res, next) {
     try {
-      const data = await caiService.getLatestVigente();
+      const data = await caiService.getByIdOrLatestVigente(
+        req.query.id_cai ?? req.query.id,
+      );
 
       res.json({
         success: true,

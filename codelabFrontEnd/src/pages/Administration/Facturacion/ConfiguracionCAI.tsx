@@ -50,8 +50,9 @@ import StatusNotification from "../../../components/notifications/StatusNotifica
 const ITEMS_POR_PAGINA = 4;
 
 export default function ConfiguracionCAI() {
+  const [selectedCaiId, setSelectedCaiId] = useState<string | undefined>();
   const { data: CaiVigenteData, isLoading: isLoadingCaiVigente } =
-    useReadCaiVigente();
+    useReadCaiVigente(selectedCaiId);
   const caiVigente: Icai = CaiVigenteData?.data ?? caiEmpty;
   const fechaInicio = new Date(caiVigente.fechaInicio);
   const fechaFin = new Date(caiVigente.fechaFin);
@@ -140,6 +141,7 @@ export default function ConfiguracionCAI() {
 
       if (processed) {
         setNotification({ ...notificacionRegistroCaiExitoso });
+        setSelectedCaiId(undefined);
         setForm(formNuevoCaiEmpty);
         setMostrarFormulario(false);
         return;
@@ -204,19 +206,28 @@ export default function ConfiguracionCAI() {
     }
   };
 
+  const handleSelectCai = (idCai: string) => {
+    setSelectedCaiId(idCai);
+    setTimeout(() => handleScroll("detalleCai"), 100);
+  };
+
+  const rangoVigenteFormateado =
+    caiVigente.rangoFormateado ??
+    `${Number(caiVigente.rangoEmision?.inicio_rango || 0).toLocaleString("en-US")} - ${Number(caiVigente.rangoEmision?.final_rango || 0).toLocaleString("en-US")}`;
+
+  const ultimaFacturaVigente =
+    caiVigente.ultimaFacturaEmitida?.numeroFormateado ?? "Sin emitir";
+
   /* Conseguir informacion del formulario */
 
   return (
     <main className="px-6 py-8 min-h-screen">
       <div className="flex justify-between items-centers">
         <HeaderTitleAdmin {...titleConfiguracionCAI} />
-        {(isNaN(fechaFin.getTime()) ||
-          Number(porcentajeEmitido) * 100 >= 100) && (
-          <ButtonsComponet
-            {...botonGenerarNuevoCAI}
-            onClick={mostrarFormularioNuevoCai}
-          />
-        )}
+        <ButtonsComponet
+          {...botonGenerarNuevoCAI}
+          onClick={mostrarFormularioNuevoCai}
+        />
       </div>
 
       <StatusNotification
@@ -238,18 +249,21 @@ export default function ConfiguracionCAI() {
         <div className="flex justify-center items-center mb-5 p-10">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1498b2]"></div>
           <h1 className="mt-1 text-lg font-bold text-[#0b4d77] md:text-xl ml-7">
-            Cargando cai Vigente
+            Cargando detalle del CAI
           </h1>
         </div>
       ) : (
-        <div className="p-6 mb-8 mt-6 border-[#f3f5f8] hover:border-t-[#1498b2] border-6 rounded-2xl bg-[#f3f5f8] shadow-[0_6px_18px_rgba(0,0,0,0.1)]">
+        <div
+          id="detalleCai"
+          className="p-6 mb-8 mt-6 border-[#f3f5f8] hover:border-t-[#1498b2] border-6 rounded-2xl bg-[#f3f5f8] shadow-[0_6px_18px_rgba(0,0,0,0.1)]"
+        >
           {" "}
           {/* Comienzo de cai Vigente */}
           <div className="flex justify-between items-center mb-4">
             {" "}
             {/* Final de la primera fila */}
             <h2 className="mt-1 text-lg font-bold text-[#0b4d77] md:text-xl">
-              CAI Vigente Activo
+              {selectedCaiId ? "CAI Seleccionado" : "Ultimo CAI Registrado"}
             </h2>
             {/* Mensaje de estado */}
             <EstadosObjetos {...estadoCai} />
@@ -269,8 +283,8 @@ export default function ConfiguracionCAI() {
               <h3 className="text-[#4661b0] md:text-xl mb-2">
                 Rango Autorizado
               </h3>
-              <div className="text-lg font-semibold text-[#0b4d77] mt-1">
-                {`${Number(caiVigente.rangoEmision?.inicio_rango || 0).toLocaleString("en-US")} - ${Number(caiVigente.rangoEmision?.final_rango || 0).toLocaleString("en-US")}`}
+              <div className="px-2 py-1 text-lg font-medium text-[#0b4d77] mt-1 bg-[#F4F6F8] rounded">
+                {rangoVigenteFormateado}
               </div>
             </div>
             <div>
@@ -290,10 +304,7 @@ export default function ConfiguracionCAI() {
                 Última Factura Emitida
               </h3>
               <div className="text-s font-semibold text-[#0b4d77] mt-1">
-                N° de factura:{" "}
-                {Number(caiVigente.cantidadFacturasEmitidas) +
-                  Number(caiVigente.rangoEmision?.inicio_rango) -
-                  1}
+                N° de factura: {ultimaFacturaVigente}
               </div>
             </div>
           </div>
@@ -358,6 +369,8 @@ export default function ConfiguracionCAI() {
           contenidoTabla={contenidoTablaCaiEmitidos(
             isLoadingCaisEmitidos,
             caisPaginados,
+            handleSelectCai,
+            selectedCaiId,
           )}
           /* Paginacion */
         />

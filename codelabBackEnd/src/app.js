@@ -127,8 +127,8 @@ app.get('/configuracion/metodo-inventario/opciones', configuracionContableContro
 
 // CAI
 app.post('/cai', caiController.create);
-app.get('/cai', caiController.list);
-app.get('/cai/vigente/ultimo', caiController.latestVigente);
+app.get('/cai/lista', caiController.list);
+app.get('/cai', caiController.getByIdOrLatest);
 
 // Roles
 app.get('/roles', roleController.getAll);

@@ -89,14 +89,25 @@ const caiService = {
     }));
   },
 
-  async getLatestVigente() {
-    const data = await caiRepository.findLatestVigente(new Date());
+  async getByIdOrLatestVigente(id) {
+    const data =
+      id !== undefined && id !== null && id !== ''
+        ? await caiRepository.findByIdDetailed(parseBigIntOrThrow(id, 'id_cai'))
+        : await caiRepository.findLatestVigenteDetailed();
 
     if (!data) {
-      throw buildError('No existe un CAI vigente.', 404);
+      throw buildError(
+        id !== undefined && id !== null && id !== ''
+          ? 'No existe un CAI con el id indicado.'
+          : 'No existe un CAI vigente.',
+        404,
+      );
     }
 
-    return data;
+    return {
+      ...data,
+      disponible: data.activo && new Date(data.fechaFin) >= new Date(),
+    };
   },
 };
 
