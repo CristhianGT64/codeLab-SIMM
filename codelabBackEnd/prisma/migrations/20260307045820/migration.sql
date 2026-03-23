@@ -1,0 +1,3 @@
+-- AlterTable
+--ALTER TABLE "Producto" ALTER COLUMN "unidad_medida" DROP NOT NULL,
+--ALTER COLUMN "categoriaId" DROP NOT NULL;

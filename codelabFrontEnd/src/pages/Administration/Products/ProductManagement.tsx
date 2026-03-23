@@ -1,15 +1,10 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faMagnifyingGlass,
-  faPowerOff,
-  faPenToSquare,
-  faBoxOpen,
-} from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import CardTotalComponent from "../../../components/cardTotalComponent/CardTotalComponent";
 import {
-  TableProductData,
   HeaderProducts,
+  HeaderTableProductData,
 } from "../../../data/dataAdministrator/ProductManagment";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import { useNavigate } from "react-router";
@@ -19,12 +14,12 @@ import useInactiveProducto from "../../../hooks/ProductosHooks/useInactiveProduc
 import useActivateProducto from "../../../hooks/ProductosHooks/useActiveProducto";
 import settings from "../../../lib/settings";
 import useAuth from "../../../hooks/useAuth";
+import TableComponent from "../../../components/Table/TableComponent";
+import TableProductData from "../../../data/dataAdministrator/TablesData/TablaProductos";
+import type { ProductoDto } from "../../../interfaces/Products/FormProducts";
+import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
 
-const categoryStyles: Record<string, string> = {
-  Tecnología: "bg-[#104f78] text-white",
-  Muebles: "bg-[#0aa6a2] text-white",
-  Papelería: "bg-[#4661b0] text-white",
-};
+const ITEMS_POR_PAGINA = 8;
 
 export default function ProductManagement() {
   const { data: listProduct, isLoading, isError, error } = useListProduct();
@@ -79,7 +74,7 @@ export default function ProductManagement() {
 
   const [searchProduct, setSearchProduct] = useState<string>("");
 
-  const filtredUser = useMemo(() => {
+  const filtredProduct = useMemo(() => {
     if (!searchProduct.trim()) return mockProducts;
 
     const searchLower = searchProduct.toLocaleLowerCase();
@@ -91,7 +86,6 @@ export default function ProductManagement() {
     );
   }, [mockProducts, searchProduct]);
 
-  const tableHeader: string[] = TableProductData;
   const navigate = useNavigate();
 
   const getProductImageUrl = (imagenPath: string | null) => {
@@ -104,6 +98,20 @@ export default function ProductManagement() {
       : `/${imagenPath}`;
 
     return `${baseUrl}${normalizedPath}`;
+  };
+
+  /* Paginacion */
+  const [paginaActual, setPaginaActual] = useState(1);
+
+  const totalPaginas: number = Math.ceil(
+    filtredProduct.length / ITEMS_POR_PAGINA,
+  );
+  const inicio: number = (paginaActual - 1) * ITEMS_POR_PAGINA;
+  const fin: number = inicio + ITEMS_POR_PAGINA;
+  const sucursalesPaginadas: ProductoDto[] = filtredProduct.slice(inicio, fin);
+
+  const irAPagina = (pagina: number) => {
+    if (pagina >= 1 && pagina <= totalPaginas) setPaginaActual(pagina);
   };
 
   return (
@@ -140,7 +148,7 @@ export default function ProductManagement() {
       </div>
 
       {/* Tarjetas de resumen */}
-      <div className="mt-6 grid gap-4 md:grid-cols-4">
+      <div className="mt-6 grid gap-4 md:grid-cols-4 mb-6">
         <CardTotalComponent
           title="Total Productos"
           total={summary.totalProductos}
@@ -164,142 +172,32 @@ export default function ProductManagement() {
         />
       </div>
 
-      {/* Tabla de productos */}
-      <div className="mt-6 overflow-hidden rounded-2xl bg-white shadow-[0_8px_18px_rgba(0,0,0,0.08)]">
-        {isLoading && (
-          <p className="px-6 py-4 text-[#4661b0]">Cargando productos...</p>
-        )}
-        {isError && (
-          <p className="px-6 py-4 text-[#c20000]">
-            {error instanceof Error ? error.message : "Error cargando productos"}
-          </p>
-        )}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-linear-to-r from-[#0aa6a2] to-[#4661b0] text-left text-white">
-                {tableHeader.map((item: string, index: number) => (
-                  <th
-                    key={`${index}-${item}`}
-                    className="px-6 py-4 text-base font-semibold md:text-lg text-center"
-                  >
-                    {item}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtredUser.map((product) => (
-                <tr
-                  key={product.id}
-                  className="border-b border-[#9adce2] last:border-b-0"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-[#e8f4f6] text-[#0aa6a2]">
-                        {getProductImageUrl(product.imagenPath) ? (
-                          <img
-                            src={
-                              getProductImageUrl(product.imagenPath) ??
-                              undefined
-                            }
-                            alt={product.nombre}
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <FontAwesomeIcon
-                            icon={faBoxOpen}
-                            className="text-lg"
-                          />
-                        )}
-                      </div>
-                      <span className="text-base font-semibold text-[#0a4d76] md:text-lg">
-                        {product.nombre}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-sm text-[#4661b0] md:text-base">
-                    {product.sku}
-                  </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={`inline-flex rounded-full px-4 py-1 text-sm font-semibold md:text-base ${categoryStyles[product.categoria.nombre] ?? "bg-[#9dd8df] text-[#0a4d76]"}`}
-                    >
-                      {product.categoria.nombre}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-center text-sm font-medium text-[#0a4d76] md:text-base">
-                    L {product.precioVenta}
-                  </td>
-                  <td className="px-4 py-4 text-center text-sm text-[#6a758f] md:text-base">
-                    L {product.costo}
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <span className="text-sm font-semibold text-[#0aa6a2] md:text-base">
-                      {(
-                        (product.precioVenta - product.costo) /
-                        product.precioVenta
-                      ).toFixed(2)}
-                      %
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-center text-sm text-[#4661b0] md:text-base">
-                    {`${product.inventarios.reduce((acc, inventario) => acc + inventario.stockActual, 0)} ${product.unidadMedida}`}
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <span
-                      className={`inline-flex rounded-full ${
-                        product.estado === "activo"
-                          ? "bg-[#b7e4ca] text-[#008444]"
-                          : "bg-[#86817f] text-[#efeeee]"
-                      } px-4 py-1 text-sm font-semibold md:text-base`}
-                    >
-                      {product.estado === "activo" ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center justify-center gap-4 text-lg md:text-xl">
-                      {tienePermiso("Editar productos") && (
-                        <button
-                          type="button"
-                          className={`cursor-pointer ${
-                            product.estado === "activo"
-                              ? "text-[#ff5e00] hover:text-[#b64402]"
-                              : "text-[#24e775] hover:text-[#008444]"
-                          }`}
-                          aria-label={`Cambiar estado de ${product.nombre}`}
-                          onClick={
-                            product.estado === "activo"
-                              ? () => inactiveProduct.mutate(product.id)
-                              : () => activeProduct.mutate(product.id)
-                          }
-                        >
-                          <FontAwesomeIcon icon={faPowerOff} />
-                        </button>
-                      )}
-                      {tienePermiso("Editar productos") && (
-                        <button
-                          type="button"
-                          className="cursor-pointer text-[#00a3b8] hover:text-[#007786]"
-                          aria-label={`Editar ${product.nombre}`}
-                          onClick={() =>
-                            navigate(
-                              `/Product-Management/Update-Product/${product.id}`,
-                            )
-                          }
-                        >
-                          <FontAwesomeIcon icon={faPenToSquare} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <TableComponent
+        tituloTablaInventario={HeaderTableProductData}
+        contenidoTabla={
+          <TableProductData
+            productos={sucursalesPaginadas}
+            tienePermiso={tienePermiso}
+            isLoading={isLoading}
+            isError={isError}
+            error={error}
+            inactiveProduct={inactiveProduct.mutate}
+            activeProduct={activeProduct.mutate}
+            navigate={navigate}
+            getProductImageUrl={getProductImageUrl}
+          />
+        }
+      />
+
+      {/* Paginacion */}
+      <PaginacionComponent
+        paginaActual={paginaActual}
+        totalPaginas={totalPaginas}
+        action={irAPagina}
+        inicio={inicio}
+        fin={fin}
+        registros={sucursalesPaginadas}
+      />
     </section>
   );
 }

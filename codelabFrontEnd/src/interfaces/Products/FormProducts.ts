@@ -43,8 +43,6 @@ export interface ProductReadResponse {
       data: ProductoDto;
 }
 
-
-
 export interface CategoriaProducto {
     id : string;
     nombre : string;

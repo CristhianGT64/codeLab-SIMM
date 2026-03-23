@@ -15,6 +15,17 @@ import FormProduct from '../pages/Administration/Products/FormProduct';
 import RolesPermisionManagment from '../pages/Administration/RolesPermission/RolesPermisionManagment';
 import FormRoles from '../pages/Administration/RolesPermission/FormRoles';
 import FormPermissions from '../pages/Administration/RolesPermission/FormPermissions';
+import ClientsManagement from '../pages/Facturacion/Clients/ClientsManagement';
+import FormClient from '../pages/Facturacion/Clients/FormClient';
+import ClientDetail from '../pages/Facturacion/Clients/ClientDetail';
+import InventarioManagement from '../pages/Administration/Inventario/InventarioManagement';
+import SalidasInventario from '../pages/Administration/Inventario/SalidasInventario';
+import EntradaInventario from '../pages/Administration/Inventario/EntradaInventario';
+import FifoPromConfig from '../pages/Administration/configuracion/fifo-prom/FifoPromConfig';
+import ConfiguracionCAI from '../pages/Administration/Facturacion/ConfiguracionCAI';
+import VentasManagement from '../pages/Ventas/VentasManagement';
+import TiposDocumentoManagement from '../pages/Administration/Tiposdedocumento/TiposDocumentoManagement';
+import FormTipoDocumento from '../pages/Administration/Tiposdedocumento/FormTipoDocumento';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -52,6 +63,12 @@ const AppRouter = () => (
             <Route path="/Branches-Management/Create-Sucursal" element={<PermissionGate permiso="Crear sucursales"><FormSucursal /></PermissionGate>} />
             <Route path="/Branches-Management/Update-Sucursal/:id" element={<PermissionGate permiso="Editar sucursales"><FormSucursal /></PermissionGate>} />
 
+            {/* Clientes */}
+            <Route path="/Clients-Management" element={<PermissionGate permiso="Ver clientes"><ClientsManagement /></PermissionGate>} />
+            <Route path="/Clients-Management/Create-Client" element={<PermissionGate permiso="Crear clientes"><FormClient /></PermissionGate>} />
+            <Route path="/Clients-Management/Update-Client/:id" element={<PermissionGate permiso="Editar clientes"><FormClient /></PermissionGate>} />
+            <Route path="/Clients-Management/Detail-Client/:id" element={<PermissionGate permiso="Ver clientes"><ClientDetail /></PermissionGate>} />
+
             {/* Productos */}
             <Route path="/Product-Management" element={<PermissionGate permiso="Ver productos"><ProductManagement /></PermissionGate>} />
             <Route path="/Product-Management/Create-Product" element={<PermissionGate permiso="Crear productos"><FormProduct /></PermissionGate>} />
@@ -62,6 +79,24 @@ const AppRouter = () => (
             <Route path="/RolesPermision-Management/Create-Permisssion" element={<PermissionGate permiso="Crear permisos"><FormPermissions /></PermissionGate>} />
             <Route path="/RolesPermision-Management/Create-Roles" element={<PermissionGate permiso="Crear roles"><FormRoles /></PermissionGate>} />
             <Route path="/RolesPermision-Management/Update-Roles/:id" element={<PermissionGate permiso="Editar roles"><FormRoles /></PermissionGate>} />
+
+            {/* Gestion de inventarios */}
+            <Route path="/Inventario-Management" element={<PermissionGate permiso="Movimientos inventario"><InventarioManagement /></PermissionGate>} />
+            <Route path="/Inventario-Management/Salida-Inventario" element={<PermissionGate permiso="Salida inventario"><SalidasInventario /></PermissionGate>} />
+            <Route path="/Inventario-Management/Entrada-Inventario" element={<PermissionGate permiso="Entrada inventario"><EntradaInventario /></PermissionGate>} />
+            <Route path="/Configuracion/Inventario/FIFO-PEPS" element={<PermissionGate permiso="Movimientos inventario"><FifoPromConfig /></PermissionGate>} />
+
+            {/* Configuración de CAI */}
+            <Route path="/Configuracion/CAI" element={<PermissionGate permiso="Ver configuración CAI"><ConfiguracionCAI /></PermissionGate>} />
+
+            {/* Punto de ventas POS */}
+            <Route path="/Ventas-Management" element={<PermissionGate permiso="Ver punto de ventas POS"><VentasManagement /></PermissionGate>} />
+
+
+            {/* Tipos de documento */}
+            <Route path="/Tipos-Documento-Management" element={<PermissionGate permiso="Ver tipos de documento"><TiposDocumentoManagement /></PermissionGate>} />
+            <Route path="/Tipos-Documento-Management/Create" element={<PermissionGate permiso="Crear tipos de documento"><FormTipoDocumento /></PermissionGate>} />
+            <Route path="/Tipos-Documento-Management/Update/:id" element={<PermissionGate permiso="Editar tipos de documento"><FormTipoDocumento /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>
@@ -70,3 +105,6 @@ const AppRouter = () => (
 );
 
 export default AppRouter;
+
+
+

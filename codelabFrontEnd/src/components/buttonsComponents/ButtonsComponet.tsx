@@ -23,9 +23,11 @@ export default function ButtonsComponet(props: Readonly<ButtonsInterface>) {
       className={props.className}
       onClick={props.onClick}
       disabled={props.disabled}
+      aria-label={props.ariaLabel ?? props.text}
+      title={props.ariaLabel ?? props.text}
     >
       {props.icon === '' ? '' : <FontAwesomeIcon icon={["fas", iconName]} />}
-      <span >{props.text}</span>
+      <span className={props.labelClassName}>{props.text}</span>
     </button>
   );
 }

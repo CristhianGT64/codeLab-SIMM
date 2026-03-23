@@ -12,4 +12,6 @@ export interface ButtonsInterface {
     icon : string;
     onClick : () => void;
     disabled : boolean;
+    labelClassName?: string;
+    ariaLabel?: string;
 }

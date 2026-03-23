@@ -8,6 +8,7 @@
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.1",
     "accepts": "^2.0.0",
+    "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.2",
     "bytes": "^3.1.2",
@@ -82,7 +83,17 @@
   },
   "scripts": {
     "test": "dev",
-    "start": "nodemon src/app.js"
+    "start": "nodemon src/app.js",
+    "dev:bootstrap": "npm run db:rebuild ; npm run start",
+    "db:generate": "prisma generate",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:status": "prisma migrate status",
+    "db:reset": "prisma migrate reset --force",
+    "db:seed": "node prisma/seed.js all",
+    "db:seed:base": "node prisma/seed.js base",
+    "db:seed:business": "node prisma/seed.js business",
+    "db:rebuild": "npm run db:reset ; npm run db:seed"
   },
   "author": "",
   "license": "ISC",

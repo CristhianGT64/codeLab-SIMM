@@ -5,3 +5,9 @@ export default {
     URL : "https://api-codelab-unah.ambitiouswave-de8b838a.southcentralus.azurecontainerapps.io", // Consumir api de db actual
     year : new Date().getFullYear()
 };
+
+export const formatFecha = (iso: string) =>
+    new Date(iso).toLocaleString("es-GT", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });

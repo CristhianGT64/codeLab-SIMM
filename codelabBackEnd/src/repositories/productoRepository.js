@@ -68,6 +68,55 @@ const productoRepository = {
       },
     });
   },
+  /////
+  async search(query) {
+
+    return prisma.producto.findMany({
+      where: {
+        OR: [
+          {
+            nombre: {
+              contains: query,
+              mode: "insensitive"
+            }
+          },
+          {
+            sku: {
+              contains: query,
+              mode: "insensitive"
+            }
+          },
+          {
+            categoria: {
+              nombre: {
+                contains: query,
+                mode: "insensitive"
+              }
+            }
+          }
+        ],
+        estado: "activo"
+      },
+      select: {
+        id: true,
+        nombre: true,
+        sku: true,
+        precioVenta: true,
+        unidadMedida: true,
+        imagenUrl: true,
+        categoria: {
+          select: {
+            id: true,
+            nombre: true
+          }
+        }
+      },
+      take: 10
+    });
+
+  },
+
+  ////
 
   update(id, data) {
     return prisma.producto.update({

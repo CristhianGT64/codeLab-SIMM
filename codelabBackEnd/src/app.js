@@ -9,11 +9,19 @@ import sucursalController from './controllers/sucursalController.js';
 import authController from './controllers/authController.js';
 import usuarioController from './controllers/usuarioController.js';
 import clientController from './controllers/clientController.js';
+import inventarioController from './controllers/inventarioController.js';
+import proveedorController from './controllers/proveedorController.js';
+import configuracionContableController from './controllers/configuracionContableController.js';
+import caiController from './controllers/caiController.js';
+import tipoDocumentoController from './controllers/tipoDocumentoController.js';
+
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
 import * as permissionController from './controllers/permissionController.js';
 import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
+import * as invoiceTypeController from './controllers/invoiceTypeController.js';
+import ventaController from './controllers/ventaController.js';
 
 //Parche: convierte de BigInt a String para que lo soporte Json.
 BigInt.prototype.toJSON = function() {
@@ -33,10 +41,13 @@ const allowedOrigins = (process.env.allowedOrigins || process.env.ALLOWED_ORIGIN
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const localDevOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+const effectiveAllowedOrigins = allowedOrigins.length > 0 ? allowedOrigins : localDevOrigins;
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  if (origin && allowedOrigins.includes(origin)) {
+  if (origin && effectiveAllowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
 
@@ -76,6 +87,7 @@ app.delete('/categorias/:id', categoriaController.remove);
 
 // Productos
 app.get('/productos/unidades', productoController.unidades);
+app.get('/productos/search', productoController.search);
 app.post('/productos', uploadProductoImage.single('imagen'), productoController.create);
 app.get('/productos', productoController.list);
 app.get('/productos/:id', productoController.getById);
@@ -83,12 +95,40 @@ app.put('/productos/:id', uploadProductoImage.single('imagen'), productoControll
 app.patch('/productos/:id', productoController.patch);
 app.delete('/productos/:id', productoController.remove);
 
+
 // Sucursales
 app.post('/sucursales', sucursalController.createSucursal);
 app.get('/sucursales', sucursalController.getAllSucursales);
 app.get('/sucursales/:id', sucursalController.getSucursalById);
 app.put('/sucursales/:id', sucursalController.updateSucursal);
 app.patch('/sucursales/:id/estado', sucursalController.changeSucursalStatus);
+
+// Proveedores
+app.post('/proveedores', proveedorController.create);
+app.get('/proveedores', proveedorController.list);
+app.get('/proveedores/:id', proveedorController.getById);
+app.put('/proveedores/:id', proveedorController.update);
+app.patch('/proveedores/:id', proveedorController.patch);
+app.delete('/proveedores/:id', proveedorController.remove);
+
+// Inventario
+app.get('/inventario/dashboard', inventarioController.dashboard);
+app.get('/inventario/tipos-entrada', inventarioController.tiposEntrada);
+app.get('/inventario/motivos-salida', inventarioController.motivosSalida);
+app.post('/inventario/entrada', inventarioController.registrarEntrada);
+app.post('/inventario/salida', inventarioController.registrarSalida);
+app.get('/inventario/historial', inventarioController.historial);
+app.get('/inventario/historial/:productoId', inventarioController.historialPorProducto);
+
+// Configuración método de inventario
+app.get('/configuracion/metodo-inventario', configuracionContableController.getMetodoInventario);
+app.put('/configuracion/metodo-inventario', configuracionContableController.updateMetodoInventario);
+app.get('/configuracion/metodo-inventario/opciones', configuracionContableController.opciones);
+
+// CAI
+app.post('/cai', caiController.create);
+app.get('/cai', caiController.list);
+app.get('/cai/vigente/ultimo', caiController.latestVigente);
 
 // Roles
 app.get('/roles', roleController.getAll);
@@ -111,9 +151,11 @@ app.delete('/permissions/:id', permissionController.remove)
 app.post('/roles/:id/permissions', roleController.assignPermissions)
 app.put('/roles/:id/permissions', roleController.updatePermissions) // modificar permisos del rol
 app.get('/roles/:id/permissions', roleController.getPermissions)
+
 // Usuarios
 app.post('/usuarios', usuarioController.create);
 app.get('/usuarios', usuarioController.getAll);
+
 // Rutas para obtener usuarios por rol y para operaciones CRUD específicas (Opcional por si se necesitan)
 app.get('/usuarios/roles', usuarioController.getUsersByRole);
 app.get('/usuarios/:id', usuarioController.getById);
@@ -122,11 +164,36 @@ app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
 
+// Invoice Types (Tipos de Documento o facturas)
+app.post('/invoice-types', invoiceTypeController.create);
+app.get('/invoice-types', invoiceTypeController.getAll);
+app.get('/invoice-types/:id', invoiceTypeController.getById);
+app.put('/invoice-types/:id', invoiceTypeController.update);
+app.patch('/invoice-types/:id/status', invoiceTypeController.updateStatus);
+
+// Ventas
+app.post('/ventas', ventaController.createVenta);
+app.get('/ventas', ventaController.getVentas);
+app.get('/ventas/:id', ventaController.getVentaById);
 
 // Rutas de clientes
 app.post('/clientes', clientController.createClient);
 app.get('/clientes', clientController.getAllClients);
+app.get('/clientes/:id', clientController.getClientById);
 app.put('/clientes/:id', clientController.updateClient);
+
+// Tipo de documento por establecimiento
+// --- RUTAS MAESTRAS (Tipos de Documento) ---
+app.get('/tipos-documento', tipoDocumentoController.getAllTiposDocumento);
+app.get('/tipos-documento/:id', tipoDocumentoController.getTipoDocumentoById);
+app.post('/tipos-documento', tipoDocumentoController.createTipoDocumento);
+app.put('/tipos-documento/:id', tipoDocumentoController.updateTipoDocumento);
+app.patch('/tipos-documento/:id/estado', tipoDocumentoController.changeTipoDocumentoStatus);
+// --- RUTAS DE RELACIÓN (Establecimientos) ---
+app.get('/establecimientos/:id/documentos', tipoDocumentoController.getDocumentosByEstablecimiento);
+app.post('/establecimientos/:id/documentos', tipoDocumentoController.assignDocumentoToEstablecimiento);
+app.patch('/establecimiento-documento/:id/estado', tipoDocumentoController.patchEstadoEstablecimientoDocumento);
+
 // Middleware de errores
 app.use(errorHandler);
 

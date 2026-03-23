@@ -9,7 +9,7 @@ export const createRole = async (data) => {
 export const getAllRoles = async () => {
 
   const roles = await repository.getAllRoles();
-
+  
   return roles.map(r => ({
     id: r.id,
     nombre: r.nombre,
