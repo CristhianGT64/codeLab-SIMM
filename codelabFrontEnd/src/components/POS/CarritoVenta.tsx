@@ -2,10 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { CartItem } from "../../interfaces/POS/IPos";
 import {
   faExclamationTriangle,
-  faMinus,
-  faPlus,
   faShoppingCart,
-  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import ButtonsComponet from "../buttonsComponents/ButtonsComponet";
 import { botonEliminarCarrito, botonMasCarrito, botonMenosCarrito } from "../../data/dataAdministrator/CarritoVentaData";

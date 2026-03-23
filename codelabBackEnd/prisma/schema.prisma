@@ -309,14 +309,6 @@ model Factura {
   @@map("Facturas")
 }
 
-model ConfiguracionContable {
-  id              BigInt          @id @default(autoincrement())
-  metodoValuacion MetodoValuacion @map("metodo_valuacion_inventario")
-  monedaFuncional String          @map("moneda_funcional") @db.VarChar(10)
-
-  @@map("configuracion_sistema")
-}
-
 model Establecimiento {
   id                        BigInt                         @id @default(autoincrement()) @map("id_establecimiento")
   numero                    Int
@@ -340,12 +332,6 @@ model EstablecimientoTipoDocumento {
 
   @@unique([establecimientoId, tipoDocumentoId])
   @@map("establecimiento_tipo_documeto")
-}
-
-model ConfiguracionContable {
-  id              BigInt          @id @default(autoincrement())
-  metodoValuacion MetodoValuacion @map("metodo_valuacion")
-  monedaFuncional String          @map("moneda_funcional") @db.VarChar(10)
 }
 
 model ConfiguracionSistema {
