@@ -1,4 +1,5 @@
 import caiRepository from '../repositories/caiRepository.js';
+import tipoDocumentoRepository from '../repositories/tipoDocumentoRepository.js';
 
 function buildError(message, status = 400) {
   const err = new Error(message);
@@ -41,18 +42,22 @@ const caiService = {
       throw buildError('El codigo del CAI es obligatorio.');
     }
 
+    const tipoDocumentoId = parseBigIntOrThrow(
+      body.tipoDocumentoId ?? body.id_tipo_documento,
+      'tipoDocumentoId',
+    );
     const fechaInicio = parseDateOrThrow(body.fechaInicio, 'fechaInicio');
     const fechaFin = parseDateOrThrow(body.fechaFin, 'fechaFin');
 
     if (fechaInicio > fechaFin) {
-      throw buildError('La fecha de inicio no puede ser mayor a la fecha final.');
+      throw buildError('La fecha de vencimiento no puede ser menor a la fecha de inicio.');
     }
 
     const inicioRango = parseBigIntOrThrow(body.inicioRango, 'inicioRango');
     const finalRango = parseBigIntOrThrow(body.finalRango, 'finalRango');
 
     if (inicioRango > finalRango) {
-      throw buildError('El rango inicial no puede ser mayor que el rango final.');
+      throw buildError('El rango final no puede ser menor al rango inicial.');
     }
 
     const existente = await caiRepository.findByCodigo(codigo);
@@ -60,19 +65,14 @@ const caiService = {
       throw buildError('Ya existe un CAI con ese codigo.', 409);
     }
 
-    // Validación de rango de emisión respecto al último registrado
-    const ultimoRango = await caiRepository.findLastRangeByFinal();
-    if (ultimoRango) {
-      if (inicioRango <= ultimoRango.final_rango || finalRango <= ultimoRango.final_rango) {
-        throw buildError(
-          'El nuevo rango de emisión debe ser estrictamente mayor al último registrado.',
-          409,
-        );
-      }
+    const tipoDocumento = await tipoDocumentoRepository.findById(tipoDocumentoId);
+    if (!tipoDocumento) {
+      throw buildError('El tipo de documento indicado no existe.', 404);
     }
 
     return caiRepository.createWithRange({
       codigo,
+      tipoDocumentoId,
       fechaInicio,
       fechaFin,
       inicioRango,
@@ -89,14 +89,25 @@ const caiService = {
     }));
   },
 
-  async getLatestVigente() {
-    const data = await caiRepository.findLatestVigente(new Date());
+  async getByIdOrLatestVigente(id) {
+    const data =
+      id !== undefined && id !== null && id !== ''
+        ? await caiRepository.findByIdDetailed(parseBigIntOrThrow(id, 'id_cai'))
+        : await caiRepository.findLatestVigenteDetailed();
 
     if (!data) {
-      throw buildError('No existe un CAI vigente.', 404);
+      throw buildError(
+        id !== undefined && id !== null && id !== ''
+          ? 'No existe un CAI con el id indicado.'
+          : 'No existe un CAI vigente.',
+        404,
+      );
     }
 
-    return data;
+    return {
+      ...data,
+      disponible: data.activo && new Date(data.fechaFin) >= new Date(),
+    };
   },
 };
 

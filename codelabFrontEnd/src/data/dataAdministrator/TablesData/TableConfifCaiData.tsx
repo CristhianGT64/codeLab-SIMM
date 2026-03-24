@@ -6,6 +6,8 @@ import { estadoCaiValido, estadoCaiVencido } from "../ConfiguracionCAIData";
 export const contenidoTablaCaiEmitidos = (
   isLoadingCaisEmitidos: boolean,
   caisPaginados: Icai[],
+  onSelectCai: (idCai: string) => void,
+  selectedCaiId?: string,
 ): ReactNode => {
   if (isLoadingCaisEmitidos) {
     return (
@@ -30,9 +32,23 @@ export const contenidoTablaCaiEmitidos = (
   return caisPaginados.map((cai, i) => (
     <tr
       key={cai.id_cai}
-      className={`border-b border-gray-100 hover:bg-[#f0f6ff] transition-colors ${
-        i % 2 === 0 ? "bg-white" : "bg-gray-50/60"
+      className={`border-b border-gray-100 transition-colors cursor-pointer ${
+        selectedCaiId === cai.id_cai
+          ? "bg-[#dff4ff]"
+          : i % 2 === 0
+            ? "bg-white hover:bg-[#f0f6ff]"
+            : "bg-gray-50/60 hover:bg-[#f0f6ff]"
       }`}
+      onClick={() => onSelectCai(cai.id_cai)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelectCai(cai.id_cai);
+        }
+      }}
+      aria-pressed={selectedCaiId === cai.id_cai}
     >
       {/* Numero CAI */}
       <td className="px-6 py-4 text-[#24364d] whitespace-nowrap">
@@ -41,7 +57,8 @@ export const contenidoTablaCaiEmitidos = (
 
       {/* Rango */}
       <td className="px-6 py-4 font-medium text-[#0b4d77]">
-        {cai.rangoEmision?.inicio_rango} - {cai.rangoEmision?.final_rango}
+        {cai.rangoFormateado ??
+          `${cai.rangoEmision?.inicio_rango ?? "0"} - ${cai.rangoEmision?.final_rango ?? "0"}`}
       </td>
 
       {/* Vencimiento */}
@@ -51,8 +68,7 @@ export const contenidoTablaCaiEmitidos = (
 
       {/* ultima Factura */}
       <td>
-        {Number(cai.cantidadFacturasEmitidas - 1) +
-          Number(cai.rangoEmision?.inicio_rango)}
+        {cai.ultimaFacturaEmitida?.numeroFormateado ?? "Sin emitir"}
       </td>
 
       {/* Estado */}

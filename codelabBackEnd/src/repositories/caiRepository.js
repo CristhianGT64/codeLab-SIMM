@@ -1,18 +1,87 @@
 import prisma from '../infra/prisma/prismaClient.js';
 
+const puntoEmisionSelect = {
+  id: true,
+  numero: true,
+  tipoDocumentoId: true,
+  establecimientoId: true,
+  establecimientoTipoDocumento: {
+    select: {
+      establecimiento: {
+        select: {
+          id: true,
+          numero: true,
+          nombre: true,
+        },
+      },
+      tipoDocumento: {
+        select: {
+          id: true,
+          numero: true,
+          nombre: true,
+        },
+      },
+    },
+  },
+};
+
+const latestNumeroFacturaSelect = {
+  id: true,
+  numeroFormateado: true,
+  correlativo: true,
+  tipoDocumentoId: true,
+  establecimientoId: true,
+  puntoEmisionId: true,
+  puntoEmision: {
+    select: puntoEmisionSelect,
+  },
+};
+
 const caiSelect = {
   id: true,
   codigo: true,
   fechaInicio: true,
   fechaFin: true,
   activo: true,
+  tipoDocumentoId: true,
+  tipoDocumento: {
+    select: {
+      id: true,
+      numero: true,
+      nombre: true,
+      disponible: true,
+    },
+  },
   rangoEmision: {
     select: {
       id: true,
       inicioRango: true,
       finRango: true,
       caiId: true,
+      puntosEmision: {
+        select: puntoEmisionSelect,
+        orderBy: {
+          id: 'asc',
+        },
+      },
     },
+  },
+};
+
+const caiDetailSelect = {
+  ...caiSelect,
+  _count: {
+    select: {
+      numerosFactura: true,
+    },
+  },
+  numerosFactura: {
+    select: latestNumeroFacturaSelect,
+    orderBy: [
+      { correlativo: 'desc' },
+      { id: 'desc' },
+    ],
+    take: 1,
   },
 };
 
@@ -29,6 +98,96 @@ function toRangeView(rango) {
   };
 }
 
+function toTipoDocumentoView(tipoDocumento) {
+  if (!tipoDocumento) {
+    return null;
+  }
+
+  return {
+    id_tipo_documento: tipoDocumento.id,
+    numero: tipoDocumento.numero,
+    nombre: tipoDocumento.nombre,
+    disponible: tipoDocumento.disponible,
+  };
+}
+
+function padSegment(value, length) {
+  return String(value ?? '').padStart(length, '0');
+}
+
+function getPointEmissionContext(cai, ultimaFactura) {
+  if (ultimaFactura?.puntoEmision) {
+    return ultimaFactura.puntoEmision;
+  }
+
+  if (Array.isArray(cai?.rangoEmision?.puntosEmision) && cai.rangoEmision.puntosEmision.length > 0) {
+    return (
+      cai.rangoEmision.puntosEmision.find((punto) => punto.tipoDocumentoId === cai.tipoDocumentoId) ??
+      cai.rangoEmision.puntosEmision[0]
+    );
+  }
+
+  return null;
+}
+
+function formatNumeroFiscal({ establecimientoNumero, puntoEmisionNumero, tipoDocumentoNumero, correlativo }) {
+  if (
+    establecimientoNumero === undefined ||
+    puntoEmisionNumero === undefined ||
+    tipoDocumentoNumero === undefined ||
+    correlativo === undefined
+  ) {
+    return null;
+  }
+
+  return [
+    padSegment(establecimientoNumero, 3),
+    padSegment(puntoEmisionNumero, 3),
+    padSegment(tipoDocumentoNumero, 2),
+    padSegment(correlativo, 8),
+  ].join('-');
+}
+
+function toUltimaFacturaView(numeroFactura) {
+  if (!numeroFactura) {
+    return null;
+  }
+
+  return {
+    id: numeroFactura.id,
+    correlativo: numeroFactura.correlativo,
+    numeroFormateado: numeroFactura.numeroFormateado,
+  };
+}
+
+function buildRangoFormateado(cai, ultimaFactura) {
+  const puntoEmision = getPointEmissionContext(cai, ultimaFactura);
+  const establecimientoNumero = puntoEmision?.establecimientoTipoDocumento?.establecimiento?.numero;
+  const puntoEmisionNumero = puntoEmision?.numero;
+  const tipoDocumentoNumero =
+    puntoEmision?.establecimientoTipoDocumento?.tipoDocumento?.numero ?? cai?.tipoDocumento?.numero;
+
+  const rangoInicio = formatNumeroFiscal({
+    establecimientoNumero,
+    puntoEmisionNumero,
+    tipoDocumentoNumero,
+    correlativo: cai?.rangoEmision?.inicioRango,
+  });
+
+  const rangoFin = formatNumeroFiscal({
+    establecimientoNumero,
+    puntoEmisionNumero,
+    tipoDocumentoNumero,
+    correlativo: cai?.rangoEmision?.finRango,
+  });
+
+  if (!rangoInicio || !rangoFin) {
+    return null;
+  }
+
+  return `${rangoInicio} - ${rangoFin}`;
+}
+
 function toCaiView(cai) {
   if (!cai) {
     return null;
@@ -40,61 +199,38 @@ function toCaiView(cai) {
     fechaInicio: cai.fechaInicio,
     fechaFin: cai.fechaFin,
     activo: cai.activo,
+    tipoDocumentoId: cai.tipoDocumentoId,
+    tipoDocumento: toTipoDocumentoView(cai.tipoDocumento),
     rangoEmision: toRangeView(cai.rangoEmision),
   };
 }
 
+function toDetailedCaiView(cai) {
+  if (!cai) {
+    return null;
+  }
+
+  const ultimaFactura = Array.isArray(cai.numerosFactura) ? cai.numerosFactura[0] : null;
+
+  return {
+    ...toCaiView(cai),
+    ultimaFacturaEmitida: toUltimaFacturaView(ultimaFactura),
+    rangoFormateado: buildRangoFormateado(cai, ultimaFactura),
+    cantidadFacturasEmitidas: cai._count?.numerosFactura ?? 0,
+  };
+}
+
 const caiRepository = {
-  async findLastByFechaFin() {
-    const cai = await prisma.cai.findFirst({
-      orderBy: [
-        { fechaFin: 'desc' },
-        { id: 'desc' },
-      ],
-      select: caiSelect,
-    });
-
-    return toCaiView(cai);
-  },
-
-  async findLastRangeByFinal() {
-    const rango = await prisma.rangoEmision.findFirst({
-      orderBy: [
-        { finRango: 'desc' },
-        { id: 'desc' },
-      ],
-      select: {
-        id: true,
-        inicioRango: true,
-        finRango: true,
-        caiId: true,
-      },
-    });
-
-    return toRangeView(rango);
-  },
-
   async findByCodigo(codigo) {
-    const cai = await prisma.cai.findUnique({
+    return prisma.cai.findUnique({
       where: { codigo },
       select: {
         id: true,
       },
     });
-
-    return cai;
   },
 
   async createWithRange(data) {
-    // Obtener el último rango de emisión
-    const lastRango = await caiRepository.findLastRangeByFinal();
-    if (lastRango) {
-      // Validar que el nuevo rango no sea menor que el último
-      if (data.inicioRango < lastRango.final_rango || data.finalRango < lastRango.final_rango) {
-        throw new Error('El rango de emisión no puede ser menor que el último registrado.');
-      }
-    }
-
     return prisma.$transaction(async (tx) => {
       const cai = await tx.cai.create({
         data: {
@@ -102,14 +238,9 @@ const caiRepository = {
           fechaInicio: data.fechaInicio,
           fechaFin: data.fechaFin,
           activo: true,
+          tipoDocumentoId: data.tipoDocumentoId,
         },
-        select: {
-          id: true,
-          codigo: true,
-          fechaInicio: true,
-          fechaFin: true,
-          activo: true,
-        },
+        select: caiSelect,
       });
 
       const rango = await tx.rangoEmision.create({
@@ -127,11 +258,7 @@ const caiRepository = {
       });
 
       return {
-        id_cai: cai.id,
-        codigo: cai.codigo,
-        fechaInicio: cai.fechaInicio,
-        fechaFin: cai.fechaFin,
-        activo: cai.activo,
+        ...toCaiView(cai),
         rangoEmision: toRangeView(rango),
       };
     });
@@ -140,51 +267,36 @@ const caiRepository = {
   async listAll() {
     const cais = await prisma.cai.findMany({
       orderBy: [
-        { fechaInicio: 'desc' },
         { id: 'desc' },
       ],
-      select: {
-        ...caiSelect,
-        numerosFactura: true,
-      },
+      select: caiDetailSelect,
     });
 
-    return cais.map(cai => {
-      const caiView = toCaiView(cai);
-      let cantidadFacturasEmitidas = 0;
-      if (cai && cai.numerosFactura && Array.isArray(cai.numerosFactura)) {
-        cantidadFacturasEmitidas = cai.numerosFactura.length;
-      }
-      return {
-        ...caiView,
-        cantidadFacturasEmitidas,
-      };
-    });
+    return cais.map(toDetailedCaiView);
   },
 
-  async findLatestVigente(now = new Date()) {
+  async findByIdDetailed(id) {
+    const cai = await prisma.cai.findUnique({
+      where: { id: BigInt(id) },
+      select: caiDetailSelect,
+    });
+
+    return toDetailedCaiView(cai);
+  },
+
+  async findLatestVigenteDetailed() {
     const cai = await prisma.cai.findFirst({
       where: {
         activo: true,
       },
       orderBy: [
+        { fechaInicio: 'desc' },
         { id: 'desc' },
       ],
-      select: {
-        ...caiSelect,
-        numerosFactura: true,
-      },
+      select: caiDetailSelect,
     });
 
-    const caiView = toCaiView(cai);
-    let cantidadFacturasEmitidas = 0;
-    if (cai && cai.numerosFactura && Array.isArray(cai.numerosFactura)) {
-      cantidadFacturasEmitidas = cai.numerosFactura.length;
-    }
-    return {
-      ...caiView,
-      cantidadFacturasEmitidas,
-    };
+    return toDetailedCaiView(cai);
   },
 };
 
