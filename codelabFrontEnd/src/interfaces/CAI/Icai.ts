@@ -66,6 +66,7 @@ export interface FormNuevoCai {
   fechaFin: Date;
   inicioRango: string;
   finalRango: string;
+  tipoDocumentoId: string;
 }
 
 export const formNuevoCaiEmpty: FormNuevoCai = {
@@ -74,4 +75,5 @@ export const formNuevoCaiEmpty: FormNuevoCai = {
   fechaFin: new Date(),
   inicioRango: "",
   finalRango: "",
+  tipoDocumentoId: "",
 };
