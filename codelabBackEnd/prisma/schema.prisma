@@ -410,7 +410,7 @@ model CuentaContable {
   disponible                   Boolean                          @default(true)
   uuidElementoContable         String                           @map("uuid_elemento_contable") @db.VarChar(64)
   uuidClasificacionContable    String                           @map("uuid_clasificacion_contable") @db.VarChar(64)
-  codigoNumerico               Int                              @map("codigo_numerico")
+  codigoNumerico               Int                              @unique @map("codigo_numerico")
 
   elementoContable             ElementoContable                 @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
   clasificacionContable        ClasificacionElementoContable    @relation(fields: [uuidClasificacionContable], references: [uuidClasificacionContable])

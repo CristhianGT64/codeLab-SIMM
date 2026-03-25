@@ -20,6 +20,7 @@ import clasificacionElementoContableController from './controllers/clasificacion
 import cuentaContableController from './controllers/cuentaContableController.js';
 import subCuentaContableController from './controllers/subCuentaContableController.js';
 import diccNaturalezaCuentaController from './controllers/diccNaturalezaCuentaController.js';
+import catalogoContableController from './controllers/catalogoContableController.js';
 
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
@@ -234,6 +235,10 @@ app.get('/subcuentas-contables', subCuentaContableController.list);
 app.get('/subcuentas-contables/:id', subCuentaContableController.getById);
 app.put('/subcuentas-contables/:id', subCuentaContableController.update);
 app.patch('/subcuentas-contables/:id/estado', subCuentaContableController.patch);
+
+// Catálogo contable (árbol)
+app.get('/catalogo-contable/arbol', catalogoContableController.arbol);
+app.get('/catalogo-contable/resumen', catalogoContableController.resumen);
 
 // Middleware de errores
 app.use(errorHandler);
