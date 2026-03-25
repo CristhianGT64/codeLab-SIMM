@@ -43,12 +43,34 @@ const tipoDocumentoRepository = {
    * @returns {Promise<Object>} Tipo de documento creado
    */
   async createTipoDocumento(data) {
-    return await prisma.tipoDocumento.create({
-      data: {
-        numero: Number(data.numero),
-        nombre: String(data.nombre),
-        disponible: data.disponible ?? true,
-      }, 
+    return await prisma.$transaction(async (tx) => {
+      const tipoDocumento = await tx.tipoDocumento.create({
+        data: {
+          numero: Number(data.numero),
+          nombre: String(data.nombre),
+          descripcion: data.descripcion ?? null,
+          disponible: data.disponible ?? true,
+        },
+      });
+
+      await tx.establecimientoTipoDocumento.upsert({
+        where: {
+          establecimientoId_tipoDocumentoId: {
+            establecimientoId: 1n,
+            tipoDocumentoId: tipoDocumento.id,
+          },
+        },
+        create: {
+          establecimientoId: 1n,
+          tipoDocumentoId: tipoDocumento.id,
+          disponible: true,
+        },
+        update: {
+          disponible: true,
+        },
+      });
+
+      return tipoDocumento;
     });
   },
 
