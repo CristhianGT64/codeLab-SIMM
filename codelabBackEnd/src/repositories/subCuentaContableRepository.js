@@ -23,6 +23,7 @@ const subCuentaContableSelect = {
     select: {
       id: true,
       uuidClasificacionContable: true,
+      uuidElementoContable: true,
       nombre: true,
       codigoNumerico: true,
       disponible: true,
@@ -32,6 +33,8 @@ const subCuentaContableSelect = {
     select: {
       id: true,
       uuidCuentaContable: true,
+      uuidElementoContable: true,
+      uuidClasificacionContable: true,
       nombre: true,
       codigoNumerico: true,
       disponible: true,

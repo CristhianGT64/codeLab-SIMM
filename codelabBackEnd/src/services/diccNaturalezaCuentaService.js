@@ -34,22 +34,21 @@ const diccNaturalezaCuentaService = {
 
   async create(payload) {
     const nombre = payload?.nombre?.trim();
-    const disponible = typeof payload?.disponible === 'boolean' ? payload.disponible : true;
+    const disponible =
+      typeof payload?.disponible === 'boolean' ? payload.disponible : true;
 
     if (!nombre) {
       throw buildError('El nombre es obligatorio.');
     }
 
-    const existente = await diccNaturalezaCuentaRepository.findByNombre(nombre);
-    if (existente) {
-      throw buildError('Ya existe una naturaleza contable con ese nombre.', 409);
-    }
-
-    return diccNaturalezaCuentaRepository.create({
+    const data = {
       uuidNaturaleza: randomUUID(),
-      nombre,
+      nombre: nombre.toUpperCase(),
+      codigo: nombre.substring(0, 3).toUpperCase(),
       disponible,
-    });
+    };
+
+    return diccNaturalezaCuentaRepository.create(data);
   },
 
   async update(id, payload) {

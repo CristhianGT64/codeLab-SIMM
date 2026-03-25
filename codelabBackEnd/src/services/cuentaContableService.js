@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import cuentaContableRepository from '../repositories/cuentaContableRepository.js';
 import elementoContableRepository from '../repositories/elementoContableRepository.js';
 import clasificacionElementoContableRepository from '../repositories/clasificacionElementoContableRepository.js';
+import diccNaturalezaCuentaRepository from '../repositories/diccNaturalezaCuentaRepository.js';
 
 function buildError(message, status = 400) {
   const error = new Error(message);
@@ -40,39 +41,33 @@ const cuentaContableService = {
     const nombre = payload?.nombre?.trim();
     const uuidElementoContable = payload?.uuidElementoContable?.trim();
     const uuidClasificacionContable = payload?.uuidClasificacionContable?.trim();
+    const idNaturaleza = payload?.idNaturaleza ? BigInt(payload.idNaturaleza) : null;
     const disponible = typeof payload?.disponible === 'boolean' ? payload.disponible : true;
 
-    if (!nombre) {
-      throw buildError('El nombre es obligatorio.');
-    }
+    if (!nombre) throw buildError('El nombre es obligatorio.');
+    if (!uuidElementoContable) throw buildError('El elemento contable es obligatorio.');
+    if (!uuidClasificacionContable) throw buildError('La clasificación contable es obligatoria.');
+    if (!idNaturaleza) throw buildError('La naturaleza es obligatoria.');
 
-    if (!uuidElementoContable) {
-      throw buildError('El elemento contable es obligatorio.');
-    }
-
-    if (!uuidClasificacionContable) {
-      throw buildError('La clasificación contable es obligatoria.');
-    }
+    const naturaleza = await diccNaturalezaCuentaRepository.findById(idNaturaleza);
+    if (!naturaleza) throw buildError('La naturaleza no existe.', 404);
 
     const elemento = await elementoContableRepository.findByUuid(uuidElementoContable);
-    if (!elemento) {
-      throw buildError('El elemento contable no existe.', 404);
-    }
+    if (!elemento) throw buildError('El elemento contable no existe.', 404);
 
     const clasificacion =
       await clasificacionElementoContableRepository.findByUuid(uuidClasificacionContable);
-
-    if (!clasificacion) {
-      throw buildError('La clasificación contable no existe.', 404);
-    }
+    if (!clasificacion) throw buildError('La clasificación contable no existe.', 404);
 
     if (clasificacion.uuidElementoContable !== uuidElementoContable) {
-      throw buildError('La clasificación no pertenece al elemento contable indicado.');
+      throw buildError('La clasificación no pertenece al elemento contable.');
     }
 
-    const cuentas = await cuentaContableRepository.list({
-      uuidClasificacionContable,
-    });
+    if (elemento.idNaturaleza !== idNaturaleza) {
+      throw buildError('La naturaleza no coincide con la del elemento contable.');
+    }
+
+    const cuentas = await cuentaContableRepository.list({ uuidClasificacionContable });
 
     const maxCodigo = cuentas.reduce(
       (max, item) => (item.codigoNumerico > max ? item.codigoNumerico : max),
@@ -86,6 +81,7 @@ const cuentaContableService = {
       uuidElementoContable,
       uuidClasificacionContable,
       codigoNumerico: maxCodigo + 1,
+      idNaturaleza,
     };
 
     return cuentaContableRepository.create(data);

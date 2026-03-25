@@ -360,6 +360,7 @@ model DiccNaturalezaCuenta {
   id                  BigInt               @id @default(autoincrement()) @map("id_naturaleza")
   uuidNaturaleza      String               @unique @map("uuid_naturaleza") @db.VarChar(64)
   nombre              String               @db.VarChar(50)
+  codigo              String               @unique
   disponible          Boolean              @default(true)
 
   elementosContables  ElementoContable[]
@@ -411,7 +412,7 @@ model CuentaContable {
   uuidElementoContable         String                           @map("uuid_elemento_contable") @db.VarChar(64)
   uuidClasificacionContable    String                           @map("uuid_clasificacion_contable") @db.VarChar(64)
   codigoNumerico               Int                              @unique @map("codigo_numerico")
-
+  idNaturaleza                 BigInt                           @map("id_naturaleza")
   elementoContable             ElementoContable                 @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
   clasificacionContable        ClasificacionElementoContable    @relation(fields: [uuidClasificacionContable], references: [uuidClasificacionContable])
   subCuentasContables          SubCuentaContable[]
