@@ -210,10 +210,6 @@ SELECT setval('public."NumeroFactura_id_seq"',
   COALESCE((SELECT MAX(id) FROM public."NumeroFactura"), 1),
   COALESCE((SELECT MAX(id) IS NOT NULL FROM public."NumeroFactura"), false)
 );
-SELECT setval('public.numerofactura_correlativo_seq',
-  COALESCE((SELECT MAX(correlativo) FROM public."NumeroFactura"), 1),
-  COALESCE((SELECT MAX(correlativo) IS NOT NULL FROM public."NumeroFactura"), false)
-);
 SELECT setval('public."Cliente_id_seq"',
   COALESCE((SELECT MAX(id) FROM public."Cliente"), 1),
   COALESCE((SELECT MAX(id) IS NOT NULL FROM public."Cliente"), false)

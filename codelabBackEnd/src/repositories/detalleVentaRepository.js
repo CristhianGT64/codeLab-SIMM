@@ -2,15 +2,9 @@ import prisma from "../infra/prisma/prismaClient.js";
 
 const detalleVentaRepository = {
 
-  async createDetalleVenta(data) {
-    return await prisma.detalleVenta.create({
-      data
-    });
-  },
-
-  async createManyDetalleVenta(data) {
-    return await prisma.detalleVenta.createMany({
-      data
+  async createManyDetalleVenta(detalles, tx = prisma) {
+    return await tx.detalleVenta.createMany({
+      data: detalles
     });
   },
 

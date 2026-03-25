@@ -9,14 +9,20 @@ const ventaService = {
 
   async createVenta({ clienteId, usuarioId, sucursalId, productos }) {
 
+    // Validaciones básicas
     if (!usuarioId) {
       throw new Error("usuarioId es requerido");
+    }
+
+    if (!sucursalId) {
+      throw new Error("sucursalId es requerido");
     }
 
     if (!productos || productos.length === 0) {
       throw new Error("La venta debe contener productos");
     }
 
+    // Validar cliente
     if (clienteId) {
       const cliente = await clienteRepository.findById(clienteId);
 
@@ -28,6 +34,7 @@ const ventaService = {
     let total = 0;
     const detalles = [];
 
+    // Validar productos + calcular estimado
     for (const item of productos) {
 
       if (item.cantidad <= 0) {
@@ -40,6 +47,7 @@ const ventaService = {
         throw new Error(`Producto ${item.productoId} no existe`);
       }
 
+      // SOLO validamos stock, NO lo modificamos
       const inventario = await inventarioRepository.findStock(
         item.productoId,
         sucursalId
@@ -67,34 +75,28 @@ const ventaService = {
 
     }
 
-    return await prisma.$transaction(async () => {
+    // Transacción (SIN inventario)
+    return await prisma.$transaction(async (tx) => {
 
-      const venta = await ventaRepository.createVenta({
-        clienteId,
-        usuarioId,
-        sucursalId,
-        total,
-        estado: "completada"
-      });
+  const venta = await ventaRepository.createVenta({
+    usuarioId,
+    sucursalId,
+    total,
+    estado: "pendiente",
+    ...(clienteId && { clienteId })
+  }, tx);
 
-      const detallesVenta = detalles.map(detalle => ({
-        ...detalle,
-        ventaId: venta.id
-      }));
+  const detallesVenta = detalles.map(detalle => ({
+    ...detalle,
+    ventaId: venta.id
+  }));
 
-      await detalleVentaRepository.createManyDetalleVenta(detallesVenta);
+  // IMPORTANTE: pasar tx
+  await detalleVentaRepository.createManyDetalleVenta(detallesVenta, tx);
 
-      for (const detalle of detalles) {
-        await inventarioRepository.decreaseStock(
-          detalle.productoId,
-          sucursalId,
-          detalle.cantidad
-        );
-      }
+  return venta;
 
-      return venta;
-
-    });
+});
 
   },
 

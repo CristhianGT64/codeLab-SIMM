@@ -22,7 +22,7 @@ import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
 import * as invoiceTypeController from './controllers/invoiceTypeController.js';
 import ventaController from './controllers/ventaController.js';
-
+import facturaController from './controllers/facturaController.js';
 //Parche: convierte de BigInt a String para que lo soporte Json.
 BigInt.prototype.toJSON = function() {
   return this.toString();
@@ -193,6 +193,17 @@ app.patch('/tipos-documento/:id/estado', tipoDocumentoController.changeTipoDocum
 app.get('/establecimientos/:id/documentos', tipoDocumentoController.getDocumentosByEstablecimiento);
 app.post('/establecimientos/:id/documentos', tipoDocumentoController.assignDocumentoToEstablecimiento);
 app.patch('/establecimiento-documento/:id/estado', tipoDocumentoController.patchEstadoEstablecimientoDocumento);
+
+// --- RUTAS DE FACTURAS ---
+app.post('/facturas', facturaController.createFactura);
+app.get('/facturas', facturaController.getFacturas);
+app.get('/facturas/:numeroFactura', facturaController.getFacturaByNumero);
+
+
+
+
+
+
 
 // Middleware de errores
 app.use(errorHandler);

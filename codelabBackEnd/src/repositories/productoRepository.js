@@ -14,7 +14,9 @@ const productoRepository = {
         imagenPath: true,
         estado: true,
         categoria: { select: { id: true, nombre: true } },
-        inventarios: { select: { sucursalId: true, stockActual: true } },
+        impuesto: { select: { id: true, nombre: true, tasa: true } },
+        inventarios: { select: { sucursalId: true, stockActual: true }
+    },
         createdAt: true,
         updatedAt: true,
       },
@@ -34,7 +36,15 @@ const productoRepository = {
         imagenPath: true,
         estado: true,
         categoriaId: true,
+        impuesto: {
+              select: {
+                id: true,
+                nombre: true,
+                tasa: true
+              }
+            },
         categoria: { select: { id: true, nombre: true } },
+        impuesto: { select: { id: true, nombre: true, tasa: true } },
         inventarios: { select: { sucursalId: true, stockActual: true } },
         createdAt: true,
         updatedAt: true,
@@ -62,6 +72,7 @@ const productoRepository = {
         imagenPath: true,
         estado: true,
         categoria: { select: { id: true, nombre: true } },
+        impuesto: { select: { id: true, nombre: true, tasa: true } },
         createdAt: true,
         updatedAt: true,
         ...selectExtra,
@@ -104,12 +115,8 @@ const productoRepository = {
         precioVenta: true,
         unidadMedida: true,
         imagenUrl: true,
-        categoria: {
-          select: {
-            id: true,
-            nombre: true
-          }
-        }
+        categoria: {select: {id: true,nombre: true}},
+        impuesto: { select: { id: true, nombre: true, tasa: true } }
       },
       take: 10
     });
@@ -132,6 +139,7 @@ const productoRepository = {
         imagenPath: true,
         estado: true,
         categoria: { select: { id: true, nombre: true } },
+        impuesto: { select: { id: true, nombre: true, tasa: true } },
         createdAt: true,
         updatedAt: true,
       },

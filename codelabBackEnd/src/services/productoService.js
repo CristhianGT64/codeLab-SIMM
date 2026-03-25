@@ -24,6 +24,7 @@ const productoService = {
       stockInicial,
       imagenPath,
       sucursalId,
+      impuestoId, 
     } = body;
 
     if (
@@ -33,10 +34,11 @@ const productoService = {
       costo === undefined ||
       precioVenta === undefined ||
       !unidadMedida ||
-      stockInicial === undefined
+      stockInicial === undefined ||
+      !impuestoId 
     ) {
       const err = new Error(
-        'Faltan campos obligatorios: nombre, sku, categoriaId, costo, precioVenta, unidadMedida, stockInicial'
+        'Faltan campos obligatorios: nombre, sku, categoriaId, costo, precioVenta, unidadMedida, stockInicial, impuestoId'
       );
       err.status = 400;
       throw err;
@@ -67,6 +69,7 @@ const productoService = {
       throw err;
     }
 
+    //Validar categoría
     const cat = await prisma.categoria.findUnique({
       where: { id: BigInt(categoriaId) },
       select: { id: true, disponible: true },
@@ -84,7 +87,26 @@ const productoService = {
       throw err;
     }
 
+    //Validar impuesto
+    const impuesto = await prisma.impuesto.findUnique({
+      where: { id: BigInt(impuestoId) },
+      select: { id: true, activo: true },
+    });
+
+    if (!impuesto) {
+      const err = new Error('El impuesto asignado no existe.');
+      err.status = 400;
+      throw err;
+    }
+
+    if (impuesto.activo === false) {
+      const err = new Error('El impuesto asignado está inactivo.');
+      err.status = 400;
+      throw err;
+    }
+
     let sucursalFinalId;
+
     if (sucursalId) {
       const suc = await prisma.sucursal.findUnique({
         where: { id: BigInt(sucursalId) },
@@ -112,7 +134,7 @@ const productoService = {
       });
 
       if (!sucDefault) {
-        const err = new Error('No hay sucursales activas. Crea una sucursal antes de registrar productos.');
+        const err = new Error('No hay sucursales activas.');
         err.status = 400;
         throw err;
       }
@@ -131,6 +153,7 @@ const productoService = {
           imagenPath: imagenPath || null,
           estado: 'activo',
           categoriaId: BigInt(categoriaId),
+          impuestoId: BigInt(impuestoId), 
         },
         select: {
           id: true,
@@ -142,6 +165,7 @@ const productoService = {
           imagenPath: true,
           estado: true,
           categoria: { select: { id: true, nombre: true } },
+          impuesto: { select: { id: true, nombre: true, tasa: true } },
         },
       });
 
@@ -160,7 +184,6 @@ const productoService = {
         update: {
           stockActual: Number(stockInicial),
         },
-        select: { id: true, sucursalId: true, stockActual: true },
       });
 
       if (Number(stockInicial) > 0) {
@@ -168,19 +191,13 @@ const productoService = {
           data: {
             tipo: 'entrada',
             subtipoEntrada: 'PRODUCTO_NUEVO',
-            motivoSalida: null,
-            detalleMotivo: 'Stock inicial del producto',
-            observaciones: 'Movimiento generado automáticamente al crear el producto.',
             cantidad: Number(stockInicial),
             stockResultante: Number(stockInicial),
             fechaMovimiento: new Date(),
             estado: 'completado',
             referenciaTipo: 'creacion_producto',
-            referenciaId: null,
             productoId: producto.id,
             sucursalId: sucursalFinalId,
-            usuarioId: null,
-            proveedorId: null,
           },
         });
       }
@@ -198,105 +215,47 @@ const productoService = {
   async getById(idParam) {
     const id = BigInt(idParam);
     const prod = await productoRepository.findById(id);
-    if (!prod) {
-      const err = new Error('Producto no encontrado.');
-      err.status = 404;
-      throw err;
-    }
+    if (!prod) throw new Error('Producto no encontrado.');
     return prod;
   },
-  /// Búsqueda de productos por nombre o SKU (query)
+
   async searchProducts(query) {
-
-    if (!query) {
-      throw new Error("Query requerida para búsqueda");
-    }
-
+    if (!query) throw new Error("Query requerida");
     return productoRepository.search(query);
-
   },
-  ///
+
   async update(idParam, body = {}) {
     const id = BigInt(idParam);
 
-    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
-      const err = new Error('Body de solicitud inválido para actualizar producto.');
-      err.status = 400;
-      throw err;
-    }
-
     const current = await productoRepository.findById(id);
-    if (!current) {
-      const err = new Error('Producto no encontrado.');
-      err.status = 404;
-      throw err;
-    }
+    if (!current) throw new Error('Producto no encontrado.');
 
-    if (body.sku !== undefined && body.sku !== current.sku) {
-      const err = new Error('El SKU no se puede modificar.');
-      err.status = 400;
-      throw err;
-    }
-
-    if (body.categoriaId !== undefined) {
-      const cat = await prisma.categoria.findUnique({
-        where: { id: BigInt(body.categoriaId) },
-        select: { id: true, disponible: true },
+    // 🔥 VALIDAR IMPUESTO SI VIENE
+    if (body.impuestoId !== undefined) {
+      const impuesto = await prisma.impuesto.findUnique({
+        where: { id: BigInt(body.impuestoId) },
       });
-      if (!cat) {
-        const err = new Error('La categoría asignada no existe.');
-        err.status = 400;
-        throw err;
+
+      if (!impuesto || !impuesto.activo) {
+        throw new Error('Impuesto inválido o inactivo');
       }
-      if (cat.disponible === false) {
-        const err = new Error('La categoría asignada está deshabilitada.');
-        err.status = 400;
-        throw err;
-      }
-    }
-
-    if (body.unidadMedida !== undefined && !UNIDADES_VALIDAS.includes(body.unidadMedida)) {
-      const err = new Error(`unidadMedida inválida. Valores permitidos: ${UNIDADES_VALIDAS.join(', ')}`);
-      err.status = 400;
-      throw err;
-    }
-
-    const costoNuevo = body.costo !== undefined ? body.costo : current.costo;
-    const precioNuevo = body.precioVenta !== undefined ? body.precioVenta : current.precioVenta;
-
-    if (Number(precioNuevo) <= Number(costoNuevo)) {
-      const err = new Error('El precio de venta debe ser mayor al costo del producto.');
-      err.status = 400;
-      throw err;
     }
 
     const data = {};
+
     if (body.nombre !== undefined) data.nombre = body.nombre;
     if (body.costo !== undefined) data.costo = body.costo;
     if (body.precioVenta !== undefined) data.precioVenta = body.precioVenta;
     if (body.unidadMedida !== undefined) data.unidadMedida = body.unidadMedida;
     if (body.categoriaId !== undefined) data.categoriaId = BigInt(body.categoriaId);
     if (body.imagenPath !== undefined) data.imagenPath = body.imagenPath;
+    if (body.impuestoId !== undefined) data.impuestoId = BigInt(body.impuestoId); 
 
     return productoRepository.update(id, data);
   },
 
   async patchEstado(idParam, { estado }) {
     const id = BigInt(idParam);
-
-    const current = await productoRepository.findById(id);
-    if (!current) {
-      const err = new Error('Producto no encontrado.');
-      err.status = 404;
-      throw err;
-    }
-
-    if (!estado || !['activo', 'inactivo'].includes(estado)) {
-      const err = new Error('estado debe ser "activo" o "inactivo"');
-      err.status = 400;
-      throw err;
-    }
-
     return productoRepository.update(id, { estado });
   },
 
