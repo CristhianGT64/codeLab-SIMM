@@ -232,6 +232,9 @@ const caiRepository = {
 
   async createWithRange(data) {
     return prisma.$transaction(async (tx) => {
+      const establecimientoId = 1n;
+      const puntoEmisionNumero = 1;
+
       const cai = await tx.cai.create({
         data: {
           codigo: data.codigo,
@@ -254,6 +257,44 @@ const caiRepository = {
           inicioRango: true,
           finRango: true,
           caiId: true,
+        },
+      });
+
+      await tx.establecimientoTipoDocumento.upsert({
+        where: {
+          establecimientoId_tipoDocumentoId: {
+            establecimientoId,
+            tipoDocumentoId: data.tipoDocumentoId,
+          },
+        },
+        create: {
+          establecimientoId,
+          tipoDocumentoId: data.tipoDocumentoId,
+          disponible: true,
+        },
+        update: {
+          disponible: true,
+        },
+      });
+
+      await tx.puntoEmision.upsert({
+        where: {
+          numero_establecimientoId_tipoDocumentoId: {
+            numero: puntoEmisionNumero,
+            establecimientoId,
+            tipoDocumentoId: data.tipoDocumentoId,
+          },
+        },
+        create: {
+          numero: puntoEmisionNumero,
+          establecimientoId,
+          tipoDocumentoId: data.tipoDocumentoId,
+          rangoEmisionId: rango.id,
+          disponible: true,
+        },
+        update: {
+          rangoEmisionId: rango.id,
+          disponible: true,
         },
       });
 

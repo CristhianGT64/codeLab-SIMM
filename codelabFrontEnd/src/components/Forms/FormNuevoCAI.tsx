@@ -5,6 +5,7 @@ import {
 } from "../../data/dataAdministrator/ConfiguracionCAIData";
 import type { FormNuevoCai } from "../../interfaces/CAI/Icai";
 import ButtonsComponet from "../buttonsComponents/ButtonsComponet";
+import useListTiposDocumento from "../../hooks/TiposDocumentoHooks/useListTiposDocumento";
 
 const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
   // Bloquea 'e', 'E', y opcionalmente signos como '+', '-' o '.'
@@ -26,8 +27,11 @@ export function FormNuevoCAI({
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onChangeField: (
     field: keyof FormNuevoCai,
-  ) => (event: React.ChangeEvent<HTMLInputElement>) => void;
+  ) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
 }) {
+  const tipoDocumentosData = useListTiposDocumento();
+  const tiposDocumentos = tipoDocumentosData.data?.data ?? [];
+
   return (
     <section
       id="formularioNuevoCai"
@@ -125,6 +129,30 @@ export function FormNuevoCAI({
             placeholder="dd/mm/aaaa"
           />
         </div>
+
+        <div className="mb-4">
+          <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
+            Tipo de Documento <span className="text-[#ff4f4f]">*</span>
+          </p>
+          <select
+            value={form.tipoDocumentoId}
+            onChange={onChangeField("tipoDocumentoId")}
+            id="tipoDocumentoId"
+            className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#111111] outline-none focus:border-[#0aa6a2]"
+            required
+          >
+            <option value="">Seleccionar tipo de documento</option>
+
+            {tiposDocumentos.map((tipo) => (
+              <option
+                key={`${tipo.id}-${tipo.nombre}`}
+                value={tipo.id}
+              >
+                {tipo.nombre}
+              </option>
+            ))}
+          </select>
+            </div>
 
         <div className="bg-[#E6F0F8] rounded-2xl border-2 border-[#9adce2] p-4 mb-4 text-lg text-[#2B7A78]">
           <span className="font-semibold">Importante:</span> Verifique que todos

@@ -16,6 +16,20 @@ import useGetTipoDocumento from "../../../hooks/TiposDocumentoHooks/useGetTipoDo
 import useCreateTipoDocumento from "../../../hooks/TiposDocumentoHooks/useCreateTipoDocumento";
 import useUpdateTipoDocumento from "../../../hooks/TiposDocumentoHooks/useUpdateTipoDocumento";
 
+const buildPrefijoFromCodigo = (codigo: string) => {
+  const trimmed = codigo.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  const numericValue = Number(trimmed);
+  if (Number.isNaN(numericValue)) {
+    return trimmed;
+  }
+
+  return `0${Math.trunc(numericValue)}`;
+};
+
 export default function FormTipoDocumento() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -38,6 +52,18 @@ export default function FormTipoDocumento() {
   const isPending = isCreating || isUpdating;
 
   useEffect(() => {
+    if (isEditMode) {
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      requiereCai: true,
+      prefijoNumeracion: buildPrefijoFromCodigo(prev.codigo),
+    }));
+  }, [isEditMode]);
+
+  useEffect(() => {
     if (!isEditMode) {
       return;
     }
@@ -52,7 +78,7 @@ export default function FormTipoDocumento() {
       nombre: tipo.nombre,
       descripcion: tipo.descripcion,
       prefijoNumeracion: tipo.prefijoNumeracion,
-      requiereCai: tipo.requiereCai,
+      requiereCai: true,
       activo: tipo.activo,
     });
   }, [isEditMode, tipoDocumentoData]);
@@ -71,11 +97,34 @@ export default function FormTipoDocumento() {
             ? event.target.value === "true"
             : event.target.value;
 
-      setForm((prev) => ({ ...prev, [field]: value }));
+      setForm((prev) => {
+        const next = { ...prev, [field]: value };
+
+        if (!isEditMode && field === "codigo") {
+          next.prefijoNumeracion = buildPrefijoFromCodigo(String(value));
+        }
+
+        if (!isEditMode) {
+          next.requiereCai = true;
+        }
+
+        return next;
+      });
     };
 
   const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const codigoNumerico = Number(form.codigo);
+    if (Number.isNaN(codigoNumerico)) {
+      setNotification({
+        isVisible: true,
+        variant: "error",
+        title: "Código inválido",
+        message: "El código debe ser numérico (ejemplo: 1, 2, 3).",
+      });
+      return;
+    }
 
     try {
       if (isEditMode && id) {
@@ -110,12 +159,17 @@ export default function FormTipoDocumento() {
       globalThis.setTimeout(() => {
         navigate("/Tipos-Documento-Management");
       }, 1200);
-    } catch {
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : "Verifica los datos e intenta nuevamente.";
+
       setNotification({
         isVisible: true,
         variant: "error",
         title: "No se pudo guardar",
-        message: "Verifica los datos e intenta nuevamente.",
+        message,
       });
     }
   };
@@ -156,10 +210,12 @@ export default function FormTipoDocumento() {
               </p>
               <input
                 id="codigo"
-                type="text"
+                type="number"
                 value={form.codigo}
                 onChange={onChangeField("codigo")}
-                placeholder="FC"
+                placeholder="1"
+                min={1}
+                step={1}
                 required
                 className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]"
               />
@@ -167,18 +223,22 @@ export default function FormTipoDocumento() {
 
             <div>
               <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
-                Prefijo de numeración <span className="text-[#ff4f4f]">*</span>
+                Prefijo de numeración
               </p>
               <input
                 id="prefijoNumeracion"
                 type="text"
                 value={form.prefijoNumeracion}
                 onChange={onChangeField("prefijoNumeracion")}
-                placeholder="FC-"
-                required
-                className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]"
+                placeholder="01"
+                readOnly={!isEditMode}
+                className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2] read-only:bg-[#eef3f7]"
               />
-              <p className="mt-1 text-sm text-[#6a758f]">Ejemplo: FC-00001, FR-00001</p>
+              <p className="mt-1 text-sm text-[#6a758f]">
+                {isEditMode
+                  ? "Puedes ajustar el prefijo si es necesario."
+                  : "Se genera automáticamente a partir del código (ejemplo: 1 -> 01)."}
+              </p>
             </div>
 
             <div className="md:col-span-2">
@@ -209,18 +269,19 @@ export default function FormTipoDocumento() {
             </div>
 
             <div className="md:col-span-2 rounded-2xl border-2 border-[#f4d56a] bg-[#fff8e4] p-5">
-              <label className="flex cursor-pointer items-start gap-3 text-xl font-semibold text-[#0a4d76]">
+              <div className="flex items-start gap-3 text-xl font-semibold text-[#0a4d76]">
                 <input
                   id="requiereCai"
                   type="checkbox"
-                  checked={form.requiereCai}
-                  onChange={onChangeField("requiereCai")}
+                  checked
+                  readOnly
+                  disabled
                   className="mt-1 h-5 w-5 accent-[#0aa6a2]"
                 />
                 <span>Requiere CAI (Código de autorización de impresión)</span>
-              </label>
+              </div>
               <p className="mt-2 pl-8 text-lg text-[#4661b0]">
-                Los documentos que requieren CAI necesitan autorización fiscal.
+                Fijo para todos los tipos: siempre se guardará con CAI requerido.
               </p>
             </div>
 

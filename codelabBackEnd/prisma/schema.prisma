@@ -197,7 +197,10 @@ model TipoDocumento {
   id                        BigInt                         @id @default(autoincrement()) @map("id_tipo_documento")
   numero                    Int                            @unique
   nombre                    String                         @unique @db.VarChar(150)
+  descripcion               String?                        @db.VarChar(255)
   disponible                Boolean                        @default(true)
+  createdAt                 DateTime                       @default(now()) @map("created_at")
+  updatedAt                 DateTime                       @default(now()) @updatedAt @map("updated_at")
   cais                      Cai[]
   establecimientoDocumentos EstablecimientoTipoDocumento[]
 
