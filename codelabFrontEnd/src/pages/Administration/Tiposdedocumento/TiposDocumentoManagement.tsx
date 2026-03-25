@@ -22,6 +22,20 @@ import type { TipoDocumento } from "../../../interfaces/TipodedocumentoInterface
 
 type EstadoFiltro = "todos" | "activos" | "inactivos";
 
+const formatPrefijoFromCodigo = (codigo: string) => {
+  const trimmed = codigo.trim();
+  if (!trimmed) {
+    return "-";
+  }
+
+  const numericValue = Number(trimmed);
+  if (Number.isNaN(numericValue)) {
+    return trimmed;
+  }
+
+  return `0${Math.trunc(numericValue)}`;
+};
+
 export default function TiposDocumentoManagement() {
   const navigate = useNavigate();
   const { tienePermiso } = useAuth();
@@ -184,9 +198,9 @@ export default function TiposDocumentoManagement() {
               <th className="px-6 py-4 text-base font-semibold">Código</th>
               <th className="px-4 py-4 text-base font-semibold">Nombre del documento</th>
               <th className="px-4 py-4 text-base font-semibold">Prefijo</th>
-              <th className="px-4 py-4 text-base font-semibold">Núm de CAI</th>
+              <th className="px-4 py-4 text-base font-semibold">CAI</th>
               <th className="px-4 py-4 text-base font-semibold">Estado</th>
-              <th className="px-4 py-4 text-base font-semibold">Ultima Actividad</th>
+              <th className="px-4 py-4 text-base font-semibold">Última actividad</th>
               <th className="px-4 py-4 text-base font-semibold text-center">
                 Acciones
               </th>
@@ -229,11 +243,10 @@ export default function TiposDocumentoManagement() {
                   </td>
                   <td className="px-4 py-4">
                     <p className="text-2xl font-semibold text-[#0b4d77]">{tipo.nombre}</p>
-                    <p className="text-xl text-[#4661b0]">{tipo.descripcion}</p>
                   </td>
                   <td className="px-4 py-4 text-lg text-[#1f4f88]">
                     <span className="rounded-lg bg-[#e8f4f9] px-3 py-1 font-semibold">
-                      {tipo.prefijoNumeracion}
+                      {formatPrefijoFromCodigo(tipo.codigo)}
                     </span>
                   </td>
                   <td className="px-4 py-4">

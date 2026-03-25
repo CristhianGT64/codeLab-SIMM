@@ -4,6 +4,14 @@ import tipoDocumentoRepository from '../repositories/tipoDocumentoRepository.js'
  * Servicio para la lógica de negocio relacionada con tipos de documento
  */
 const tipoDocumentoService = {
+  buildPrefijo(numero) {
+    return `0${Math.trunc(Number(numero))}`;
+  },
+
+  getFirstDefinedValue(...values) {
+    return values.find((value) => value !== undefined && value !== null);
+  },
+
   /**
    * Serializa TipoDocumento con IDs BigInt a string
    * @param {Object} row
@@ -13,8 +21,14 @@ const tipoDocumentoService = {
     return {
       id_tipo_documento: row.id.toString(),
       numero: row.numero,
+      prefijo: this.buildPrefijo(row.numero),
       nombre: row.nombre,
+      descripcion: row.descripcion ?? '',
       disponible: row.disponible,
+      created_at: row.createdAt,
+      updated_at: row.updatedAt,
+      requiere_cai: true,
+      cai: true,
     };
   },
 
@@ -33,8 +47,14 @@ const tipoDocumentoService = {
         ? {
             id_tipo_documento: row.tipoDocumento.id.toString(),
             numero: row.tipoDocumento.numero,
+            prefijo: this.buildPrefijo(row.tipoDocumento.numero),
             nombre: row.tipoDocumento.nombre,
+            descripcion: row.tipoDocumento.descripcion ?? '',
             disponible: row.tipoDocumento.disponible,
+            created_at: row.tipoDocumento.createdAt,
+            updated_at: row.tipoDocumento.updatedAt,
+            requiere_cai: true,
+            cai: true,
           }
         : null,
     };
@@ -70,7 +90,74 @@ const tipoDocumentoService = {
    * @returns {Promise<Object>}
    */
   async create(data) {
-    const row = await tipoDocumentoRepository.createTipoDocumento(data);
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      const error = new Error('Body invalido para crear tipo de documento');
+      error.status = 400;
+      throw error;
+    }
+
+    const establecimientoFijo = this.getFirstDefinedValue(
+      data.establecimientoId,
+      data.idEstablecimiento,
+      data.establecimiento_id,
+      data.id_establecimiento,
+      data.establecimiento
+    );
+    if (establecimientoFijo !== undefined && Number(establecimientoFijo) !== 1) {
+      const error = new Error('El establecimiento para tipos de documento esta fijo en 1');
+      error.status = 400;
+      throw error;
+    }
+
+    const puntoEmisionFijo = this.getFirstDefinedValue(
+      data.puntoEmision,
+      data.puntoEmisionId,
+      data.idPuntoEmision,
+      data.punto_emision,
+      data.punto_emision_id,
+      data.id_punto_emision
+    );
+    if (puntoEmisionFijo !== undefined && Number(puntoEmisionFijo) !== 1) {
+      const error = new Error('El punto de emision para tipos de documento esta fijo en 1');
+      error.status = 400;
+      throw error;
+    }
+
+    if (!data.nombre || String(data.nombre).trim() === '') {
+      const error = new Error('El nombre del tipo de documento es obligatorio');
+      error.status = 400;
+      throw error;
+    }
+
+    if (data.numero === undefined || data.numero === null || String(data.numero).trim() === '') {
+      const error = new Error('El numero del tipo de documento es obligatorio');
+      error.status = 400;
+      throw error;
+    }
+
+    const numero = Number(data.numero);
+    if (!Number.isInteger(numero) || numero <= 0) {
+      const error = new Error('El numero del tipo de documento debe ser un entero positivo');
+      error.status = 400;
+      throw error;
+    }
+
+    const establecimientoPrincipal = await tipoDocumentoRepository.getEstablecimientoById(1n);
+    if (!establecimientoPrincipal) {
+      const error = new Error('No existe el establecimiento principal con id 1');
+      error.status = 400;
+      throw error;
+    }
+
+    const row = await tipoDocumentoRepository.createTipoDocumento({
+      numero,
+      nombre: String(data.nombre).trim(),
+      descripcion:
+        data.descripcion === undefined || data.descripcion === null
+          ? null
+          : String(data.descripcion).trim(),
+      disponible: data.disponible ?? true,
+    });
     return this.mapTipoDocumento(row);
   },
 
@@ -84,9 +171,45 @@ const tipoDocumentoService = {
   async update(id, data) {
     await this.getById(id);
 
-    const row = await tipoDocumentoRepository.updateTipoDocumento(BigInt(id), data);
+    const updatePayload = {};
 
-    if (data?.disponible === false) {
+    if (data?.nombre !== undefined) {
+      if (String(data.nombre).trim() === '') {
+        const error = new Error('El nombre del tipo de documento es obligatorio');
+        error.status = 400;
+        throw error;
+      }
+
+      updatePayload.nombre = String(data.nombre).trim();
+    }
+
+    if (data?.descripcion !== undefined) {
+      updatePayload.descripcion = data.descripcion === null ? null : String(data.descripcion).trim();
+    }
+
+    if (data?.activo !== undefined) {
+      updatePayload.disponible = Boolean(data.activo);
+    }
+
+    if (data?.disponible !== undefined) {
+      updatePayload.disponible = Boolean(data.disponible);
+    }
+
+    if (data?.codigo !== undefined || data?.numero !== undefined) {
+      const numeroActualizado = Number(data.numero ?? data.codigo);
+
+      if (!Number.isInteger(numeroActualizado) || numeroActualizado <= 0) {
+        const error = new Error('El numero del tipo de documento debe ser un entero positivo');
+        error.status = 400;
+        throw error;
+      }
+
+      updatePayload.numero = numeroActualizado;
+    }
+
+    const row = await tipoDocumentoRepository.updateTipoDocumento(BigInt(id), updatePayload);
+
+    if (updatePayload.disponible === false) {
       try {
         await tipoDocumentoRepository.disableAsignacionesByTipoDocumento(BigInt(id));
       } catch (_) {
@@ -153,6 +276,12 @@ const tipoDocumentoService = {
    * @returns {Promise<Object>}
    */
   async assignDocumento(id_establecimiento, id_tipo_documento) {
+    if (BigInt(id_establecimiento) !== 1n) {
+      const error = new Error('Solo se permite trabajar con el establecimiento 1');
+      error.status = 400;
+      throw error;
+    }
+
     const establecimiento = await tipoDocumentoRepository.getEstablecimientoById(
       BigInt(id_establecimiento)
     );
