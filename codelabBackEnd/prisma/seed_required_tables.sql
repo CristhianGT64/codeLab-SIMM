@@ -108,7 +108,10 @@ INSERT INTO public."Permiso" (id, nombre, descripcion, disponible, created_at, "
   (113, 'Finalizar Venta', 'Permite finalizar venta de productos en el carrito.', true, NULL, 7),
   (114, 'Ver tipos de documento', 'Permite ver los tipos de documentos de facturacion', true, NULL, 8),
   (115, 'Crear tipos de documento', 'Permite crear nuevos tipos de documento', true, NULL, 8),
-  (116, 'Editar tipos de documento', 'Permite al usuario editar tipos de documentos', true, NULL, 8)
+  (116, 'Editar tipos de documento', 'Permite al usuario editar tipos de documentos', true, NULL, 8),
+  (117, 'Ver cuentas contables', 'Permite ver el catálogo de cuentas contables', true, NULL, 104),
+  (118, 'Crear cuentas contables', 'Permite crear elementos en el catálogo contable', true, NULL, 104),
+  (119, 'Editar cuentas contables', 'Permite editar elementos del catálogo contable', true, NULL, 104)
 ON CONFLICT (id) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   descripcion = EXCLUDED.descripcion,
@@ -175,7 +178,10 @@ INSERT INTO public."RolPermiso" ("rolId", "permisoId") VALUES
   (1, 113),
   (1, 114),
   (1, 115),
-  (1, 116)
+  (1, 116),
+  (1, 117),
+  (1, 118),
+  (1, 119)
 ON CONFLICT ("rolId", "permisoId") DO NOTHING;
 
 -- 3) Usuarios
@@ -273,6 +279,67 @@ ON CONFLICT (id) DO UPDATE SET
   metodo_valuacion_inventario = EXCLUDED.metodo_valuacion_inventario,
   moneda_funcional = EXCLUDED.moneda_funcional;
 
+-- 5b) Naturalezas contables
+INSERT INTO public."DICC_NATURALEZA_CUENTA" (id_naturaleza, uuid_naturaleza, nombre, codigo, disponible) VALUES
+  (1, 'nat-activos', 'Activos', 'A', true),
+  (2, 'nat-pasivos', 'Pasivos', 'P', true),
+  (3, 'nat-patrimonio', 'Patrimonio', 'PT', true)
+ON CONFLICT (id_naturaleza) DO UPDATE SET
+  nombre = EXCLUDED.nombre,
+  codigo = EXCLUDED.codigo,
+  disponible = EXCLUDED.disponible;
+
+-- 5c) Catálogo de cuentas contables (datos iniciales)
+INSERT INTO public."ELEMENTO_CONTABLE" (id_elemento_contable, uuid_elemento_contable, nombre, disponible, codigo_numerico, id_naturaleza) VALUES
+  (1, 'elem-activos-0001', 'Activos', true, 1, 1),
+  (2, 'elem-pasivos-0002', 'Pasivos', true, 2, 2),
+  (3, 'elem-patrimonio-0003', 'Patrimonio', true, 3, 3)
+ON CONFLICT (uuid_elemento_contable) DO UPDATE SET
+  nombre = EXCLUDED.nombre,
+  disponible = EXCLUDED.disponible,
+  codigo_numerico = EXCLUDED.codigo_numerico,
+  id_naturaleza = EXCLUDED.id_naturaleza;
+
+INSERT INTO public."CLASIFICACION_ELEMENTO_CONTABLE" (id_clasificacion_elemento_contable, uuid_clasificacion_contable, nombre, disponible, codigo_numerico, uuid_elemento_contable) VALUES
+  (1, 'clas-corrientes-0001', 'Corrientes', true, 1, 'elem-activos-0001'),
+  (2, 'clas-no-corrientes-0002', 'No Corrientes', true, 2, 'elem-activos-0001'),
+  (3, 'clas-corrientes-pasivos-0003', 'Corrientes', true, 1, 'elem-pasivos-0002'),
+  (4, 'clas-capital-0004', 'Capital', true, 1, 'elem-patrimonio-0003')
+ON CONFLICT (uuid_clasificacion_contable) DO UPDATE SET
+  nombre = EXCLUDED.nombre,
+  disponible = EXCLUDED.disponible,
+  codigo_numerico = EXCLUDED.codigo_numerico,
+  uuid_elemento_contable = EXCLUDED.uuid_elemento_contable;
+
+INSERT INTO public."CUENTA_CONTABLE" (id_cuenta_contable, uuid_cuenta_contable, nombre, disponible, uuid_elemento_contable, uuid_clasificacion_contable, codigo_numerico, id_naturaleza) VALUES
+  (1, 'cta-efectivo-equiv-0001', 'Efectivo y Equivalentes', true, 'elem-activos-0001', 'clas-corrientes-0001', 1, 1),
+  (2, 'cta-cuentas-cobrar-0002', 'Cuentas por Cobrar', true, 'elem-activos-0001', 'clas-corrientes-0001', 2, 1),
+  (3, 'cta-ctas-doc-pagar-0003', 'Cuentas y Documentos por Pagar', true, 'elem-pasivos-0002', 'clas-corrientes-pasivos-0003', 3, 2),
+  (4, 'cta-capital-social-0004', 'Capital Social', true, 'elem-patrimonio-0003', 'clas-capital-0004', 4, 3)
+ON CONFLICT (uuid_cuenta_contable) DO UPDATE SET
+  nombre = EXCLUDED.nombre,
+  disponible = EXCLUDED.disponible,
+  uuid_elemento_contable = EXCLUDED.uuid_elemento_contable,
+  uuid_clasificacion_contable = EXCLUDED.uuid_clasificacion_contable,
+  codigo_numerico = EXCLUDED.codigo_numerico,
+  id_naturaleza = EXCLUDED.id_naturaleza;
+
+INSERT INTO public."SUB_CUENTA_CONTABLE" (id_sub_cuenta_contable, uuid_sub_cuenta_contable, nombre, disponible, uuid_elemento_contable, uuid_clasificacion_contable, uuid_cuenta_contable, codigo_numerico, id_naturaleza) VALUES
+  (1, 'subcta-caja-general-001', 'Caja General', true, 'elem-activos-0001', 'clas-corrientes-0001', 'cta-efectivo-equiv-0001', 1, 1),
+  (2, 'subcta-caja-chica-002', 'Caja Chica', true, 'elem-activos-0001', 'clas-corrientes-0001', 'cta-efectivo-equiv-0001', 2, 1),
+  (3, 'subcta-bancos-003', 'Bancos', true, 'elem-activos-0001', 'clas-corrientes-0001', 'cta-efectivo-equiv-0001', 3, 1),
+  (4, 'subcta-prov-nacionales-004', 'Proveedores Nacionales', true, 'elem-pasivos-0002', 'clas-corrientes-pasivos-0003', 'cta-ctas-doc-pagar-0003', 1, 2),
+  (5, 'subcta-prov-extranjeros-005', 'Proveedores Extranjeros', true, 'elem-pasivos-0002', 'clas-corrientes-pasivos-0003', 'cta-ctas-doc-pagar-0003', 2, 2),
+  (6, 'subcta-capital-autorizado-006', 'Capital Autorizado', true, 'elem-patrimonio-0003', 'clas-capital-0004', 'cta-capital-social-0004', 1, 3)
+ON CONFLICT (uuid_sub_cuenta_contable) DO UPDATE SET
+  nombre = EXCLUDED.nombre,
+  disponible = EXCLUDED.disponible,
+  uuid_elemento_contable = EXCLUDED.uuid_elemento_contable,
+  uuid_clasificacion_contable = EXCLUDED.uuid_clasificacion_contable,
+  uuid_cuenta_contable = EXCLUDED.uuid_cuenta_contable,
+  codigo_numerico = EXCLUDED.codigo_numerico,
+  id_naturaleza = EXCLUDED.id_naturaleza;
+
 INSERT INTO public.periodo_contable (id, fecha_inicio, fecha_fin, estado, created_at) VALUES
   (1, '2025-01-01 00:00:00', '2025-03-31 23:59:59', 'CERRADO', '2026-03-17 07:40:38.827')
 ON CONFLICT (id) DO UPDATE SET
@@ -325,6 +392,26 @@ SELECT setval('public.configuracion_sistema_id_seq',
 SELECT setval('public.periodo_contable_id_seq',
   COALESCE((SELECT MAX(id) FROM public.periodo_contable), 1),
   COALESCE((SELECT MAX(id) IS NOT NULL FROM public.periodo_contable), false)
+);
+SELECT setval('public."DICC_NATURALEZA_CUENTA_id_naturaleza_seq"',
+  COALESCE((SELECT MAX(id_naturaleza) FROM public."DICC_NATURALEZA_CUENTA"), 1),
+  COALESCE((SELECT MAX(id_naturaleza) IS NOT NULL FROM public."DICC_NATURALEZA_CUENTA"), false)
+);
+SELECT setval('public."ELEMENTO_CONTABLE_id_elemento_contable_seq"',
+  COALESCE((SELECT MAX(id_elemento_contable) FROM public."ELEMENTO_CONTABLE"), 1),
+  COALESCE((SELECT MAX(id_elemento_contable) IS NOT NULL FROM public."ELEMENTO_CONTABLE"), false)
+);
+SELECT setval('public."CLASIFICACION_ELEMENTO_CONTAB_id_clasificacion_elemento_con_seq"',
+  COALESCE((SELECT MAX(id_clasificacion_elemento_contable) FROM public."CLASIFICACION_ELEMENTO_CONTABLE"), 1),
+  COALESCE((SELECT MAX(id_clasificacion_elemento_contable) IS NOT NULL FROM public."CLASIFICACION_ELEMENTO_CONTABLE"), false)
+);
+SELECT setval('public."CUENTA_CONTABLE_id_cuenta_contable_seq"',
+  COALESCE((SELECT MAX(id_cuenta_contable) FROM public."CUENTA_CONTABLE"), 1),
+  COALESCE((SELECT MAX(id_cuenta_contable) IS NOT NULL FROM public."CUENTA_CONTABLE"), false)
+);
+SELECT setval('public."SUB_CUENTA_CONTABLE_id_sub_cuenta_contable_seq"',
+  COALESCE((SELECT MAX(id_sub_cuenta_contable) FROM public."SUB_CUENTA_CONTABLE"), 1),
+  COALESCE((SELECT MAX(id_sub_cuenta_contable) IS NOT NULL FROM public."SUB_CUENTA_CONTABLE"), false)
 );
 
 COMMIT;

@@ -26,6 +26,7 @@ import ConfiguracionCAI from '../pages/Administration/Facturacion/ConfiguracionC
 import VentasManagement from '../pages/Ventas/VentasManagement';
 import TiposDocumentoManagement from '../pages/Administration/Tiposdedocumento/TiposDocumentoManagement';
 import FormTipoDocumento from '../pages/Administration/Tiposdedocumento/FormTipoDocumento';
+import CatalogoCuentasContablesManagement from '../pages/Administration/CatalogoCuentasContables/CatalogoCuentasContablesManagement';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -97,6 +98,9 @@ const AppRouter = () => (
             <Route path="/Tipos-Documento-Management" element={<PermissionGate permiso="Ver tipos de documento"><TiposDocumentoManagement /></PermissionGate>} />
             <Route path="/Tipos-Documento-Management/Create" element={<PermissionGate permiso="Crear tipos de documento"><FormTipoDocumento /></PermissionGate>} />
             <Route path="/Tipos-Documento-Management/Update/:id" element={<PermissionGate permiso="Editar tipos de documento"><FormTipoDocumento /></PermissionGate>} />
+
+            {/* Catálogo de cuentas contables */}
+            <Route path="/Catalogo-Cuentas-Contables" element={<PermissionGate permiso="Ver cuentas contables"><CatalogoCuentasContablesManagement /></PermissionGate>} />
           </Route>
         </Route>
       </Routes>
