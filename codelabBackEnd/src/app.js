@@ -204,12 +204,6 @@ app.post('/facturas', facturaController.createFactura);
 app.get('/facturas', facturaController.getFacturas);
 app.get('/facturas/:numeroFactura', facturaController.getFacturaByNumero);
 
-
-
-
-
-
-
 // =========================
 // CATÁLOGO CONTABLE
 // =========================
