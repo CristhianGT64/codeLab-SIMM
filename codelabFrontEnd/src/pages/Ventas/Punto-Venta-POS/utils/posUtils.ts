@@ -1,19 +1,19 @@
-import type { CartItem, Product } from "../../../../interfaces/POS/IPos";
+import type {
+  CartItem,
+  CartTotals,
+  Product,
+} from "../../../../interfaces/POS/IPos";
+import type { ProductoDto } from "../../../../interfaces/Products/FormProducts";
 
-export const mapApiProductToPosProduct = (product: {
-  id: string;
-  sku: string;
-  nombre: string;
-  categoria: { nombre: string };
-  precioVenta: number;
-  inventarios?: Array<{ stockActual?: number }>;
-}): Product => ({
+export const mapApiProductToPosProduct = (product: ProductoDto): Product => ({
   id: product.id,
   code: product.sku,
   name: product.nombre,
   category: product.categoria.nombre,
-  price: product.precioVenta,
+  price: Number(product.precioVenta),
   stock: product.inventarios?.[0]?.stockActual || 0,
+  taxRate: Number(product.impuesto?.tasa ?? 0),
+  taxName: product.impuesto?.nombre ?? "Impuesto",
 });
 
 export const filterProducts = (
@@ -34,11 +34,15 @@ export const filterProducts = (
   );
 };
 
-export const calculateCartTotals = (cart: CartItem[]) => {
+export const calculateCartTotals = (cart: CartItem[]): CartTotals => {
   const subtotal = cart.reduce((sum, item) => sum + Number(item.subtotal), 0);
-  const total = subtotal;
+  const tax = cart.reduce(
+    (sum, item) => sum + Number(item.subtotal) * Number(item.product.taxRate),
+    0,
+  );
+  const total = subtotal + tax;
 
-  return { subtotal, total };
+  return { subtotal, tax, total };
 };
 
 export const hasCartStockIssues = (cart: CartItem[]) =>

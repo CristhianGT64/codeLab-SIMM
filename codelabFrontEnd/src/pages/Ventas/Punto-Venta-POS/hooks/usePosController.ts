@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useListProduct from "../../../../hooks/ProductosHooks/useListProduct";
 import { useCreateVenta } from "../../../../hooks/POSHooks/useCreateVenta";
+import { useCreateFactura } from "../../../../hooks/POSHooks/useCreateFactura";
 import useAuth from "../../../../hooks/useAuth";
 import type {
   CartItem,
+  CartTotals,
   Product,
   Sale,
   SaleResponse,
@@ -19,6 +21,7 @@ import {
 export const usePosController = () => {
   const listProducts = useListProduct();
   const createVentaMutation = useCreateVenta();
+  const createFacturaMutation = useCreateFactura();
   const { user, permisos } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,7 +42,7 @@ export const usePosController = () => {
     [products, searchTerm],
   );
 
-  const totals = useMemo(() => calculateCartTotals(cart), [cart]);
+  const totals = useMemo<CartTotals>(() => calculateCartTotals(cart), [cart]);
 
   const removeFromCart = (productId: string) => {
     setCart((currentCart) =>
@@ -145,7 +148,7 @@ export const usePosController = () => {
     };
 
     createVentaMutation.mutate(saleRequest, {
-      onSuccess: (response: SaleResponse) => {
+      onSuccess: async (response: SaleResponse) => {
         if (!response.success) return;
 
         const sale: Sale = {
@@ -157,6 +160,22 @@ export const usePosController = () => {
           subtotal: totals.subtotal,
           total: Number(response.data.total),
         };
+
+        // Generar factura automáticamente
+        try {
+          const facturaResponse = await createFacturaMutation.mutateAsync({
+            usuarioId: user.id,
+            sucursalId: user.sucursal.id,
+            ventaId: response.data.id,
+          });
+
+          if (facturaResponse.success) {
+            sale.factura = facturaResponse.data;
+          }
+        } catch {
+          // Si falla la factura, aún mostramos la venta completada
+          toast.warning("Venta registrada, pero no se pudo generar la factura");
+        }
 
         setCompletedSale(sale);
         setShowConfirmModal(false);
@@ -196,3 +215,4 @@ export const usePosController = () => {
     removeFromCart,
   };
 };
+
