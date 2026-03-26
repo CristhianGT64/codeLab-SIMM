@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import clasificacionElementoContableRepository from '../repositories/clasificacionElementoContableRepository.js';
 import elementoContableRepository from '../repositories/elementoContableRepository.js';
+import prisma from '../infra/prisma/prismaClient.js';
 
 function buildError(message, status = 400) {
   const error = new Error(message);
@@ -109,9 +110,20 @@ const clasificacionElementoContableService = {
       throw buildError('El estado disponible es obligatorio.');
     }
 
-    return clasificacionElementoContableRepository.update(clasificacionId, {
-      disponible: Boolean(payload.disponible),
-    });
+    const disponible = Boolean(payload.disponible);
+
+    if (!disponible) {
+      await prisma.cuentaContable.updateMany({
+        where: { uuidClasificacionContable: actual.uuidClasificacionContable },
+        data: { disponible: false },
+      });
+      await prisma.subCuentaContable.updateMany({
+        where: { uuidClasificacionContable: actual.uuidClasificacionContable },
+        data: { disponible: false },
+      });
+    }
+
+    return clasificacionElementoContableRepository.update(clasificacionId, { disponible });
   },
 };
 

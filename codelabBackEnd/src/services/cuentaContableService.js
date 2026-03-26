@@ -3,6 +3,7 @@ import cuentaContableRepository from '../repositories/cuentaContableRepository.j
 import elementoContableRepository from '../repositories/elementoContableRepository.js';
 import clasificacionElementoContableRepository from '../repositories/clasificacionElementoContableRepository.js';
 import diccNaturalezaCuentaRepository from '../repositories/diccNaturalezaCuentaRepository.js';
+import prisma from '../infra/prisma/prismaClient.js';
 
 function buildError(message, status = 400) {
   const error = new Error(message);
@@ -67,12 +68,10 @@ const cuentaContableService = {
       throw buildError('La naturaleza no coincide con la del elemento contable.');
     }
 
-    const cuentas = await cuentaContableRepository.list({ uuidClasificacionContable });
-
-    const maxCodigo = cuentas.reduce(
-      (max, item) => (item.codigoNumerico > max ? item.codigoNumerico : max),
-      0,
-    );
+    const aggregate = await prisma.cuentaContable.aggregate({
+      _max: { codigoNumerico: true },
+    });
+    const maxCodigo = aggregate._max.codigoNumerico ?? 0;
 
     const data = {
       uuidCuentaContable: randomUUID(),
@@ -109,6 +108,15 @@ const cuentaContableService = {
       data.disponible = Boolean(payload.disponible);
     }
 
+    if (payload?.idNaturaleza !== undefined) {
+      const naturalezaId = BigInt(payload.idNaturaleza);
+      const naturaleza = await diccNaturalezaCuentaRepository.findById(naturalezaId);
+      if (!naturaleza) {
+        throw buildError('La naturaleza contable no existe.', 404);
+      }
+      data.idNaturaleza = naturalezaId;
+    }
+
     return cuentaContableRepository.update(cuentaId, data);
   },
 
@@ -124,9 +132,16 @@ const cuentaContableService = {
       throw buildError('El estado disponible es obligatorio.');
     }
 
-    return cuentaContableRepository.update(cuentaId, {
-      disponible: Boolean(payload.disponible),
-    });
+    const disponible = Boolean(payload.disponible);
+
+    if (!disponible) {
+      await prisma.subCuentaContable.updateMany({
+        where: { uuidCuentaContable: actual.uuidCuentaContable },
+        data: { disponible: false },
+      });
+    }
+
+    return cuentaContableRepository.update(cuentaId, { disponible });
   },
 };
 

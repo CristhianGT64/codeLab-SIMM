@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import elementoContableRepository from '../repositories/elementoContableRepository.js';
 import diccNaturalezaCuentaRepository from '../repositories/diccNaturalezaCuentaRepository.js';
+import prisma from '../infra/prisma/prismaClient.js';
 
 function buildError(message, status = 400) {
   const error = new Error(message);
@@ -117,9 +118,24 @@ const elementoContableService = {
       throw buildError('El estado disponible es obligatorio.');
     }
 
-    return elementoContableRepository.update(elementoId, {
-      disponible: Boolean(payload.disponible),
-    });
+    const disponible = Boolean(payload.disponible);
+
+    if (!disponible) {
+      await prisma.clasificacionElementoContable.updateMany({
+        where: { uuidElementoContable: actual.uuidElementoContable },
+        data: { disponible: false },
+      });
+      await prisma.cuentaContable.updateMany({
+        where: { uuidElementoContable: actual.uuidElementoContable },
+        data: { disponible: false },
+      });
+      await prisma.subCuentaContable.updateMany({
+        where: { uuidElementoContable: actual.uuidElementoContable },
+        data: { disponible: false },
+      });
+    }
+
+    return elementoContableRepository.update(elementoId, { disponible });
   },
 };
 

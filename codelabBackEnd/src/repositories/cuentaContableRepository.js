@@ -8,6 +8,7 @@ const cuentaContableSelect = {
   codigoNumerico: true,
   uuidElementoContable: true,
   uuidClasificacionContable: true,
+  idNaturaleza: true,
   elementoContable: {
     select: {
       id: true,

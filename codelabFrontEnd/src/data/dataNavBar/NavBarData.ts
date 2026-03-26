@@ -66,6 +66,13 @@ const navBarData: NavBarInterface = {
       disable: false,
       permiso: "Ver tipos de documento",
     },
+    {
+      text: "Catálogo Ctas.",
+      icon: "fa-solid fa-book-open",
+      url: "/Catalogo-Cuentas-Contables",
+      disable: false,
+      permiso: "Ver cuentas contables",
+    },
   ],
   nameUser: "Administrador",
 };
