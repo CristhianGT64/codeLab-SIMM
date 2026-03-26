@@ -1,6 +1,6 @@
 BEGIN;
 
--- Seed generado a partir del dump 20-03-2026.sql
+-- Seed generado a partir del dump 26-03-2026.sql
 -- Ejecutar antes que el seed de negocio.
 
 -- 1) Catálogos base y seguridad
@@ -19,7 +19,8 @@ INSERT INTO public."CategoriaPermiso" (id, "nombreCategoria", disponible) VALUES
   (101, 'Auditoria', true),
   (102, 'Facturacion', true),
   (103, 'Inventario', true),
-  (104, 'Configuracion Contable', true)
+  (104, 'Configuracion Contable', true),
+  (105, 'Contabilidad', true)
 ON CONFLICT (id) DO UPDATE SET
   "nombreCategoria" = EXCLUDED."nombreCategoria",
   disponible = EXCLUDED.disponible;
@@ -52,10 +53,7 @@ ON CONFLICT (id) DO UPDATE SET
   created_at = EXCLUDED.created_at;
 
 INSERT INTO public."Sucursal" (id, nombre, direccion, telefono, gerente, activa, created_at, "updatedAt") VALUES
-  (2, 'Sucursal Centro', 'Tegucigalpa', '2222-2222', 'Gerente 1', true, '2026-03-04 07:36:50.837', '2026-03-09 06:07:41.22'),
-  (3, 'Sucursal norte', 'col. santafe segunda calle detras de banco banpais', 99999888, 'Cristhian', true, '2026-03-05 00:08:45.384', '2026-03-09 06:07:44.682'),
-  (100, 'Sucursal Occidente', 'Santa Rosa de Copan', '2444-0000', 'Gerente Occidente', true, '2026-03-17 07:40:38.827', '2026-03-17 07:40:38.827'),
-  (101, 'Sucursal Sur', 'Choluteca', '2881-0000', 'Gerente Sur', true, '2026-03-17 07:40:38.827', '2026-03-17 07:40:38.827')
+  (2, 'Sucursal Centro', 'Tegucigalpa', '2222-2222', 'Gerente 1', true, '2026-03-04 07:36:50.837', '2026-03-09 06:07:41.22')
 ON CONFLICT (id) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   direccion = EXCLUDED.direccion,
@@ -118,6 +116,21 @@ ON CONFLICT (id) DO UPDATE SET
   disponible = EXCLUDED.disponible,
   created_at = EXCLUDED.created_at,
   "categoriaId" = EXCLUDED."categoriaId";
+
+UPDATE public."Permiso"
+SET descripcion = 'Permite ver las cuentas contables',
+    "categoriaId" = 105
+WHERE id = 117;
+
+UPDATE public."Permiso"
+SET descripcion = 'Permite al usuario crear cuentas contables.',
+    "categoriaId" = 104
+WHERE id = 118;
+
+UPDATE public."Permiso"
+SET descripcion = 'Permite editar una cuenta contable',
+    "categoriaId" = 104
+WHERE id = 119;
 
 INSERT INTO public."RolPermiso" ("rolId", "permisoId") VALUES
   (9, 1),
@@ -234,7 +247,9 @@ INSERT INTO public."Producto" (id, nombre, sku, costo, precio_venta, unidad_medi
   (10, 'Buzo azul', 'BUZ-400', 1600.00, 3000.00, 'Paquete', 'activo', NULL, NULL, 3, NULL, '/uploads/productos/captura-de-(129)-1772863288037.png'),
   (100, 'Audifonos Bluetooth', 'AUDIO-BT-001', 85.00, 150.00, 'Unidad', 'activo', '2026-03-17 08:26:50.919', NULL, 101, NULL, NULL),
   (101, 'Jabon Antibacterial', 'SOAP-AB-002', 15.00, 28.00, 'Docena', 'activo', '2026-03-17 08:26:50.919', NULL, 102, NULL, NULL),
-  (102, 'Gorro Deportivo', 'CAP-SPORT-001', 25.00, 45.00, 'Unidad', 'activo', '2026-03-17 08:26:50.919', NULL, 100, NULL, NULL)
+  (102, 'Gorro Deportivo', 'CAP-SPORT-001', 25.00, 45.00, 'Unidad', 'activo', '2026-03-17 08:26:50.919', NULL, 100, NULL, NULL),
+  (103, 'Laptop Dell Inspiron', 'TECH-LAP-005', 1000.00, 1250.00, 'Unidad', 'activo', '2026-03-26 04:10:31.653', NULL, 1, NULL, NULL),
+  (104, 'Zapatos Channel', 'ZP-600', 50.00, 100.00, 'Paquete', 'activo', '2026-03-26 04:16:14.309', NULL, 3, NULL, NULL)
 ON CONFLICT (id) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   sku = EXCLUDED.sku,
@@ -249,24 +264,27 @@ ON CONFLICT (id) DO UPDATE SET
   imagen_path = EXCLUDED.imagen_path;
 
 --
-UPDATE public."Producto" SET "impuestoId" = 2 WHERE id IN (1,2,3,4,5,6,7,8,9,10,100,101,102);
+UPDATE public."Producto" SET "impuestoId" = 2 WHERE id IN (1,2,3,4,5,6,7,8,9,10,100,101,102,103,104);
 
 -- Ejemplo de exento
-UPDATE public."Producto" SET "impuestoId" = 1 WHERE id = 101;
+UPDATE public."Producto" SET "impuestoId" = 1 WHERE id IN (101, 103);
+UPDATE public."Producto" SET "impuestoId" = 3 WHERE id = 104;
 INSERT INTO public."Inventario" (id, stock_actual, "productoId", "sucursalId") VALUES
   (1, 7, 1, 2),
-  (2, 9, 2, 2),
+  (2, 8, 2, 2),
   (3, 10, 3, 2),
   (4, 10, 4, 2),
-  (5, 10, 5, 2),
+  (5, 9, 5, 2),
   (6, 700, 6, 2),
-  (7, 6, 7, 2),
-  (8, 30, 8, 3),
+  (7, 5, 7, 2),
+  (8, 30, 8, 2),
   (9, 90, 9, 2),
-  (10, 9, 10, 3),
-  (11, 50, 100, 2),
-  (12, 200, 101, 2),
-  (13, 30, 102, 3)
+  (10, 9, 10, 2),
+  (11, 49, 100, 2),
+  (12, 196, 101, 2),
+  (13, 29, 102, 2),
+  (14, 29, 103, 2),
+  (15, 27, 104, 2)
 ON CONFLICT (id) DO UPDATE SET
   stock_actual = EXCLUDED.stock_actual,
   "productoId" = EXCLUDED."productoId",
