@@ -397,6 +397,97 @@ model PeriodoContable {
   @@map("periodo_contable")
 }
 
+model DiccNaturalezaCuenta {
+  id                  BigInt               @id @default(autoincrement()) @map("id_naturaleza")
+  uuidNaturaleza      String               @unique @map("uuid_naturaleza") @db.VarChar(64)
+  nombre              String               @db.VarChar(50)
+  codigo              String               @unique
+  disponible          Boolean              @default(true)
+
+  elementosContables  ElementoContable[]
+  subCuentasContables SubCuentaContable[]
+
+  @@map("DICC_NATURALEZA_CUENTA")
+}
+
+model ElementoContable {
+  id                           BigInt                           @id @default(autoincrement()) @map("id_elemento_contable")
+  uuidElementoContable         String                           @unique @map("uuid_elemento_contable") @db.VarChar(64)
+  nombre                       String                           @db.VarChar(50)
+  disponible                   Boolean                          @default(true)
+  codigoNumerico               Int                              @map("codigo_numerico")
+  idNaturaleza                 BigInt                           @map("id_naturaleza")
+
+  naturaleza                   DiccNaturalezaCuenta            @relation(fields: [idNaturaleza], references: [id])
+  clasificacionesContables     ClasificacionElementoContable[]
+  cuentasContables             CuentaContable[]
+  subCuentasContables          SubCuentaContable[]
+
+  @@unique([codigoNumerico])
+  @@index([idNaturaleza])
+  @@map("ELEMENTO_CONTABLE")
+}
+
+model ClasificacionElementoContable {
+  id                           BigInt               @id @default(autoincrement()) @map("id_clasificacion_elemento_contable")
+  uuidClasificacionContable    String               @unique @map("uuid_clasificacion_contable") @db.VarChar(64)
+  nombre                       String               @db.VarChar(50)
+  disponible                   Boolean              @default(true)
+  codigoNumerico               Int                  @map("codigo_numerico")
+  uuidElementoContable         String               @map("uuid_elemento_contable") @db.VarChar(64)
+
+  elementoContable             ElementoContable     @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
+  cuentasContables             CuentaContable[]
+  subCuentasContables          SubCuentaContable[]
+
+  @@unique([uuidElementoContable, codigoNumerico])
+  @@index([uuidElementoContable])
+  @@map("CLASIFICACION_ELEMENTO_CONTABLE")
+}
+
+model CuentaContable {
+  id                           BigInt                           @id @default(autoincrement()) @map("id_cuenta_contable")
+  uuidCuentaContable           String                           @unique @map("uuid_cuenta_contable") @db.VarChar(64)
+  nombre                       String                           @db.VarChar(50)
+  disponible                   Boolean                          @default(true)
+  uuidElementoContable         String                           @map("uuid_elemento_contable") @db.VarChar(64)
+  uuidClasificacionContable    String                           @map("uuid_clasificacion_contable") @db.VarChar(64)
+  codigoNumerico               Int                              @unique @map("codigo_numerico")
+  idNaturaleza                 BigInt                           @map("id_naturaleza")
+  elementoContable             ElementoContable                 @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
+  clasificacionContable        ClasificacionElementoContable    @relation(fields: [uuidClasificacionContable], references: [uuidClasificacionContable])
+  subCuentasContables          SubCuentaContable[]
+
+  @@unique([uuidClasificacionContable, codigoNumerico])
+  @@index([uuidElementoContable])
+  @@index([uuidClasificacionContable])
+  @@map("CUENTA_CONTABLE")
+}
+
+model SubCuentaContable {
+  id                           BigInt                           @id @default(autoincrement()) @map("id_sub_cuenta_contable")
+  uuidSubCuentaContable        String                           @unique @map("uuid_sub_cuenta_contable") @db.VarChar(64)
+  nombre                       String                           @db.VarChar(50)
+  disponible                   Boolean                          @default(true)
+  uuidElementoContable         String                           @map("uuid_elemento_contable") @db.VarChar(64)
+  uuidClasificacionContable    String                           @map("uuid_clasificacion_contable") @db.VarChar(64)
+  uuidCuentaContable           String                           @map("uuid_cuenta_contable") @db.VarChar(64)
+  codigoNumerico               Int                              @map("codigo_numerico")
+  idNaturaleza                 BigInt                           @map("id_naturaleza")
+
+  elementoContable             ElementoContable                 @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
+  clasificacionContable        ClasificacionElementoContable    @relation(fields: [uuidClasificacionContable], references: [uuidClasificacionContable])
+  cuentaContable               CuentaContable                   @relation(fields: [uuidCuentaContable], references: [uuidCuentaContable])
+  naturaleza                   DiccNaturalezaCuenta            @relation(fields: [idNaturaleza], references: [id])
+
+  @@unique([uuidCuentaContable, codigoNumerico])
+  @@index([uuidElementoContable])
+  @@index([uuidClasificacionContable])
+  @@index([uuidCuentaContable])
+  @@index([idNaturaleza])
+  @@map("SUB_CUENTA_CONTABLE")
+}
+
 enum EstadoUsuario {
   activo
   inactivo
