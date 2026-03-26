@@ -209,6 +209,17 @@ ON CONFLICT (id) DO UPDATE SET
   eliminado = EXCLUDED.eliminado,
   usuario = EXCLUDED.usuario;
 
+   ---Impuestos
+  INSERT INTO public."Impuesto" (id, nombre, tasa, activo) VALUES
+  (1, 'EXENTO', 0, true),
+  (2, 'ISV 15%', 0.15, true),
+  (3, 'ISV 18%', 0.18, true)
+ON CONFLICT (id) DO UPDATE SET
+  nombre = EXCLUDED.nombre,
+  tasa = EXCLUDED.tasa,
+  activo = EXCLUDED.activo;
+
+
 -- 4) Productos e inventario
 INSERT INTO public."Producto" (id, nombre, sku, costo, precio_venta, unidad_medida, estado, created_at, updated_at, "categoriaId", imagen_url, imagen_path) VALUES
   (1, 'Camisa', 'SKU-SIN-IMG-1772835798', 50.00, 80.00, 'Unidad', 'activo', NULL, NULL, 3, NULL, NULL),
@@ -237,6 +248,11 @@ ON CONFLICT (id) DO UPDATE SET
   imagen_url = EXCLUDED.imagen_url,
   imagen_path = EXCLUDED.imagen_path;
 
+--
+UPDATE public."Producto" SET "impuestoId" = 2 WHERE id IN (1,2,3,4,5,6,7,8,9,10,100,101,102);
+
+-- Ejemplo de exento
+UPDATE public."Producto" SET "impuestoId" = 1 WHERE id = 101;
 INSERT INTO public."Inventario" (id, stock_actual, "productoId", "sucursalId") VALUES
   (1, 7, 1, 2),
   (2, 9, 2, 2),
@@ -360,6 +376,10 @@ SELECT setval('public."Usuario_id_seq"',
 SELECT setval('public."Producto_id_seq"',
   COALESCE((SELECT MAX(id) FROM public."Producto"), 1),
   COALESCE((SELECT MAX(id) IS NOT NULL FROM public."Producto"), false)
+);
+SELECT setval('public."Impuesto_id_seq"',
+  COALESCE((SELECT MAX(id) FROM public."Impuesto"), 1),
+  COALESCE((SELECT MAX(id) IS NOT NULL FROM public."Impuesto"), false)
 );
 SELECT setval('public."Inventario_id_seq"',
   COALESCE((SELECT MAX(id) FROM public."Inventario"), 1),

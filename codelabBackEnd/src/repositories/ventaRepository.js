@@ -2,13 +2,15 @@ import prisma from "../infra/prisma/prismaClient.js";
 
 const ventaRepository = {
 
-  async createVenta(data) {
-    return await prisma.venta.create({
-      data
-    });
-  },
+  // Crear venta (soporta transacción)
+  async createVenta(data, tx = prisma) {
+  return await tx.venta.create({
+    data
+  });
+},
 
-  async getVentas({ usuarioId, clienteId }) {
+  // Obtener ventas con filtros
+  async getVentas({ usuarioId, clienteId, sucursalId }) {
 
     const where = {};
 
@@ -20,11 +22,17 @@ const ventaRepository = {
       where.clienteId = Number(clienteId);
     }
 
+    if (sucursalId) {
+      where.sucursalId = Number(sucursalId);
+    }
+
     return await prisma.venta.findMany({
       where,
       include: {
         detalles: true,
-        cliente: true
+        cliente: true,
+        usuario: true,
+        sucursal: true
       },
       orderBy: {
         id: "desc"
@@ -33,6 +41,7 @@ const ventaRepository = {
 
   },
 
+  // Obtener venta por ID
   async getVentaById(id) {
     return await prisma.venta.findUnique({
       where: {
@@ -40,7 +49,21 @@ const ventaRepository = {
       },
       include: {
         detalles: true,
-        cliente: true
+        cliente: true,
+        usuario: true,
+        sucursal: true
+      }
+    });
+  },
+
+  // Actualizar estado de venta
+  async updateEstado(id, estado, tx = prisma) {
+    return await tx.venta.update({
+      where: {
+        id: Number(id)
+      },
+      data: {
+        estado
       }
     });
   }
