@@ -117,6 +117,9 @@ model Producto {
   inventarios         Inventario[]
   movimientos         MovimientoInventario[]
   productoProveedores ProductoProveedor[]
+  detallesFactura DetalleFactura[]
+  impuestoId BigInt?
+  impuesto   Impuesto? @relation(fields: [impuestoId], references: [id])
 }
 
 model ProductoProveedor {
@@ -154,7 +157,7 @@ model MovimientoInventario {
   proveedorId             BigInt?
   detalleMotivo           String?                   @map("detalle_motivo") @db.VarChar(255)
   estado                  String                    @default("completado") @db.VarChar(30)
-  fechaMovimiento         DateTime                  @map("fecha_movimiento")
+  fechaMovimiento         DateTime                  @default(now()) @map("fecha_movimiento")
   motivoSalida            MotivoSalidaInventario?   @map("motivo_salida")
   observaciones           String?
   stockResultante         Int                       @map("stock_resultante")
@@ -252,7 +255,7 @@ model Cai {
 model NumeroFactura {
   id                BigInt       @id @default(autoincrement())
   numeroFormateado  String?      @unique @map("numero_formateado") @db.VarChar(50)
-  correlativo       Int          @default(autoincrement())
+  correlativo       Int          
   establecimientoId BigInt       @map("id_establecimiento")
   puntoEmisionId    BigInt       @map("id_punto_emision")
   tipoDocumentoId   BigInt       @map("id_tipo_documento")
@@ -261,14 +264,21 @@ model NumeroFactura {
   puntoEmision      PuntoEmision @relation(fields: [tipoDocumentoId, establecimientoId, puntoEmisionId], references: [tipoDocumentoId, establecimientoId, id])
   factura           Factura?
 
-  @@unique([tipoDocumentoId, establecimientoId, puntoEmisionId, correlativo])
+  @@unique([tipoDocumentoId, establecimientoId, puntoEmisionId, caiId, correlativo])
 }
+model Impuesto {
+  id     BigInt  @id @default(autoincrement())
+  nombre String
+  tasa   Decimal @db.Decimal(5,2)
+  activo Boolean @default(true)
 
+  productos Producto[]
+}
 model Venta {
   id        BigInt      @id @default(autoincrement())
   total     Decimal     @db.Decimal(10, 2)
   estado    EstadoVenta
-  createdAt DateTime?   @map("created_at")
+  createdAt DateTime?    @default(now())
 
   clienteId  BigInt?
   usuarioId  BigInt?
@@ -300,19 +310,47 @@ model Factura {
   subtotal         Decimal        @db.Decimal(10, 2)
   impuesto         Decimal        @db.Decimal(10, 2)
   total            Decimal        @db.Decimal(10, 2)
-  fechaEmision     DateTime       @map("fecha_emision")
+
+ 
+  importeExento     Decimal       @db.Decimal(10, 2) @default(0)
+  importeGravado15  Decimal       @db.Decimal(10, 2) @default(0)
+  importeGravado18  Decimal       @db.Decimal(10, 2) @default(0)
+
+  isv15             Decimal       @db.Decimal(10, 2) @default(0)
+  isv18             Decimal       @db.Decimal(10, 2) @default(0)
+
+  fechaEmision     DateTime?       @map("fecha_emision")
   numeroFormateado String?        @unique @map("numero_formateado") @db.VarChar(50)
+
   ventaId          BigInt?        @unique
   clienteId        BigInt?
   usuarioId        BigInt?
   sucursalId       BigInt?
+
   numeroFactura    NumeroFactura? @relation(fields: [numeroFormateado], references: [numeroFormateado])
   venta            Venta?         @relation(fields: [ventaId], references: [id])
   cliente          Cliente?       @relation(fields: [clienteId], references: [id])
   usuario          Usuario?       @relation(fields: [usuarioId], references: [id])
   sucursal         Sucursal?      @relation(fields: [sucursalId], references: [id])
 
+  detalles DetalleFactura[]
+
   @@map("Facturas")
+}
+model DetalleFactura {
+  id             BigInt  @id @default(autoincrement())
+  facturaId      BigInt
+  productoId     BigInt
+  cantidad       Int
+  precioUnitario Decimal @db.Decimal(10,2)
+  subtotal       Decimal @db.Decimal(10,2)
+
+  tasaImpuesto   Decimal @db.Decimal(5,2)
+  montoImpuesto  Decimal @db.Decimal(10,2)
+  tipoImpuesto   String
+
+  factura  Factura  @relation(fields: [facturaId], references: [id])
+  producto Producto @relation(fields: [productoId], references: [id])
 }
 
 model Establecimiento {
@@ -371,6 +409,7 @@ enum EstadoProducto {
 
 enum EstadoVenta {
   completada
+  pendiente
   anulada
 }
 
