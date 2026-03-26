@@ -21,6 +21,7 @@ import {
   type NotificationStateInterface,
 } from "../../../../interfaces/NotificacionesInterface";
 import type { UpdateMetodoInventarioForm } from "../../../../interfaces/Configuracion/MetodoInventarioInterface";
+import type { HeaderAdmin } from "../../../../interfaces/Headers/HeaderInterface";
 
 type MetodoValuacion = UpdateMetodoInventarioForm["metodoValuacion"];
 
@@ -56,7 +57,7 @@ const INFO_IMPORTANTE = {
   ],
 };
 
-const tituloMetodoInventario = {
+const tituloMetodoInventario: HeaderAdmin = {
   title: "Configuracion de Inventario",
   subTitle:
     "Define el metodo de valuacion usado para calcular el valor del inventario.",

@@ -3,9 +3,14 @@ export interface Icai {
   codigo: string;
   fechaInicio: string;
   fechaFin: string;
-  activo: string;
+  activo: boolean;
+  tipoDocumentoId?: string;
+  tipoDocumento?: ItipoDocumento;
   rangoEmision: IrangoEmision;
+  ultimaFacturaEmitida: IultimaFacturaEmitida | null;
+  rangoFormateado: string | null;
   cantidadFacturasEmitidas: number;
+  disponible?: boolean;
 }
 
 export interface IrangoEmision {
@@ -13,6 +18,19 @@ export interface IrangoEmision {
   inicio_rango: string;
   final_rango: string;
   id_cai: string;
+}
+
+export interface ItipoDocumento {
+  id_tipo_documento: string;
+  numero: number;
+  nombre: string;
+  disponible: boolean;
+}
+
+export interface IultimaFacturaEmitida {
+  id: string;
+  correlativo: number;
+  numeroFormateado: string;
 }
 
 export interface ResponseCaiVigente {
@@ -30,13 +48,15 @@ export const caiEmpty: Icai = {
   codigo: "",
   fechaInicio: "",
   fechaFin: "",
-  activo: "",
+  activo: false,
   rangoEmision: {
     id_rango_emision: "",
     inicio_rango: "",
     final_rango: "",
     id_cai: "",
   },
+  ultimaFacturaEmitida: null,
+  rangoFormateado: null,
   cantidadFacturasEmitidas: 0,
 };
 
@@ -46,6 +66,7 @@ export interface FormNuevoCai {
   fechaFin: Date;
   inicioRango: string;
   finalRango: string;
+  tipoDocumentoId: string;
 }
 
 export const formNuevoCaiEmpty: FormNuevoCai = {
@@ -54,4 +75,5 @@ export const formNuevoCaiEmpty: FormNuevoCai = {
   fechaFin: new Date(),
   inicioRango: "",
   finalRango: "",
+  tipoDocumentoId: "",
 };

@@ -1,11 +1,10 @@
-import { useQuery } from "@tanstack/react-query"
-import { ObtenerCaiVigente } from "../../services/CaiService"
+import { useQuery } from "@tanstack/react-query";
+import { ObtenerCaiVigente } from "../../services/CaiService";
 
-
-const useReadCaiVigente = () => 
-    useQuery({
-        queryKey:['caiVigente'],
-        queryFn: ObtenerCaiVigente
-    })
+const useReadCaiVigente = (idCai?: string) =>
+  useQuery({
+    queryKey: ["caiVigente", idCai ?? "ultimo"],
+    queryFn: () => ObtenerCaiVigente(idCai),
+  });
 
 export default useReadCaiVigente;

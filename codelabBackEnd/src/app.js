@@ -15,6 +15,13 @@ import configuracionContableController from './controllers/configuracionContable
 import caiController from './controllers/caiController.js';
 import tipoDocumentoController from './controllers/tipoDocumentoController.js';
 
+import elementoContableController from './controllers/elementoContableController.js';
+import clasificacionElementoContableController from './controllers/clasificacionElementoContableController.js';
+import cuentaContableController from './controllers/cuentaContableController.js';
+import subCuentaContableController from './controllers/subCuentaContableController.js';
+import diccNaturalezaCuentaController from './controllers/diccNaturalezaCuentaController.js';
+import catalogoContableController from './controllers/catalogoContableController.js';
+
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
 import * as permissionController from './controllers/permissionController.js';
@@ -22,7 +29,8 @@ import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
 import * as invoiceTypeController from './controllers/invoiceTypeController.js';
 import ventaController from './controllers/ventaController.js';
-
+import facturaController from './controllers/facturaController.js';
+import impuestoController from './controllers/impuestoController.js';
 //Parche: convierte de BigInt a String para que lo soporte Json.
 BigInt.prototype.toJSON = function() {
   return this.toString();
@@ -86,6 +94,7 @@ app.patch('/categorias/:id', categoriaController.patch);
 app.delete('/categorias/:id', categoriaController.remove);
 
 // Productos
+app.get('/impuestos', impuestoController.list);
 app.get('/productos/unidades', productoController.unidades);
 app.get('/productos/search', productoController.search);
 app.post('/productos', uploadProductoImage.single('imagen'), productoController.create);
@@ -94,7 +103,6 @@ app.get('/productos/:id', productoController.getById);
 app.put('/productos/:id', uploadProductoImage.single('imagen'), productoController.update);
 app.patch('/productos/:id', productoController.patch);
 app.delete('/productos/:id', productoController.remove);
-
 
 // Sucursales
 app.post('/sucursales', sucursalController.createSucursal);
@@ -127,36 +135,34 @@ app.get('/configuracion/metodo-inventario/opciones', configuracionContableContro
 
 // CAI
 app.post('/cai', caiController.create);
-app.get('/cai', caiController.list);
-app.get('/cai/vigente/ultimo', caiController.latestVigente);
+app.get('/cai/lista', caiController.list);
+app.get('/cai', caiController.getByIdOrLatest);
 
 // Roles
 app.get('/roles', roleController.getAll);
 app.get('/roles/:id', roleController.getById);
 app.post('/roles', roleController.create);
-app.put('/roles/:id', roleController.update); // modificar nombre de rol
-app.delete('/roles/:id', roleController.remove); // eliminar rol validando usuarios
+app.put('/roles/:id', roleController.update);
+app.delete('/roles/:id', roleController.remove);
 
-// permission categories
-app.post('/permission-categories', permissionCategoryController.create)
-app.get('/permission-categories', permissionCategoryController.getAll)
+// Permission categories
+app.post('/permission-categories', permissionCategoryController.create);
+app.get('/permission-categories', permissionCategoryController.getAll);
 
-// permissions
-app.post('/permissions', permissionController.create)
-app.get('/permissions', permissionController.getAll)
-app.put('/permissions/:id', permissionController.update)
-app.delete('/permissions/:id', permissionController.remove)
+// Permissions
+app.post('/permissions', permissionController.create);
+app.get('/permissions', permissionController.getAll);
+app.put('/permissions/:id', permissionController.update);
+app.delete('/permissions/:id', permissionController.remove);
 
-// role permissions
-app.post('/roles/:id/permissions', roleController.assignPermissions)
-app.put('/roles/:id/permissions', roleController.updatePermissions) // modificar permisos del rol
-app.get('/roles/:id/permissions', roleController.getPermissions)
+// Role permissions
+app.post('/roles/:id/permissions', roleController.assignPermissions);
+app.put('/roles/:id/permissions', roleController.updatePermissions);
+app.get('/roles/:id/permissions', roleController.getPermissions);
 
 // Usuarios
 app.post('/usuarios', usuarioController.create);
 app.get('/usuarios', usuarioController.getAll);
-
-// Rutas para obtener usuarios por rol y para operaciones CRUD específicas (Opcional por si se necesitan)
 app.get('/usuarios/roles', usuarioController.getUsersByRole);
 app.get('/usuarios/:id', usuarioController.getById);
 app.put('/usuarios/:id', usuarioController.update);
@@ -164,7 +170,7 @@ app.patch('/usuarios/:id/activo', usuarioController.activate);
 app.patch('/usuarios/:id/inactivo', usuarioController.deactivate);
 app.delete('/usuarios/:id', usuarioController.remove);
 
-// Invoice Types (Tipos de Documento o facturas)
+// Invoice Types
 app.post('/invoice-types', invoiceTypeController.create);
 app.get('/invoice-types', invoiceTypeController.getAll);
 app.get('/invoice-types/:id', invoiceTypeController.getById);
@@ -176,23 +182,70 @@ app.post('/ventas', ventaController.createVenta);
 app.get('/ventas', ventaController.getVentas);
 app.get('/ventas/:id', ventaController.getVentaById);
 
-// Rutas de clientes
+// Clientes
 app.post('/clientes', clientController.createClient);
 app.get('/clientes', clientController.getAllClients);
 app.get('/clientes/:id', clientController.getClientById);
 app.put('/clientes/:id', clientController.updateClient);
 
 // Tipo de documento por establecimiento
-// --- RUTAS MAESTRAS (Tipos de Documento) ---
 app.get('/tipos-documento', tipoDocumentoController.getAllTiposDocumento);
 app.get('/tipos-documento/:id', tipoDocumentoController.getTipoDocumentoById);
 app.post('/tipos-documento', tipoDocumentoController.createTipoDocumento);
 app.put('/tipos-documento/:id', tipoDocumentoController.updateTipoDocumento);
 app.patch('/tipos-documento/:id/estado', tipoDocumentoController.changeTipoDocumentoStatus);
-// --- RUTAS DE RELACIÓN (Establecimientos) ---
+
 app.get('/establecimientos/:id/documentos', tipoDocumentoController.getDocumentosByEstablecimiento);
 app.post('/establecimientos/:id/documentos', tipoDocumentoController.assignDocumentoToEstablecimiento);
 app.patch('/establecimiento-documento/:id/estado', tipoDocumentoController.patchEstadoEstablecimientoDocumento);
+
+// --- RUTAS DE FACTURAS ---
+app.post('/facturas', facturaController.createFactura);
+app.get('/facturas', facturaController.getFacturas);
+app.get('/facturas/:numeroFactura', facturaController.getFacturaByNumero);
+
+// =========================
+// CATÁLOGO CONTABLE
+// =========================
+
+// Naturalezas contables
+app.post('/naturalezas-contables', diccNaturalezaCuentaController.create);
+app.get('/naturalezas-contables', diccNaturalezaCuentaController.list);
+app.get('/naturalezas-contables/:id', diccNaturalezaCuentaController.getById);
+app.put('/naturalezas-contables/:id', diccNaturalezaCuentaController.update);
+app.patch('/naturalezas-contables/:id/estado', diccNaturalezaCuentaController.patch);
+
+// Elementos contables
+app.post('/elementos-contables', elementoContableController.create);
+app.get('/elementos-contables', elementoContableController.list);
+app.get('/elementos-contables/:id', elementoContableController.getById);
+app.put('/elementos-contables/:id', elementoContableController.update);
+app.patch('/elementos-contables/:id/estado', elementoContableController.patch);
+
+// Clasificaciones contables
+app.post('/clasificaciones-contables', clasificacionElementoContableController.create);
+app.get('/clasificaciones-contables', clasificacionElementoContableController.list);
+app.get('/clasificaciones-contables/:id', clasificacionElementoContableController.getById);
+app.put('/clasificaciones-contables/:id', clasificacionElementoContableController.update);
+app.patch('/clasificaciones-contables/:id/estado', clasificacionElementoContableController.patch);
+
+// Cuentas contables
+app.post('/cuentas-contables', cuentaContableController.create);
+app.get('/cuentas-contables', cuentaContableController.list);
+app.get('/cuentas-contables/:id', cuentaContableController.getById);
+app.put('/cuentas-contables/:id', cuentaContableController.update);
+app.patch('/cuentas-contables/:id/estado', cuentaContableController.patch);
+
+// Subcuentas contables
+app.post('/subcuentas-contables', subCuentaContableController.create);
+app.get('/subcuentas-contables', subCuentaContableController.list);
+app.get('/subcuentas-contables/:id', subCuentaContableController.getById);
+app.put('/subcuentas-contables/:id', subCuentaContableController.update);
+app.patch('/subcuentas-contables/:id/estado', subCuentaContableController.patch);
+
+// Catálogo contable (árbol)
+app.get('/catalogo-contable/arbol', catalogoContableController.arbol);
+app.get('/catalogo-contable/resumen', catalogoContableController.resumen);
 
 // Middleware de errores
 app.use(errorHandler);

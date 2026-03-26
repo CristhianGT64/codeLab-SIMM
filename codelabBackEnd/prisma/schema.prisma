@@ -117,6 +117,9 @@ model Producto {
   inventarios         Inventario[]
   movimientos         MovimientoInventario[]
   productoProveedores ProductoProveedor[]
+  detallesFactura DetalleFactura[]
+  impuestoId BigInt?
+  impuesto   Impuesto? @relation(fields: [impuestoId], references: [id])
 }
 
 model ProductoProveedor {
@@ -154,7 +157,7 @@ model MovimientoInventario {
   proveedorId             BigInt?
   detalleMotivo           String?                   @map("detalle_motivo") @db.VarChar(255)
   estado                  String                    @default("completado") @db.VarChar(30)
-  fechaMovimiento         DateTime                  @map("fecha_movimiento")
+  fechaMovimiento         DateTime                  @default(now()) @map("fecha_movimiento")
   motivoSalida            MotivoSalidaInventario?   @map("motivo_salida")
   observaciones           String?
   stockResultante         Int                       @map("stock_resultante")
@@ -197,7 +200,11 @@ model TipoDocumento {
   id                        BigInt                         @id @default(autoincrement()) @map("id_tipo_documento")
   numero                    Int                            @unique
   nombre                    String                         @unique @db.VarChar(150)
+  descripcion               String?                        @db.VarChar(255)
   disponible                Boolean                        @default(true)
+  createdAt                 DateTime                       @default(now()) @map("created_at")
+  updatedAt                 DateTime                       @default(now()) @updatedAt @map("updated_at")
+  cais                      Cai[]
   establecimientoDocumentos EstablecimientoTipoDocumento[]
 
   @@map("TiposDocumentos")
@@ -206,8 +213,8 @@ model TipoDocumento {
 
 model RangoEmision {
   id           BigInt        @id @default(autoincrement()) @map("id_rango_emision")
-  inicioRango  BigInt        @map("inicio_rango") @unique
-  finRango     BigInt        @map("final_rango") @unique
+  inicioRango  BigInt        @map("inicio_rango")
+  finRango     BigInt        @map("final_rango")
   caiId        BigInt        @unique @map("id_cai")
   cai          Cai           @relation(fields: [caiId], references: [id])
   puntosEmision PuntoEmision[]
@@ -237,6 +244,8 @@ model Cai {
   fechaInicio    DateTime         @map("fecha_inicio")
   fechaFin       DateTime         @map("fecha_fin")
   activo         Boolean
+  tipoDocumentoId BigInt          @default(1) @map("id_tipo_documento")
+  tipoDocumento  TipoDocumento    @relation(fields: [tipoDocumentoId], references: [id])
   rangoEmision   RangoEmision?
   numerosFactura NumeroFactura[]
 
@@ -246,7 +255,7 @@ model Cai {
 model NumeroFactura {
   id                BigInt       @id @default(autoincrement())
   numeroFormateado  String?      @unique @map("numero_formateado") @db.VarChar(50)
-  correlativo       Int          @default(autoincrement())
+  correlativo       Int          
   establecimientoId BigInt       @map("id_establecimiento")
   puntoEmisionId    BigInt       @map("id_punto_emision")
   tipoDocumentoId   BigInt       @map("id_tipo_documento")
@@ -255,14 +264,21 @@ model NumeroFactura {
   puntoEmision      PuntoEmision @relation(fields: [tipoDocumentoId, establecimientoId, puntoEmisionId], references: [tipoDocumentoId, establecimientoId, id])
   factura           Factura?
 
-  @@unique([tipoDocumentoId, establecimientoId, puntoEmisionId, correlativo])
+  @@unique([tipoDocumentoId, establecimientoId, puntoEmisionId, caiId, correlativo])
 }
+model Impuesto {
+  id     BigInt  @id @default(autoincrement())
+  nombre String
+  tasa   Decimal @db.Decimal(5,2)
+  activo Boolean @default(true)
 
+  productos Producto[]
+}
 model Venta {
   id        BigInt      @id @default(autoincrement())
   total     Decimal     @db.Decimal(10, 2)
   estado    EstadoVenta
-  createdAt DateTime?   @map("created_at")
+  createdAt DateTime?    @default(now())
 
   clienteId  BigInt?
   usuarioId  BigInt?
@@ -294,19 +310,47 @@ model Factura {
   subtotal         Decimal        @db.Decimal(10, 2)
   impuesto         Decimal        @db.Decimal(10, 2)
   total            Decimal        @db.Decimal(10, 2)
-  fechaEmision     DateTime       @map("fecha_emision")
+
+ 
+  importeExento     Decimal       @db.Decimal(10, 2) @default(0)
+  importeGravado15  Decimal       @db.Decimal(10, 2) @default(0)
+  importeGravado18  Decimal       @db.Decimal(10, 2) @default(0)
+
+  isv15             Decimal       @db.Decimal(10, 2) @default(0)
+  isv18             Decimal       @db.Decimal(10, 2) @default(0)
+
+  fechaEmision     DateTime?       @map("fecha_emision")
   numeroFormateado String?        @unique @map("numero_formateado") @db.VarChar(50)
+
   ventaId          BigInt?        @unique
   clienteId        BigInt?
   usuarioId        BigInt?
   sucursalId       BigInt?
+
   numeroFactura    NumeroFactura? @relation(fields: [numeroFormateado], references: [numeroFormateado])
   venta            Venta?         @relation(fields: [ventaId], references: [id])
   cliente          Cliente?       @relation(fields: [clienteId], references: [id])
   usuario          Usuario?       @relation(fields: [usuarioId], references: [id])
   sucursal         Sucursal?      @relation(fields: [sucursalId], references: [id])
 
+  detalles DetalleFactura[]
+
   @@map("Facturas")
+}
+model DetalleFactura {
+  id             BigInt  @id @default(autoincrement())
+  facturaId      BigInt
+  productoId     BigInt
+  cantidad       Int
+  precioUnitario Decimal @db.Decimal(10,2)
+  subtotal       Decimal @db.Decimal(10,2)
+
+  tasaImpuesto   Decimal @db.Decimal(5,2)
+  montoImpuesto  Decimal @db.Decimal(10,2)
+  tipoImpuesto   String
+
+  factura  Factura  @relation(fields: [facturaId], references: [id])
+  producto Producto @relation(fields: [productoId], references: [id])
 }
 
 model Establecimiento {
@@ -353,6 +397,97 @@ model PeriodoContable {
   @@map("periodo_contable")
 }
 
+model DiccNaturalezaCuenta {
+  id                  BigInt               @id @default(autoincrement()) @map("id_naturaleza")
+  uuidNaturaleza      String               @unique @map("uuid_naturaleza") @db.VarChar(64)
+  nombre              String               @db.VarChar(50)
+  codigo              String               @unique
+  disponible          Boolean              @default(true)
+
+  elementosContables  ElementoContable[]
+  subCuentasContables SubCuentaContable[]
+
+  @@map("DICC_NATURALEZA_CUENTA")
+}
+
+model ElementoContable {
+  id                           BigInt                           @id @default(autoincrement()) @map("id_elemento_contable")
+  uuidElementoContable         String                           @unique @map("uuid_elemento_contable") @db.VarChar(64)
+  nombre                       String                           @db.VarChar(50)
+  disponible                   Boolean                          @default(true)
+  codigoNumerico               Int                              @map("codigo_numerico")
+  idNaturaleza                 BigInt                           @map("id_naturaleza")
+
+  naturaleza                   DiccNaturalezaCuenta            @relation(fields: [idNaturaleza], references: [id])
+  clasificacionesContables     ClasificacionElementoContable[]
+  cuentasContables             CuentaContable[]
+  subCuentasContables          SubCuentaContable[]
+
+  @@unique([codigoNumerico])
+  @@index([idNaturaleza])
+  @@map("ELEMENTO_CONTABLE")
+}
+
+model ClasificacionElementoContable {
+  id                           BigInt               @id @default(autoincrement()) @map("id_clasificacion_elemento_contable")
+  uuidClasificacionContable    String               @unique @map("uuid_clasificacion_contable") @db.VarChar(64)
+  nombre                       String               @db.VarChar(50)
+  disponible                   Boolean              @default(true)
+  codigoNumerico               Int                  @map("codigo_numerico")
+  uuidElementoContable         String               @map("uuid_elemento_contable") @db.VarChar(64)
+
+  elementoContable             ElementoContable     @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
+  cuentasContables             CuentaContable[]
+  subCuentasContables          SubCuentaContable[]
+
+  @@unique([uuidElementoContable, codigoNumerico])
+  @@index([uuidElementoContable])
+  @@map("CLASIFICACION_ELEMENTO_CONTABLE")
+}
+
+model CuentaContable {
+  id                           BigInt                           @id @default(autoincrement()) @map("id_cuenta_contable")
+  uuidCuentaContable           String                           @unique @map("uuid_cuenta_contable") @db.VarChar(64)
+  nombre                       String                           @db.VarChar(50)
+  disponible                   Boolean                          @default(true)
+  uuidElementoContable         String                           @map("uuid_elemento_contable") @db.VarChar(64)
+  uuidClasificacionContable    String                           @map("uuid_clasificacion_contable") @db.VarChar(64)
+  codigoNumerico               Int                              @unique @map("codigo_numerico")
+  idNaturaleza                 BigInt                           @map("id_naturaleza")
+  elementoContable             ElementoContable                 @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
+  clasificacionContable        ClasificacionElementoContable    @relation(fields: [uuidClasificacionContable], references: [uuidClasificacionContable])
+  subCuentasContables          SubCuentaContable[]
+
+  @@unique([uuidClasificacionContable, codigoNumerico])
+  @@index([uuidElementoContable])
+  @@index([uuidClasificacionContable])
+  @@map("CUENTA_CONTABLE")
+}
+
+model SubCuentaContable {
+  id                           BigInt                           @id @default(autoincrement()) @map("id_sub_cuenta_contable")
+  uuidSubCuentaContable        String                           @unique @map("uuid_sub_cuenta_contable") @db.VarChar(64)
+  nombre                       String                           @db.VarChar(50)
+  disponible                   Boolean                          @default(true)
+  uuidElementoContable         String                           @map("uuid_elemento_contable") @db.VarChar(64)
+  uuidClasificacionContable    String                           @map("uuid_clasificacion_contable") @db.VarChar(64)
+  uuidCuentaContable           String                           @map("uuid_cuenta_contable") @db.VarChar(64)
+  codigoNumerico               Int                              @map("codigo_numerico")
+  idNaturaleza                 BigInt                           @map("id_naturaleza")
+
+  elementoContable             ElementoContable                 @relation(fields: [uuidElementoContable], references: [uuidElementoContable])
+  clasificacionContable        ClasificacionElementoContable    @relation(fields: [uuidClasificacionContable], references: [uuidClasificacionContable])
+  cuentaContable               CuentaContable                   @relation(fields: [uuidCuentaContable], references: [uuidCuentaContable])
+  naturaleza                   DiccNaturalezaCuenta            @relation(fields: [idNaturaleza], references: [id])
+
+  @@unique([uuidCuentaContable, codigoNumerico])
+  @@index([uuidElementoContable])
+  @@index([uuidClasificacionContable])
+  @@index([uuidCuentaContable])
+  @@index([idNaturaleza])
+  @@map("SUB_CUENTA_CONTABLE")
+}
+
 enum EstadoUsuario {
   activo
   inactivo
@@ -365,6 +500,7 @@ enum EstadoProducto {
 
 enum EstadoVenta {
   completada
+  pendiente
   anulada
 }
 

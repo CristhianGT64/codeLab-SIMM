@@ -1,3 +1,5 @@
+import type { FacturaData } from "./IFactura";
+
 export interface Product {
   id: string;
   code: string;
@@ -5,12 +7,20 @@ export interface Product {
   category: string;
   price: number;
   stock: number;
+  taxRate: number;
+  taxName: string;
 }
 
 export interface CartItem {
   product: Product;
   quantity: number;
   subtotal: number;
+}
+
+export interface CartTotals {
+  subtotal: number;
+  tax: number;
+  total: number;
 }
 
 export interface Sale {
@@ -21,6 +31,7 @@ export interface Sale {
   items: CartItem[];
   subtotal: number;
   total: number;
+  factura?: FacturaData;
 }
 
 export interface SaleRequest {
