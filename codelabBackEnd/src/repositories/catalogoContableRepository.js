@@ -6,10 +6,10 @@ import subCuentaContableRepository from './subCuentaContableRepository.js';
 const catalogoContableRepository = {
   async getAllData() {
     const [elementos, clasificaciones, cuentas, subcuentas] = await Promise.all([
-      elementoContableRepository.list({ disponible: true }),
-      clasificacionElementoContableRepository.list({ disponible: true }),
-      cuentaContableRepository.list({ disponible: true }),
-      subCuentaContableRepository.list({ disponible: true }),
+      elementoContableRepository.list(),
+      clasificacionElementoContableRepository.list(),
+      cuentaContableRepository.list(),
+      subCuentaContableRepository.list(),
     ]);
 
     return { elementos, clasificaciones, cuentas, subcuentas };

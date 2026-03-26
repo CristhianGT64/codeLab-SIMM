@@ -65,7 +65,7 @@ export const DashboardDataAdmin: DashboardInterface[] = [
   },
   {
     svg: "m9 14.25 6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z",
-    title: "Config. CAI",
+    title: "Configuración CAI",
     description: "Gestion de configuracion del CAI",
     buttonDescription: "Administrar →",
     colorBorder: "border-[#4a6eb0]",
@@ -92,6 +92,16 @@ export const DashboardDataAdmin: DashboardInterface[] = [
     colorSvg: "from-[#0aa6a2] to-[#4661b0]",
     url: "/Tipos-Documento-Management",
     permiso: "Ver tipos de documento",
+  },
+  {
+    svg: "M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25",
+    title: "Catálogo Cuentas Contables",
+    description: "Gestión del catálogo jerárquico de cuentas contables",
+    buttonDescription: "Administrar →",
+    colorBorder: "border-[#4a6eb0]",
+    colorSvg: "from-[#0aa6a2] to-[#4661b0]",
+    url: "/Catalogo-Cuentas-Contables",
+    permiso: "Ver cuentas contables",
   },
 ];
 
