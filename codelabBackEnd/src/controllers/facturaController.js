@@ -53,30 +53,32 @@ function mapFacturaResponse(f) {
 const facturaController = {
 
   // crear facturas
-  async createFactura(req, res, next) {
-    try {
+async createFactura(req, res, next) {
+  try {
 
-      const { clienteId, usuarioId, sucursalId, items, ventaId } = req.body;
+    const { clienteId, usuarioId, sucursalId, items, ventaId } = req.body;
 
-      const factura = await facturaService.emitFactura({
-        clienteId,
-        usuarioId,
-        sucursalId,
-        items,
-        ventaId
-      });
+    const facturaCreada = await facturaService.emitFactura({
+      clienteId,
+      usuarioId,
+      sucursalId,
+      items,
+      ventaId
+    });
 
-    
-      res.json({
-        success: true,
-        data: mapFacturaResponse(factura)
-      });
+    const factura = await facturaService.getFacturaByNumero(
+      facturaCreada.numeroFormateado
+    );
 
-    } catch (error) {
-      next(error);
-    }
-  },
+    res.json({
+      success: true,
+      data: mapFacturaResponse(factura)
+    });
 
+  } catch (error) {
+    next(error);
+  }
+},
   // GET facturas
   async getFacturas(req, res, next) {
     try {
