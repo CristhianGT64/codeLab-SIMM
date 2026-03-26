@@ -6,19 +6,15 @@ import inventarioRepository from "../repositories/inventarioRepository.js";
 import clienteRepository from "../repositories/clientRepository.js";
 import ventaRepository from "../repositories/ventaRepository.js";
 
-const ISV = 0.15;
-
-
 const facturaService = {
 
   async emitFactura({ clienteId, usuarioId, sucursalId, items, ventaId }) {
-  try {
-    console.log("🚀 INICIO emisión de factura");
 
     return await prisma.$transaction(async (tx) => {
 
-      console.log("1️⃣ Validaciones iniciales");
-
+      
+      // Validaciones básicas
+      
       if (!usuarioId) throw new Error("usuarioId es requerido");
       if (!sucursalId) throw new Error("sucursalId es requerido");
 
@@ -26,21 +22,16 @@ const facturaService = {
         throw new Error("Debe enviar items o ventaId");
       }
 
-      // CLIENTE
       if (clienteId) {
-        console.log("2️⃣ Validando cliente:", clienteId);
-        const cliente = await clienteRepository.findById(clienteId);
+        const cliente = await clientRepository.findById(clienteId);
         if (!cliente) throw new Error("Cliente no existe");
       }
 
       let productosProcesados = [];
 
-      // OBTENER PRODUCTOS
-      if (ventaId) {
-        console.log("3️⃣ Obteniendo productos desde venta:", ventaId);
-
+      if (ventaId && !clienteId ) {
         const venta = await ventaRepository.getVentaById(ventaId);
-
+        clienteId= venta?.clienteId  || null; // asignando clienteId de la venta o null si no tiene
         if (!venta) throw new Error("Venta no existe");
         if (venta.estado !== "pendiente") {
           throw new Error("La venta ya fue procesada");
@@ -52,7 +43,6 @@ const facturaService = {
         }));
 
       } else {
-        console.log("3️⃣ Usando items enviados directamente");
         productosProcesados = items;
       }
 
@@ -60,94 +50,92 @@ const facturaService = {
         throw new Error("La factura debe contener productos");
       }
 
-      console.log("📦 Productos a procesar:", productosProcesados.length);
+      // Variables fiscales
+  
+      let importeExento = 0;
+      let importeGravado15 = 0;
+      let importeGravado18 = 0;
 
-      // VALIDAR PRODUCTOS
-      let subtotal = 0;
+      let isv15 = 0;
+      let isv18 = 0;
+
       const detalles = [];
 
+      // productos
       for (const item of productosProcesados) {
 
-        console.log(`🔎 Validando producto ${item.productoId}`);
-
-        if (item.cantidad <= 0) {
-          throw new Error("Cantidad inválida");
-        }
+        if (item.cantidad <= 0) throw new Error("Cantidad inválida");
 
         const producto = await productoRepository.findById(item.productoId);
-        if (!producto) {
-          throw new Error(`Producto ${item.productoId} no existe`);
-        }
 
-        const inventario = await inventarioRepository.findStock(
-          item.productoId,
-          sucursalId
-        );
+        if (!producto) throw new Error(`Producto ${item.productoId} no existe`);
+        if (!producto.impuesto) throw new Error(`Producto ${producto.nombre} sin impuesto`);
 
-        if (!inventario) {
-          throw new Error(`Sin inventario para ${producto.nombre}`);
-        }
+        const tasa = Number(producto.impuesto.tasa);
 
+        const inventario = await inventarioRepository.findStock(item.productoId, sucursalId);
+
+        if (!inventario) throw new Error(`Sin inventario para ${producto.nombre}`);
         if (inventario.stockActual < item.cantidad) {
           throw new Error(`Stock insuficiente para ${producto.nombre}`);
         }
 
         const precioUnitario = Number(producto.precioVenta);
         const subtotalItem = precioUnitario * item.cantidad;
+        const impuestoItem = Number((subtotalItem * tasa).toFixed(2));
 
-        subtotal += subtotalItem;
+        if (tasa === 0) {
+          importeExento += subtotalItem;
+        } else if (tasa === 0.15) {
+          importeGravado15 += subtotalItem;
+          isv15 += impuestoItem;
+        } else if (tasa === 0.18) {
+          importeGravado18 += subtotalItem;
+          isv18 += impuestoItem;
+        } else {
+          throw new Error("Tasa no soportada");
+        }
 
         detalles.push({
           productoId: item.productoId,
           cantidad: item.cantidad,
           precioUnitario,
-          subtotal: subtotalItem
+          subtotal: subtotalItem,
+          tasaImpuesto: tasa,
+          montoImpuesto: impuestoItem,
+          tipoImpuesto: producto.impuesto.nombre
         });
       }
 
-      console.log("💰 Subtotal calculado:", subtotal);
+      // Totales
+      const subtotal = importeExento + importeGravado15 + importeGravado18;
+      const impuestoTotal = isv15 + isv18;
+      const total = subtotal + impuestoTotal;
 
-      const impuesto = subtotal * ISV;
-      const total = subtotal + impuesto;
+      // cai y numero de factura
+      const cais = await tx.cai.findMany({
+        where: {
+          activo: true,
+          fechaInicio: { lte: new Date() },
+          fechaFin: { gte: new Date() }
+        },
+        include: { rangoEmision: true },
+        orderBy: { fechaInicio: "asc" } 
+      });
 
-      console.log("🧾 Impuesto:", impuesto, "Total:", total);
+      if (!cais.length) {
+        throw new Error("No hay CAI vigente");
+      }
 
-      // CAI
-      console.log("4️⃣ Buscando CAI vigente");
+      let numeroFactura = null;
+      let caiSeleccionado = null;
 
-   const cai = await tx.cai.findFirst({
-  where: {
-    activo: true,
-    fechaInicio: { lte: new Date() },
-    fechaFin: { gte: new Date() }
-  },
-  include: {
-    rangoEmision: true
-  }
-});
+      //  Rotacion automática de CAI
+      for (const cai of cais) {
 
-if (!cai) throw new Error("No hay CAI vigente");
+        if (!cai.rangoEmision) continue;
 
-if (!cai.rangoEmision) {
-  throw new Error("CAI sin rango de emisión");
-}
-
-const rango = cai.rangoEmision;
-
-console.log("📊 RANGO DESDE CAI:", {
-  inicio: Number(rango.inicioRango),
-  fin: Number(rango.finRango)
-});
-
-
-      // CORRELATIVO
-      console.log("6️⃣ Generando correlativo");
-
-      let numeroFactura;
-
-      for (let intento = 0; intento < 3; intento++) {
-
-        console.log(`🔁 Intento correlativo #${intento + 1}`);
+        const rango = cai.rangoEmision;
 
         const last = await facturaRepository.getLastCorrelativo({
           tipoDocumentoId: 1,
@@ -155,15 +143,13 @@ console.log("📊 RANGO DESDE CAI:", {
           puntoEmisionId: 1,
           caiId: cai.id
         });
-        
-        const correlativo = last + 1;
-        
-        if (
-            
-        correlativo < Number(rango.inicioRango) ||
-        correlativo > Number(rango.finRango)
-        ) {
-        throw new Error("CAI agotado");
+
+        const correlativo = last === 0
+          ? Number(rango.inicioRango)
+          : last + 1;
+
+        if (correlativo > Number(rango.finRango)) {
+          continue; // CAI agotado >>siguiente
         }
 
         const numeroFormateado =
@@ -182,75 +168,70 @@ console.log("📊 RANGO DESDE CAI:", {
             numeroFormateado
           }, tx);
 
-          console.log("✅ Correlativo generado:", numeroFormateado);
+          caiSeleccionado = cai;
           break;
 
         } catch (error) {
-          console.warn("⚠️ Error correlativo, reintentando...");
-          if (intento === 2) throw error;
+          continue; // intenta siguiente CAI
         }
       }
 
-      // FACTURA
-      console.log("7️⃣ Creando factura");
+      if (!numeroFactura) {
+        throw new Error("Todos los CAI están agotados");
+      }
 
+      // Factura
       const factura = await facturaRepository.createFactura({
         subtotal,
-        impuesto,
+        impuesto: impuestoTotal,
         total,
+
+        importeExento,
+        importeGravado15,
+        importeGravado18,
+        isv15,
+        isv18,
+
         fechaEmision: new Date(),
 
         cliente: clienteId
-            ? { connect: { id: BigInt(clienteId) } }
-            : undefined,
+          ? { connect: { id: BigInt(clienteId) } }
+          : undefined,
 
         usuario: { connect: { id: BigInt(usuarioId) } },
         sucursal: { connect: { id: BigInt(sucursalId) } },
 
         venta: ventaId
-            ? { connect: { id: BigInt(ventaId) } }
-            : undefined,
+          ? { connect: { id: BigInt(ventaId) } }
+          : undefined,
 
         numeroFactura: {
-            connect: { id: BigInt(numeroFactura.id) }
+          connect: { id: BigInt(numeroFactura.id) }
         }
 
-        }, tx);
+      }, tx);
 
-      console.log("✅ Factura creada ID:", factura.id);
-
-      // DETALLES
-      console.log("8️⃣ Creando detalles");
-
+      // Detalle de lo de la venta
       await facturaRepository.createDetalleFacturaMany(
-        detalles.map(d => ({ ...d, facturaId: factura.id })),
-                tx
-            );
+        detalles.map(d => ({
+          ...d,
+          facturaId: factura.id
+        })),
+        tx
+      );
 
-            console.log("9️⃣ Actualizando inventario");
+      // inventario y kardex
+      for (const d of detalles) {
 
-        for (const d of detalles) {
-
-        // 1. Obtener inventario actual
         const inventario = await inventarioRepository.findStock(
-            d.productoId,
-            sucursalId
+          d.productoId,
+          sucursalId
         );
 
-        if (!inventario) {
-            throw new Error("Inventario no encontrado");
-        }
-
-        // 2. Calcular stock resultante
         const stockResultante = inventario.stockActual - d.cantidad;
 
-        if (stockResultante < 0) {
-            throw new Error("Stock insuficiente en movimiento");
-        }
-
-        // 3. Registrar movimiento (kardex)
         await tx.movimientoInventario.create({
-            data: {
+          data: {
             productoId: BigInt(d.productoId),
             sucursalId: BigInt(sucursalId),
             cantidad: d.cantidad,
@@ -260,37 +241,30 @@ console.log("📊 RANGO DESDE CAI:", {
             referenciaId: factura.id,
             fechaMovimiento: new Date(),
             stockResultante
-            }
+          }
         });
 
-        // 4. Actualizar inventario
         await inventarioRepository.decreaseStock(
-            d.productoId,
-            sucursalId,
-            d.cantidad,
-            tx
+          d.productoId,
+          sucursalId,
+          d.cantidad,
+          tx
         );
-        }
-      // ACTUALIZAR VENTA
-      if (ventaId) {
-        console.log("🔄 Actualizando estado de venta");
+      }
 
+      // Actualizar estado de venta
+      if (ventaId) {
         await tx.venta.update({
           where: { id: ventaId },
           data: { estado: "completada" }
         });
       }
 
-      console.log("🎉 FACTURA COMPLETADA");
-
       return factura;
+
     });
 
-  } catch (error) {
-    console.error("❌ ERROR REAL EN TRANSACCIÓN:", error.message);
-    throw error;
-  }
-},
+  },
 
   async getFacturas(filtros) {
     return await facturaRepository.findFacturas(filtros);
@@ -298,11 +272,7 @@ console.log("📊 RANGO DESDE CAI:", {
 
   async getFacturaByNumero(numeroFactura) {
     const factura = await facturaRepository.findFacturaByNumero(numeroFactura);
-
-    if (!factura) {
-      throw new Error("Factura no encontrada");
-    }
-
+    if (!factura) throw new Error("Factura no encontrada");
     return factura;
   }
 

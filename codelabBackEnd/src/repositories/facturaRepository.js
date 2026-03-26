@@ -33,9 +33,44 @@ const facturaRepository = {
       }
     });
   },
+  async findFacturaByNumero(numeroFactura) {
+  return await prisma.factura.findFirst({
+    where: {
+      numeroFormateado: numeroFactura 
+    },
+    include: {
+      detalles: {
+        include: {
+          producto: {
+            select: {
+              nombre: true
+            }
+          }
+        }
+      },
+      cliente: true,
+      usuario: true,
+      sucursal: true,
+      numeroFactura: {
+        include: {
+          cai: {
+              include: {
+                rangoEmision: {
+                  select: {
+                    inicioRango: true,
+                    finRango: true
+                  }
+                }
+              }
+            }
+        }
+      }
+    }
+  });
+},
 
   //  Listar facturas con filtros
-  async findFacturas({ usuarioId, clienteId, sucursalId }) {
+ /*  async findFacturas({ usuarioId, clienteId, sucursalId }) {
 
     const where = {};
 
@@ -57,7 +92,18 @@ const facturaRepository = {
         cliente: true,
         usuario: true,
         sucursal: true,
-        numeroFactura: true
+        numeroFactura: {
+          include: {
+            cai: {
+              select: {
+                id: true,
+                codigo: true,
+                fechaInicio: true,
+                fechaFin: true
+              }
+            }
+          }
+        }
       },
       orderBy: {
         id: "desc"
@@ -65,7 +111,48 @@ const facturaRepository = {
     });
 
   },
+ */
+  async findFacturas({ usuarioId, clienteId, sucursalId }) {
 
+  const where = {};
+
+  if (usuarioId) where.usuarioId = Number(usuarioId);
+  if (clienteId) where.clienteId = Number(clienteId);
+  if (sucursalId) where.sucursalId = Number(sucursalId);
+
+  return await prisma.factura.findMany({
+    where,
+    include: {
+      detalles: {
+        include: {
+          producto: {
+            select: {
+              nombre: true
+            }
+          }
+        }
+      },
+      cliente: true,
+      usuario: true,
+      sucursal: true,
+      numeroFactura: {
+        include: {
+          cai: {
+            include: {
+              rangoEmision: {
+                select: {
+                  inicioRango: true,
+                  finRango: true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    orderBy: { id: "desc" }
+  });
+},
   //  Obtener último correlativo
  async getLastCorrelativo({
   tipoDocumentoId,

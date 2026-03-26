@@ -9,7 +9,6 @@ const ventaService = {
 
   async createVenta({ clienteId, usuarioId, sucursalId, productos }) {
 
-    // Validaciones básicas
     if (!usuarioId) {
       throw new Error("usuarioId es requerido");
     }
@@ -22,19 +21,17 @@ const ventaService = {
       throw new Error("La venta debe contener productos");
     }
 
-    // Validar cliente
     if (clienteId) {
       const cliente = await clienteRepository.findById(clienteId);
-
       if (!cliente) {
         throw new Error("Cliente no existe");
       }
     }
 
     let total = 0;
+    let totalImpuesto = 0;
     const detalles = [];
 
-    // Validar productos + calcular estimado
     for (const item of productos) {
 
       if (item.cantidad <= 0) {
@@ -47,7 +44,13 @@ const ventaService = {
         throw new Error(`Producto ${item.productoId} no existe`);
       }
 
-      // SOLO validamos stock, NO lo modificamos
+      
+      if (!producto.impuesto) {
+        throw new Error(`Producto ${producto.nombre} no tiene impuesto asignado`);
+      }
+
+      const tasa = Number(producto.impuesto.tasa);
+
       const inventario = await inventarioRepository.findStock(
         item.productoId,
         sucursalId
@@ -64,7 +67,11 @@ const ventaService = {
       const precioUnitario = Number(producto.precioVenta);
       const subtotal = precioUnitario * item.cantidad;
 
-      total += subtotal;
+      
+      const impuesto = Number((subtotal * tasa).toFixed(2));
+
+      total += subtotal + impuesto;
+      totalImpuesto += impuesto;
 
       detalles.push({
         productoId: item.productoId,
@@ -75,28 +82,26 @@ const ventaService = {
 
     }
 
-    // Transacción (SIN inventario)
     return await prisma.$transaction(async (tx) => {
 
-  const venta = await ventaRepository.createVenta({
-    usuarioId,
-    sucursalId,
-    total,
-    estado: "pendiente",
-    ...(clienteId && { clienteId })
-  }, tx);
+      const venta = await ventaRepository.createVenta({
+        usuarioId,
+        sucursalId,
+        total, 
+        estado: "pendiente",
+        ...(clienteId && { clienteId })
+      }, tx);
 
-  const detallesVenta = detalles.map(detalle => ({
-    ...detalle,
-    ventaId: venta.id
-  }));
+      const detallesVenta = detalles.map(detalle => ({
+        ...detalle,
+        ventaId: venta.id
+      }));
 
-  // IMPORTANTE: pasar tx
-  await detalleVentaRepository.createManyDetalleVenta(detallesVenta, tx);
+      await detalleVentaRepository.createManyDetalleVenta(detallesVenta, tx);
 
-  return venta;
+      return venta;
 
-});
+    });
 
   },
 

@@ -90,6 +90,7 @@ ON CONFLICT (id) DO UPDATE SET
   id_punto_emision = EXCLUDED.id_punto_emision,
   id_tipo_documento = EXCLUDED.id_tipo_documento;
 
+ 
 -- 3) Clientes y proveedores
 INSERT INTO public."Cliente" (id, nombre_completo, identificacion, telefono, correo, direccion, "tipoClienteId") VALUES
   (1, 'Cliente Demo', 0801199000001, '9999-0001', 'cliente.demo@correo.com', 'Tegucigalpa', 1),
@@ -129,13 +130,13 @@ INSERT INTO public.producto_proveedor ("productoId", "proveedorId") VALUES
 ON CONFLICT ("productoId", "proveedorId") DO NOTHING;
 
 -- 5) Operación comercial
-INSERT INTO public."Venta" (id, total, estado, created_at, "clienteId", "usuarioId", "sucursalId") VALUES
+INSERT INTO public."Venta" (id, total, estado, "createdAt", "clienteId", "usuarioId", "sucursalId") VALUES
   (1, 28.00, 'completada', NULL, NULL, 2, 2),
   (2, 328.00, 'completada', NULL, NULL, 2, 2)
 ON CONFLICT (id) DO UPDATE SET
   total = EXCLUDED.total,
   estado = EXCLUDED.estado,
-  created_at = EXCLUDED.created_at,
+  "createdAt" = EXCLUDED."createdAt",
   "clienteId" = EXCLUDED."clienteId",
   "usuarioId" = EXCLUDED."usuarioId",
   "sucursalId" = EXCLUDED."sucursalId";

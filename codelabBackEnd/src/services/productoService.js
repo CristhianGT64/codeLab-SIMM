@@ -230,7 +230,6 @@ const productoService = {
     const current = await productoRepository.findById(id);
     if (!current) throw new Error('Producto no encontrado.');
 
-    // 🔥 VALIDAR IMPUESTO SI VIENE
     if (body.impuestoId !== undefined) {
       const impuesto = await prisma.impuesto.findUnique({
         where: { id: BigInt(body.impuestoId) },

@@ -79,7 +79,6 @@ const productoRepository = {
       },
     });
   },
-  /////
   async search(query) {
 
     return prisma.producto.findMany({
@@ -123,7 +122,6 @@ const productoRepository = {
 
   },
 
-  ////
 
   update(id, data) {
     return prisma.producto.update({

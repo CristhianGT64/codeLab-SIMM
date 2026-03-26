@@ -307,18 +307,31 @@ model Factura {
   subtotal         Decimal        @db.Decimal(10, 2)
   impuesto         Decimal        @db.Decimal(10, 2)
   total            Decimal        @db.Decimal(10, 2)
+
+ 
+  importeExento     Decimal       @db.Decimal(10, 2) @default(0)
+  importeGravado15  Decimal       @db.Decimal(10, 2) @default(0)
+  importeGravado18  Decimal       @db.Decimal(10, 2) @default(0)
+
+  isv15             Decimal       @db.Decimal(10, 2) @default(0)
+  isv18             Decimal       @db.Decimal(10, 2) @default(0)
+
   fechaEmision     DateTime?       @map("fecha_emision")
   numeroFormateado String?        @unique @map("numero_formateado") @db.VarChar(50)
+
   ventaId          BigInt?        @unique
   clienteId        BigInt?
   usuarioId        BigInt?
   sucursalId       BigInt?
+
   numeroFactura    NumeroFactura? @relation(fields: [numeroFormateado], references: [numeroFormateado])
   venta            Venta?         @relation(fields: [ventaId], references: [id])
   cliente          Cliente?       @relation(fields: [clienteId], references: [id])
   usuario          Usuario?       @relation(fields: [usuarioId], references: [id])
   sucursal         Sucursal?      @relation(fields: [sucursalId], references: [id])
+
   detalles DetalleFactura[]
+
   @@map("Facturas")
 }
 model DetalleFactura {
@@ -328,6 +341,10 @@ model DetalleFactura {
   cantidad       Int
   precioUnitario Decimal @db.Decimal(10,2)
   subtotal       Decimal @db.Decimal(10,2)
+
+  tasaImpuesto   Decimal @db.Decimal(5,2)
+  montoImpuesto  Decimal @db.Decimal(10,2)
+  tipoImpuesto   String
 
   factura  Factura  @relation(fields: [facturaId], references: [id])
   producto Producto @relation(fields: [productoId], references: [id])
