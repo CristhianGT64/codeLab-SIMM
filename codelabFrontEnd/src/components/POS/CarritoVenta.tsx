@@ -53,6 +53,9 @@ export default function CarritoVenta({
                     }).format(item.product.price)}{" "}
                     c/u
                   </div>
+                  <div className="text-xs text-[#4a6eb0] mt-1">
+                    {item.product.taxName}: {(item.product.taxRate * 100).toFixed(0)}%
+                  </div>
                 </div>
                 <ButtonsComponet
                     {...botonEliminarCarrito}
@@ -90,11 +93,20 @@ export default function CarritoVenta({
                     }
                   />
                 </div>
-                <div className="text-lg font-bold text-[#079f9b]">
-                  {new Intl.NumberFormat("es-HN", {
-                    style: "currency",
-                    currency: "HNL",
-                  }).format(item.subtotal)}
+                <div className="text-right">
+                  <div className="text-lg font-bold text-[#079f9b]">
+                    {new Intl.NumberFormat("es-HN", {
+                      style: "currency",
+                      currency: "HNL",
+                    }).format(item.subtotal + item.subtotal * item.product.taxRate)}
+                  </div>
+                  <div className="text-xs text-[#4a6eb0]">
+                    Base:{" "}
+                    {new Intl.NumberFormat("es-HN", {
+                      style: "currency",
+                      currency: "HNL",
+                    }).format(item.subtotal)}
+                  </div>
                 </div>
               </div>
             </div>

@@ -13,19 +13,23 @@ const ventaService = {
       throw new Error("usuarioId es requerido");
     }
 
+    if (!sucursalId) {
+      throw new Error("sucursalId es requerido");
+    }
+
     if (!productos || productos.length === 0) {
       throw new Error("La venta debe contener productos");
     }
 
     if (clienteId) {
       const cliente = await clienteRepository.findById(clienteId);
-
       if (!cliente) {
         throw new Error("Cliente no existe");
       }
     }
 
     let total = 0;
+    let totalImpuesto = 0;
     const detalles = [];
 
     for (const item of productos) {
@@ -39,6 +43,13 @@ const ventaService = {
       if (!producto) {
         throw new Error(`Producto ${item.productoId} no existe`);
       }
+
+      
+      if (!producto.impuesto) {
+        throw new Error(`Producto ${producto.nombre} no tiene impuesto asignado`);
+      }
+
+      const tasa = Number(producto.impuesto.tasa);
 
       const inventario = await inventarioRepository.findStock(
         item.productoId,
@@ -56,7 +67,11 @@ const ventaService = {
       const precioUnitario = Number(producto.precioVenta);
       const subtotal = precioUnitario * item.cantidad;
 
-      total += subtotal;
+      
+      const impuesto = Number((subtotal * tasa).toFixed(2));
+
+      total += subtotal + impuesto;
+      totalImpuesto += impuesto;
 
       detalles.push({
         productoId: item.productoId,
@@ -67,30 +82,22 @@ const ventaService = {
 
     }
 
-    return await prisma.$transaction(async () => {
+    return await prisma.$transaction(async (tx) => {
 
       const venta = await ventaRepository.createVenta({
-        clienteId,
         usuarioId,
         sucursalId,
-        total,
-        estado: "completada"
-      });
+        total, 
+        estado: "pendiente",
+        ...(clienteId && { clienteId })
+      }, tx);
 
       const detallesVenta = detalles.map(detalle => ({
         ...detalle,
         ventaId: venta.id
       }));
 
-      await detalleVentaRepository.createManyDetalleVenta(detallesVenta);
-
-      for (const detalle of detalles) {
-        await inventarioRepository.decreaseStock(
-          detalle.productoId,
-          sucursalId,
-          detalle.cantidad
-        );
-      }
+      await detalleVentaRepository.createManyDetalleVenta(detallesVenta, tx);
 
       return venta;
 

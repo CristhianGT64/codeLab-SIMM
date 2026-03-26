@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { CartItem } from "../../interfaces/POS/IPos";
+import type { CartItem, CartTotals } from "../../interfaces/POS/IPos";
 import { faCheckCircle, faUser } from "@fortawesome/free-solid-svg-icons";
 
 export default function ConfirmarVentas({
@@ -10,7 +10,7 @@ export default function ConfirmarVentas({
   user,
 }: {
   cart: CartItem[];
-  totals: { subtotal: number; total: number };
+  totals: CartTotals;
   confirmSale: () => void;
   setShowConfirmModal: (show: boolean) => void;
   user: { nombreCompleto: string } | null;
@@ -52,15 +52,30 @@ export default function ConfirmarVentas({
                   key={item.product.id}
                   className="flex justify-between items-center text-sm"
                 >
-                  <span className="text-[#114c6f]">
-                    {item.product.name} x {item.quantity}
-                  </span>
-                  <span className="font-semibold text-[#079f9b]">
-                    {new Intl.NumberFormat("es-HN", {
-                      style: "currency",
-                      currency: "HNL",
-                    }).format(item.subtotal)}
-                  </span>
+                  <div className="text-[#114c6f]">
+                    <div>
+                      {item.product.name} x {item.quantity}
+                    </div>
+                    <div className="text-xs text-[#4a6eb0]">
+                      {item.product.taxName}: {(item.product.taxRate * 100).toFixed(0)}%
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold text-[#079f9b]">
+                      {new Intl.NumberFormat("es-HN", {
+                        style: "currency",
+                        currency: "HNL",
+                      }).format(item.subtotal)}
+                    </div>
+                    <div className="text-xs text-[#4a6eb0]">
+                      +
+                      {" "}
+                      {new Intl.NumberFormat("es-HN", {
+                        style: "currency",
+                        currency: "HNL",
+                      }).format(item.subtotal * item.product.taxRate)}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -73,6 +88,15 @@ export default function ConfirmarVentas({
                     style: "currency",
                     currency: "HNL",
                   }).format(totals.subtotal)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[#4a6eb0]">Impuesto:</span>
+                <span className="font-semibold text-[#114c6f]">
+                  {new Intl.NumberFormat("es-HN", {
+                    style: "currency",
+                    currency: "HNL",
+                  }).format(totals.tax)}
                 </span>
               </div>
               <div className="flex justify-between items-center">

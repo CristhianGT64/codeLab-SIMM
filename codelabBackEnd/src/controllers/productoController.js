@@ -45,7 +45,7 @@ const productoController = {
       next(e);
     }
   },
-  //// Búsqueda de productos por nombre o SKU (query)
+  // Búsqueda de productos por nombre o SKU (query)
   async search(req, res, next) {
 
     try {
@@ -62,7 +62,6 @@ const productoController = {
     }
 
   },
-  ///
   async update(req, res, next) {
     try {
       const imagenPath = req.file ? `/uploads/productos/${req.file.filename}` : undefined;

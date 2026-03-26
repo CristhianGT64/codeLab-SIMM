@@ -1,4 +1,4 @@
-import type { CartItem } from "../../interfaces/POS/IPos";
+import type { CartItem, CartTotals } from "../../interfaces/POS/IPos";
 import ButtonsComponet from "../buttonsComponents/ButtonsComponet";
 import { botonFinalizarVenta } from "../../data/dataAdministrator/POSData";
 
@@ -9,7 +9,7 @@ export default function TotalSubTotalVenta({
   permisos
 }: {
   cart: CartItem[];
-  totals: { subtotal: number; total: number };
+  totals: CartTotals;
   completeSale: () => void;
   permisos: string[];
 }) {
@@ -23,6 +23,15 @@ export default function TotalSubTotalVenta({
               style: "currency",
               currency: "HNL",
             }).format(totals.subtotal)}
+          </span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-[#4a6eb0]">Impuesto:</span>
+          <span className="text-lg font-semibold text-[#114c6f]">
+            {new Intl.NumberFormat("es-HN", {
+              style: "currency",
+              currency: "HNL",
+            }).format(totals.tax)}
           </span>
         </div>
         <div className="flex justify-between items-center pt-2 border-t-2 border-gray-300">

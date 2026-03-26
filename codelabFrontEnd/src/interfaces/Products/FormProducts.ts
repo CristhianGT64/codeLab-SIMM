@@ -2,6 +2,7 @@ export interface FormProducts {
   nombre: string;
   sku: string;
   categoriaId: string;
+  impuestoId: string;
   costo: string;
   precioVenta: number;
   unidadMedida: string;
@@ -19,6 +20,19 @@ export interface Inventarios {
   sucursalId: string;
   stockActual: number;
 }
+
+export interface ImpuestoProducto {
+  id: string;
+  nombre: string;
+  tasa: string | number;
+}
+
+export interface ImpuestoOption {
+  id: string;
+  nombre: string;
+  tasa: string | number;
+}
+
 export interface ProductoDto {
   id: string;
   nombre: string;
@@ -28,8 +42,10 @@ export interface ProductoDto {
   unidadMedida: string;
   imagenPath: string | null;
   estado: string;
+  categoriaId?: string;
+  impuesto?: ImpuestoProducto | null;
   categoria: Categoria;
-  inventarios : Inventarios []
+  inventarios: Inventarios[];
   createdAt: string;
   updatedAt: string;
 }
@@ -53,5 +69,10 @@ export interface CategoriaProducto {
 export interface ResponseCategoriaProducto {
     success : boolean;
     data : CategoriaProducto[];
+}
+
+export interface ResponseImpuestoProducto {
+    success: boolean;
+    data: ImpuestoOption[];
 }
 

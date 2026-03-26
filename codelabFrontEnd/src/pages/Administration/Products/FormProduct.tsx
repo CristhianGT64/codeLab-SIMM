@@ -20,6 +20,7 @@ import InfImportante from "../../../components/informacionImportante/InfImportan
 import type { FormProducts } from "../../../interfaces/Products/FormProducts";
 import useListUnidadesProducto from "../../../hooks/ProductosHooks/useUnidadesProducto";
 import useListCategoriaProducto from "../../../hooks/ProductosHooks/useCategoriaProducto";
+import useListImpuestosProducto from "../../../hooks/ProductosHooks/useImpuestoProducto";
 import useListSucursales from "../../../hooks/SucursalesHooks/useListSucursales";
 import useCreateProducto from "../../../hooks/ProductosHooks/useCreateProducto";
 import useProductById from "../../../hooks/ProductosHooks/useReadProductById";
@@ -52,6 +53,7 @@ export default function FormProduct() {
   });
   const { data: unidadesData } = useListUnidadesProducto();
   const { data: categoriaData } = useListCategoriaProducto();
+  const { data: impuestosData } = useListImpuestosProducto();
   const { data: sucursalesData } = useListSucursales();
   const {
     mutateAsync: createProductMutation,
@@ -63,6 +65,7 @@ export default function FormProduct() {
   } = useUpdateProduct();
   const unidadesProduct = unidadesData?.data ?? [];
   const categoriaProduct = categoriaData?.data ?? [];
+  const impuestosProduct = impuestosData?.data ?? [];
   const sucursales = sucursalesData?.data ?? [];
   const isPending = isCreating || isUpdating;
   const {
@@ -94,6 +97,7 @@ export default function FormProduct() {
         nombre: ProductData?.data.nombre,
         sku: ProductData?.data.sku,
         categoriaId: ProductData?.data.categoria.id.toString(),
+        impuestoId: ProductData?.data.impuesto?.id?.toString() ?? "",
         costo: ProductData?.data.costo.toString(),
         precioVenta: ProductData?.data.precioVenta,
         unidadMedida: ProductData?.data.unidadMedida,
@@ -265,7 +269,7 @@ export default function FormProduct() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {/* Nombre del producto - full width */}
             <div className="md:col-span-2">
               <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
@@ -317,6 +321,30 @@ export default function FormProduct() {
                     value={categoria.id}
                   >
                     {categoria.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
+                Impuesto <span className="text-[#ff4f4f]">*</span>
+              </p>
+              <select
+                value={form.impuestoId}
+                onChange={onChangeField("impuestoId")}
+                id="impuesto"
+                className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#111111] outline-none focus:border-[#0aa6a2]"
+                required
+              >
+                <option value="">Seleccionar impuesto</option>
+
+                {impuestosProduct.map((impuesto) => (
+                  <option
+                    key={`${impuesto.id}-${impuesto.nombre}`}
+                    value={impuesto.id}
+                  >
+                    {impuesto.nombre} ({(Number(impuesto.tasa) * 100).toFixed(0)}%)
                   </option>
                 ))}
               </select>
