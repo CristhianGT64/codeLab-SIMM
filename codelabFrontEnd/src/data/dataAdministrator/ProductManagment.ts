@@ -43,6 +43,7 @@ export const InitialProductForm: FormProducts = {
   nombre: "",
   sku: "",
   categoriaId: "",
+  impuestoId: "",
   costo: "",
   precioVenta: 0,
   unidadMedida: "",

@@ -77,6 +77,7 @@ export const createProduct = async (
   formData.append("nombre", credentials.nombre);
   formData.append("sku", credentials.sku);
   formData.append("categoriaId", credentials.categoriaId);
+  formData.append("impuestoId", credentials.impuestoId);
   formData.append("costo", credentials.costo);
   formData.append("precioVenta", String(credentials.precioVenta));
   formData.append("unidadMedida", credentials.unidadMedida);
@@ -117,6 +118,7 @@ export const UpdateProduct = async ({
   formData.append("nombre", credentials.nombre);
   formData.append("sku", credentials.sku);
   formData.append("categoriaId", credentials.categoriaId);
+  formData.append("impuestoId", credentials.impuestoId);
   formData.append("costo", credentials.costo);
   formData.append("precioVenta", String(credentials.precioVenta));
   formData.append("unidadMedida", credentials.unidadMedida);

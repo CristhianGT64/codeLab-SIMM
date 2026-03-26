@@ -2,6 +2,7 @@ export interface FormProducts {
   nombre: string;
   sku: string;
   categoriaId: string;
+  impuestoId: string;
   costo: string;
   precioVenta: number;
   unidadMedida: string;
@@ -21,6 +22,12 @@ export interface Inventarios {
 }
 
 export interface ImpuestoProducto {
+  id: string;
+  nombre: string;
+  tasa: string | number;
+}
+
+export interface ImpuestoOption {
   id: string;
   nombre: string;
   tasa: string | number;
@@ -62,5 +69,10 @@ export interface CategoriaProducto {
 export interface ResponseCategoriaProducto {
     success : boolean;
     data : CategoriaProducto[];
+}
+
+export interface ResponseImpuestoProducto {
+    success: boolean;
+    data: ImpuestoOption[];
 }
 

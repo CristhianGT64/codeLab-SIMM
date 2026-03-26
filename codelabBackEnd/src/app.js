@@ -23,6 +23,7 @@ import errorHandler from './shared/middlewares/errorHandler.js';
 import * as invoiceTypeController from './controllers/invoiceTypeController.js';
 import ventaController from './controllers/ventaController.js';
 import facturaController from './controllers/facturaController.js';
+import impuestoController from './controllers/impuestoController.js';
 //Parche: convierte de BigInt a String para que lo soporte Json.
 BigInt.prototype.toJSON = function() {
   return this.toString();
@@ -86,6 +87,7 @@ app.patch('/categorias/:id', categoriaController.patch);
 app.delete('/categorias/:id', categoriaController.remove);
 
 // Productos
+app.get('/impuestos', impuestoController.list);
 app.get('/productos/unidades', productoController.unidades);
 app.get('/productos/search', productoController.search);
 app.post('/productos', uploadProductoImage.single('imagen'), productoController.create);
