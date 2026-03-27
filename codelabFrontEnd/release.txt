@@ -1,6 +1,7 @@
 docker buildx build --platform linux/amd64 -t uicodelaberp:latest . --load
 docker buildx build --platform linux/amd64 -t uicodelaberp:1.0.2 . --load
 
+hola
 
 docker run -d -p 4173:4173 --name codelaberp-container codelaberp:latest
 
