@@ -54,8 +54,7 @@ export default function ConfiguracionCAI() {
   const { data: CaiVigenteData, isLoading: isLoadingCaiVigente } =
     useReadCaiVigente(selectedCaiId);
   const caiVigente: Icai = CaiVigenteData?.data ?? caiEmpty;
-  const fechaInicio = new Date(caiVigente.fechaInicio);
-  const fechaFin = new Date(caiVigente.fechaFin);
+  const fechaFin = useMemo(() => new Date(caiVigente.fechaFin), [caiVigente.fechaFin]);
   const { data: CaisEmitidosData, isLoading: isLoadingCaisEmitidos } =
     useListCaiEmitidos();
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -68,8 +67,11 @@ export default function ConfiguracionCAI() {
     ...NotificacionData,
   });
 
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
+  const hoy = useMemo(() => {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    return currentDate;
+  }, []);
 
   /* Paginacion */
 
@@ -99,7 +101,7 @@ export default function ConfiguracionCAI() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let rawValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    const rawValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 
     if (rawValue.length > 32) return;
 
@@ -176,7 +178,7 @@ export default function ConfiguracionCAI() {
         diasRestantes: dias,
         facturasRestantes: restantes,
       };
-    }, [caiVigente, fechaFin, hoy, fechaInicio]);
+    }, [caiVigente, fechaFin, hoy]);
 
   /* Validar mensaje actual */
 

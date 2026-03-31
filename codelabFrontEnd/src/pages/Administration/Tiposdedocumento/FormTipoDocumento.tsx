@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useState, type ChangeEvent, type SyntheticEvent } from "react";
+import { useMemo, useState, type ChangeEvent, type SyntheticEvent } from "react";
 import { useNavigate, useParams } from "react-router";
 import ButtonsComponet from "../../../components/buttonsComponents/ButtonsComponet";
 import StatusNotification from "../../../components/notifications/StatusNotification";
@@ -35,7 +35,7 @@ export default function FormTipoDocumento() {
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
 
-  const [form, setForm] = useState<TipoDocumentoForm>(tipoDocumentoFormEmpty);
+  const [draftForm, setDraftForm] = useState<TipoDocumentoForm | null>(null);
   const [notification, setNotification] =
     useState<NotificationStateInterface>(NotificacionData);
 
@@ -51,37 +51,32 @@ export default function FormTipoDocumento() {
 
   const isPending = isCreating || isUpdating;
 
-  useEffect(() => {
-    if (isEditMode) {
-      return;
-    }
-
-    setForm((prev) => ({
-      ...prev,
-      requiereCai: true,
-      prefijoNumeracion: buildPrefijoFromCodigo(prev.codigo),
-    }));
-  }, [isEditMode]);
-
-  useEffect(() => {
+  const baseForm = useMemo<TipoDocumentoForm>(() => {
     if (!isEditMode) {
-      return;
+      return {
+        ...tipoDocumentoFormEmpty,
+        requiereCai: true,
+      };
     }
 
-    if (!tipoDocumentoData?.data) {
-      return;
+    const tipo = tipoDocumentoData?.data;
+    if (!tipo) {
+      return {
+        ...tipoDocumentoFormEmpty,
+        requiereCai: true,
+      };
     }
 
-    const tipo = tipoDocumentoData.data;
-    setForm({
+    return {
       codigo: tipo.codigo,
       nombre: tipo.nombre,
       descripcion: tipo.descripcion,
       prefijoNumeracion: tipo.prefijoNumeracion,
       requiereCai: true,
       activo: tipo.activo,
-    });
-  }, [isEditMode, tipoDocumentoData]);
+    };
+  }, [isEditMode, tipoDocumentoData?.data]);
+  const form = draftForm ?? baseForm;
 
   const onChangeField =
     (field: keyof TipoDocumentoForm) =>
@@ -97,8 +92,8 @@ export default function FormTipoDocumento() {
             ? event.target.value === "true"
             : event.target.value;
 
-      setForm((prev) => {
-        const next = { ...prev, [field]: value };
+      setDraftForm((prev) => {
+        const next = { ...(prev ?? form), [field]: value };
 
         if (!isEditMode && field === "codigo") {
           next.prefijoNumeracion = buildPrefijoFromCodigo(String(value));
@@ -115,7 +110,8 @@ export default function FormTipoDocumento() {
   const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const codigoNumerico = Number(form.codigo);
+    const payload = draftForm ?? baseForm;
+    const codigoNumerico = Number(payload.codigo);
     if (Number.isNaN(codigoNumerico)) {
       setNotification({
         isVisible: true,
@@ -130,7 +126,7 @@ export default function FormTipoDocumento() {
       if (isEditMode && id) {
         await updateTipoDocumento({
           id,
-          body: form,
+          body: payload,
         });
 
         setNotification({
@@ -147,7 +143,7 @@ export default function FormTipoDocumento() {
         return;
       }
 
-      await createTipoDocumento(form);
+      await createTipoDocumento(payload);
 
       setNotification({
         isVisible: true,

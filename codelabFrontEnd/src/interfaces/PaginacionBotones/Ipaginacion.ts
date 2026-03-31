@@ -1,7 +1,7 @@
 export interface IpaginacionProps {
     inicio : number,
     fin : number,
-    registros : any[],
+    registros : readonly unknown[],
     paginaActual : number,
     totalPaginas : number,
     action : (p : number) => void;

@@ -1,11 +1,12 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { useEffect, useState, type ChangeEvent, type SyntheticEvent } from 'react';
+import { useMemo, useState, type ChangeEvent, type SyntheticEvent } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import ButtonsComponet from '../../../components/buttonsComponents/ButtonsComponet';
 import useListSucursales from '../../../hooks/SucursalesHooks/useListSucursales';
 import useCreateSucursal from '../../../hooks/SucursalesHooks/useCreateSucursal';
 import useUpdateSucursal from '../../../hooks/SucursalesHooks/useUpdateSucursal';
+import type { Sucursal } from '../../../interfaces/SucursalInterface';
 
 interface SucursalFormState {
   nombre: string;
@@ -28,9 +29,29 @@ export default function FormSucursal() {
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
 
-  const [form, setForm] = useState<SucursalFormState>(initialSucursalForm);
-
   const { data: existingData, isLoading } = useListSucursales();
+  const existingSucursal = useMemo(
+    () =>
+      isEditMode && id
+        ? existingData?.data.find((sucursal) => sucursal.id.toString() === id) ?? null
+        : null,
+    [existingData?.data, id, isEditMode],
+  );
+  const baseForm = useMemo<SucursalFormState>(() => {
+    if (!existingSucursal) {
+      return initialSucursalForm;
+    }
+
+    return {
+      nombre: existingSucursal.nombre,
+      direccion: existingSucursal.direccion,
+      gerente: existingSucursal.gerente,
+      telefono: existingSucursal.telefono || '',
+      activa: existingSucursal.activa,
+    };
+  }, [existingSucursal]);
+  const [draftForm, setDraftForm] = useState<SucursalFormState | null>(null);
+  const form = draftForm ?? baseForm;
   
   const {
     mutateAsync: createSucursal,
@@ -46,23 +67,6 @@ export default function FormSucursal() {
   const isPending = creating || updating;
   const mutationError = createError ?? updateError;
 
-  useEffect(() => {
-    if (isEditMode && id && existingData) {
-      const found = existingData.data.find(
-        (s: any) => s.id.toString() === id,
-      );
-      if (found) {
-        setForm({
-          nombre: found.nombre,
-          direccion: found.direccion,
-          gerente: found.gerente,
-          telefono: found.telefono || '',
-          activa: found.activa,
-        });
-      }
-    }
-  }, [isEditMode, id, existingData]);
-
   const goBack = () => {
     navigate('/Branches-Management');
   };
@@ -74,20 +78,23 @@ export default function FormSucursal() {
         field === 'activa'
           ? event.target.value === 'true'
           : event.target.value;
-      setForm((prev) => ({ ...prev, [field]: value }));
+      setDraftForm((prev) => ({ ...(prev ?? form), [field]: value }));
     };
 
   const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
+      const payload = draftForm ?? baseForm;
       const processed = isEditMode && id
-        ? await updateSucursal({ id, ...form })
-        : await createSucursal(form);
+        ? await updateSucursal({ id, ...payload } as Sucursal)
+        : await createSucursal(payload);
 
       if (processed) {
         navigate('/Branches-Management');
       }
-    } catch {}
+    } catch {
+      // El mensaje de error ya lo expone la mutation.
+    }
   };
 
   return (

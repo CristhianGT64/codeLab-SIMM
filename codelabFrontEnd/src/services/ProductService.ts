@@ -6,6 +6,10 @@ import type {
 import settings from "../lib/settings";
 import type { booleanResponse } from "../interfaces/Users/UserInterface";
 
+interface HttpResponseLike {
+  ok: boolean;
+}
+
 export const ListProduct = async (): Promise<ProductResponse> => {
   const response = await fetch(`${settings.URL}/productos`, {
     method: "GET",
@@ -56,7 +60,7 @@ export const activateProducto = async (
 };
 
 const validatePlayload = (
-  response: any,
+  response: HttpResponseLike,
   payload: booleanResponse,
 ): booleanResponse => {
   if (!response.ok) {
