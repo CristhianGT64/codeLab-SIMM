@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import usuarioRepository from '../repositories/usuarioRepository.js';
 import rolRepository from '../repositories/rolRepository.js';
-import sucursalRepository from '../repositories/sucursalRepository.js';
+import sucursalRepository from '../repositories/Sucursales/sucursalRepository.js';
 
 const usuarioService = {
   async create({ nombreCompleto, correo, usuario, password, rolId, sucursalId }) {

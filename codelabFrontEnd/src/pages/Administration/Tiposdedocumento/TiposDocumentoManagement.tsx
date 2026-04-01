@@ -126,7 +126,7 @@ export default function TiposDocumentoManagement() {
           Tipos de Documento
         </h2>
         <p className="text-lg text-[#4661b0] md:text-xl">
-          Configura los tipos de documento para facturacion y operaciones
+          Configura los tipos de documento para facturación y operaciones
         </p>
       </header>
 

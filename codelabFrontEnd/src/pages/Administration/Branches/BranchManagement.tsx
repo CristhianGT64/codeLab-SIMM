@@ -10,7 +10,7 @@ import useAuth from "../../../hooks/useAuth";
 import TableComponent from "../../../components/Table/TableComponent";
 import TableSucursalesData from "../../../data/dataAdministrator/TablesData/TableSucursalesData";
 import { TableSucursalesData as branchHeaders } from "../../../data/dataAdministrator/SucursalesData";
-import type { Sucursal } from "../../../interfaces/SucursalInterface";
+import type { Sucursal } from "../../../interfaces/Sucursales/SucursalInterface";
 import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
 
 const ITEMS_POR_PAGINA = 8;

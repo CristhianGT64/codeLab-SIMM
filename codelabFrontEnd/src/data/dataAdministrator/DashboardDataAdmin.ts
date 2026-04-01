@@ -15,7 +15,7 @@ export const DashboardDataAdmin: DashboardInterface[] = [
     svg: "M15.75 1.5a6.75 6.75 0 0 0-6.651 7.906c.067.39-.032.717-.221.906l-6.5 6.499a3 3 0 0 0-.878 2.121v2.818c0 .414.336.75.75.75H6a.75.75 0 0 0 .75-.75v-1.5h1.5A.75.75 0 0 0 9 19.5V18h1.5a.75.75 0 0 0 .53-.22l2.658-2.658c.19-.189.517-.288.906-.22A6.75 6.75 0 1 0 15.75 1.5Zm0 3a.75.75 0 0 0 0 1.5A2.25 2.25 0 0 1 18 8.25a.75.75 0 0 0 1.5 0 3.75 3.75 0 0 0-3.75-3.75Z",
     title: "Roles y permisos",
     description:
-      "Gestión de Roles y permisos: Creación, eliminación, edición de roles y permisos",
+      "Gestión de roles y permisos: Creación, eliminación, edición de roles y permisos",
     buttonDescription: "Administrar →",
     colorBorder: "border-[#4a6eb0]",
     colorSvg: "from-[#4a6eb0] to-[#11a2a5]",
@@ -45,7 +45,7 @@ export const DashboardDataAdmin: DashboardInterface[] = [
   {
     svg: "M6.912 3a3 3 0 0 0-2.868 2.118l-2.411 7.838a3 3 0 0 0-.133.882V18a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3v-4.162c0-.299-.045-.596-.133-.882l-2.412-7.838A3 3 0 0 0 17.088 3H6.912Zm13.823 9.75-2.213-7.191A1.5 1.5 0 0 0 17.088 4.5H6.912a1.5 1.5 0 0 0-1.434 1.059L3.265 12.75H6.11a3 3 0 0 1 2.684 1.658l.256.513a1.5 1.5 0 0 0 1.342.829h3.218a1.5 1.5 0 0 0 1.342-.83l.256-.512a3 3 0 0 1 2.684-1.658h2.844Z",
     title: "Productos",
-    description: "Gestión de Productos: Creación, eliminación, edición y más",
+    description: "Gestión de productos: Creación, eliminación, edición y más",
     buttonDescription: "Administrar →",
     colorBorder: "border-[#4a6eb0]",
     colorSvg: "from-[#4a6eb0] to-[#00a99d]",
@@ -56,7 +56,7 @@ export const DashboardDataAdmin: DashboardInterface[] = [
     svg: "M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z",
     title: "Movimiento de Inventario",
     description:
-      "Gestio de movimientos de inventario: Entradas, Salidas, y gestion completa de movimientos",
+      "Gestión de movimientos de inventario: Entradas, Salidas, y gestión completa de movimientos",
     buttonDescription: "Administrar →",
     colorBorder: "border-[#4a6eb0]",
     colorSvg: "from-[#4a6eb0] to-[#00a99d]",
@@ -66,7 +66,7 @@ export const DashboardDataAdmin: DashboardInterface[] = [
   {
     svg: "m9 14.25 6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z",
     title: "Configuración CAI",
-    description: "Gestion de configuracion del CAI",
+    description: "Gestión de configuración del CAI",
     buttonDescription: "Administrar →",
     colorBorder: "border-[#4a6eb0]",
     colorSvg: "from-[#4a6eb0] to-[#11a2a5]",
@@ -76,7 +76,7 @@ export const DashboardDataAdmin: DashboardInterface[] = [
   {
     svg: "M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z",
     title: "Ventas POS",
-    description: "Gestion de ventas en el punto de venta POS",
+    description: "Gestión de ventas en el punto de venta (POS)",
     buttonDescription: "Administrar →",
     colorBorder: "border-[#4a6eb0]",
     colorSvg: "from-[#4a6eb0] to-[#11a2a5]",
@@ -86,7 +86,7 @@ export const DashboardDataAdmin: DashboardInterface[] = [
   {
     svg: "M9 12.75 11.25 15 15 9.75m6 3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
     title: "Tipos de Documento",
-    description: "Configuracion de tipos de documento para facturacion",
+    description: "Configuración de tipos de documento para facturación",
     buttonDescription: "Administrar →",
     colorBorder: "border-[#4a6eb0]",
     colorSvg: "from-[#0aa6a2] to-[#4661b0]",
@@ -96,7 +96,7 @@ export const DashboardDataAdmin: DashboardInterface[] = [
   {
     svg: "M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25",
     title: "Catálogo Cuentas Contables",
-    description: "Gestión del catálogo jerárquico de cuentas contables",
+    description: "Gestión del catálogo de cuentas contables",
     buttonDescription: "Administrar →",
     colorBorder: "border-[#4a6eb0]",
     colorSvg: "from-[#0aa6a2] to-[#4661b0]",
