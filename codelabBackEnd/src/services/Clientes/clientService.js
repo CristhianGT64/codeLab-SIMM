@@ -38,6 +38,12 @@ const clientService = {
    * @returns {Promise<Object>} Cliente creado
    */
   async create(data) {
+    if (!data.tipoClienteId) {
+      const error = new Error('El tipo de cliente es obligatorio');
+      error.status = 400;
+      throw error;
+    }
+
     if (data.identificacion) {
       const existing = await clientRepository.getByIdentificacion(
         data.identificacion
@@ -59,6 +65,13 @@ const clientService = {
    */
   async update(id, data) {
     await this.getById(id);
+
+    if (data.tipoClienteId !== undefined && !data.tipoClienteId) {
+      const error = new Error('El tipo de cliente es obligatorio');
+      error.status = 400;
+      throw error;
+    }
+
     return await clientRepository.updateClient(BigInt(id), data);
   },
 };

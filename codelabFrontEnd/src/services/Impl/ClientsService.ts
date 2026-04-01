@@ -1,4 +1,3 @@
-import axios from 'axios';
 import settings from '../../lib/settings';
 import type {
   Client,
@@ -7,16 +6,12 @@ import type {
   UpdateClientPayload,
   Invoice,
 } from '../../interfaces/Clients/ClientInterface';
-import { getClientTypeFromValue, getClientTypeId, resolveClientType } from '../../lib/clientTypes';
 
 const API_URL = `${settings.URL}/clientes`;
 
 type ApiRecord = Record<string, unknown>;
 type ApiClientPayload = Omit<CreateClientPayload, 'tipoClienteId'> & {
   tipoClienteId?: number;
-};
-type ApiListResponse<T> = {
-  data?: T;
 };
 
 const isApiRecord = (value: unknown): value is ApiRecord =>
@@ -74,12 +69,15 @@ const calculateTotals = (facturas: Invoice[]): { totalFacturado: number; totalPa
 
 const mapClient = (item: ApiRecord): Client => {
   const tipoClienteObject = isApiRecord(item.tipoCliente) ? item.tipoCliente : null;
-  let tipoClienteValue = item.tipoCliente ?? item.tipo ?? item.tipoClienteId;
-  if (tipoClienteObject) {
-    tipoClienteValue = tipoClienteObject.nombre ?? tipoClienteObject.id ?? tipoClienteValue;
-  }
 
-  const resolvedType = resolveClientType(tipoClienteValue, tipoClienteObject?.id ?? item.tipoClienteId ?? item.tipo);
+  const tipoClienteNombre = tipoClienteObject
+    ? asString(tipoClienteObject.nombre ?? tipoClienteObject.id, '')
+    : asString(item.tipoCliente ?? item.tipo, '');
+
+  const tipoClienteId = asString(
+    tipoClienteObject?.id ?? item.tipoClienteId ?? '',
+    '',
+  );
 
   return {
     id: asString(item.id ?? item.idCliente, ''),
@@ -88,8 +86,8 @@ const mapClient = (item: ApiRecord): Client => {
     telefono: asString(item.telefono ?? item.phone, ''),
     correo: asString(item.correo ?? item.email, ''),
     direccion: asString(item.direccion ?? item.address, ''),
-    tipoClienteId: resolvedType.tipoClienteId,
-    tipoCliente: resolvedType.tipoCliente,
+    tipoClienteId,
+    tipoCliente: tipoClienteNombre,
   };
 };
 
@@ -111,27 +109,22 @@ const mapClientDetail = (item: ApiRecord): ClientDetail => {
 };
 
 export const getAllClients = async (): Promise<Client[]> => {
-  const { data } = await axios.get<ApiListResponse<unknown>>(API_URL);
-  const list = asApiRecordArray(data?.data);
+  const res = await fetch(API_URL);
+  if (!res.ok) throw new Error(`Error ${res.status}`);
+  const json = await res.json();
+  const list = asApiRecordArray(json?.data);
   return list.map(mapClient);
 };
 
 export const getClient = async (id: string): Promise<ClientDetail> => {
-  const { data } = await axios.get<ApiListResponse<unknown> | unknown>(`${API_URL}/${id}`);
-  const cliente = asApiRecord(isApiRecord(data) && 'data' in data ? data.data : data);
+  const res = await fetch(`${API_URL}/${id}`);
+  if (!res.ok) throw new Error(`Error ${res.status}`);
+  const json = await res.json();
+  const cliente = asApiRecord(isApiRecord(json) && 'data' in json ? json.data : json);
   return mapClientDetail(cliente);
 };
 
-const mapPayloadType = (payload: CreateClientPayload | UpdateClientPayload): number | undefined => {
-  if (payload.tipoCliente) {
-    return Number(getClientTypeId(payload.tipoCliente));
-  }
-
-  const resolvedType = getClientTypeFromValue(payload.tipoClienteId, 'Minorista');
-  return Number(getClientTypeId(resolvedType));
-};
-
-export const createClient = async (payload: CreateClientPayload): Promise<Client> => {
+const buildPayloadApi = (payload: CreateClientPayload | UpdateClientPayload): ApiClientPayload => {
   const payloadApi: ApiClientPayload = {
     nombreCompleto: payload.nombreCompleto,
     identificacion: payload.identificacion,
@@ -141,13 +134,28 @@ export const createClient = async (payload: CreateClientPayload): Promise<Client
     tipoCliente: payload.tipoCliente,
   };
 
-  const tipoId = mapPayloadType(payload);
-  if (tipoId && Number(tipoId) > 0) {
+  const tipoId = Number(payload.tipoClienteId);
+  if (Number.isFinite(tipoId) && tipoId > 0) {
     payloadApi.tipoClienteId = tipoId;
   }
 
-  const { data } = await axios.post<ApiListResponse<unknown> | unknown>(API_URL, payloadApi);
-  const cliente = asApiRecord(isApiRecord(data) && 'data' in data ? data.data : data);
+  return payloadApi;
+};
+
+export const createClient = async (payload: CreateClientPayload): Promise<Client> => {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(buildPayloadApi(payload)),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error?.message ?? body?.message ?? `Error ${res.status}`);
+  }
+
+  const json = await res.json();
+  const cliente = asApiRecord(isApiRecord(json) && 'data' in json ? json.data : json);
   return mapClient(cliente);
 };
 
@@ -155,21 +163,18 @@ export const updateClient = async (
   id: string,
   payload: UpdateClientPayload,
 ): Promise<Client> => {
-  const payloadApi: ApiClientPayload = {
-    nombreCompleto: payload.nombreCompleto,
-    identificacion: payload.identificacion,
-    telefono: payload.telefono,
-    correo: payload.correo,
-    direccion: payload.direccion,
-    tipoCliente: payload.tipoCliente,
-  };
+  const res = await fetch(`${API_URL}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(buildPayloadApi(payload)),
+  });
 
-  const tipoId = mapPayloadType(payload);
-  if (tipoId && Number(tipoId) > 0) {
-    payloadApi.tipoClienteId = tipoId;
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error?.message ?? body?.message ?? `Error ${res.status}`);
   }
 
-  const { data } = await axios.put<ApiListResponse<unknown> | unknown>(`${API_URL}/${id}`, payloadApi);
-  const cliente = asApiRecord(isApiRecord(data) && 'data' in data ? data.data : data);
+  const json = await res.json();
+  const cliente = asApiRecord(isApiRecord(json) && 'data' in json ? json.data : json);
   return mapClient(cliente);
 };
