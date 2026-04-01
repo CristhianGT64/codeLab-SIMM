@@ -1,4 +1,4 @@
-import sucursalRepository from '../repositories/sucursalRepository.js';
+import sucursalRepository from '../../repositories/Sucursales/sucursalRepository.js';
 
 /**
  * Servicio para la lógica de negocio relacionada con sucursales

@@ -2,7 +2,6 @@ import { useNavigate, useParams } from "react-router";
 import {
   useRef,
   useState,
-  useEffect,
   type ChangeEvent,
   type SyntheticEvent,
 } from "react";
@@ -41,10 +40,10 @@ export default function FormProduct() {
     id: string;
   }>(); /* Obtiene directamente el id del producto de la URL */
   const isEditMode = Boolean(id);
-  const [form, setForm] = useState<FormProducts>(InitialProductForm);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
+  const [draftForm, setDraftForm] = useState<FormProducts | null>(null);
   const [notification, setNotification] = useState<NotificationState>({
     isVisible: false,
     variant: "success",
@@ -74,39 +73,27 @@ export default function FormProduct() {
     isError: isUserError,
     error: userError,
   } = useProductById(id ?? "");
-
-  useEffect(() => {
-    if (!isEditMode) {
-      setForm(InitialProductForm);
-      return;
-    }
-
-    if (ProductData?.data) {
-      const imagePath = ProductData.data.imagenPath;
-      if (imagePath) {
-        const baseUrl = settings.URL.replace(/\/$/, "");
-        const normalizedPath = imagePath.startsWith("/")
-          ? imagePath
-          : `/${imagePath}`;
-        setImagePreview(`${baseUrl}${normalizedPath}`);
-      } else {
-        setImagePreview(null);
-      }
-
-      setForm({
-        nombre: ProductData?.data.nombre,
-        sku: ProductData?.data.sku,
-        categoriaId: ProductData?.data.categoria.id.toString(),
-        impuestoId: ProductData?.data.impuesto?.id?.toString() ?? "",
-        costo: ProductData?.data.costo.toString(),
-        precioVenta: ProductData?.data.precioVenta,
-        unidadMedida: ProductData?.data.unidadMedida,
-        stockInicial: ProductData?.data.inventarios[0].stockActual,
-        sucursalId: ProductData?.data.inventarios[0].sucursalId,
-        imagen: null,
-      });
-    }
-  }, [isEditMode, ProductData]);
+  const baseForm: FormProducts =
+    !isEditMode || !ProductData?.data
+      ? InitialProductForm
+      : {
+          nombre: ProductData.data.nombre,
+          sku: ProductData.data.sku,
+          categoriaId: ProductData.data.categoria.id.toString(),
+          impuestoId: ProductData.data.impuesto?.id?.toString() ?? "",
+          costo: ProductData.data.costo.toString(),
+          precioVenta: ProductData.data.precioVenta,
+          unidadMedida: ProductData.data.unidadMedida,
+          stockInicial: ProductData.data.inventarios[0]?.stockActual ?? 0,
+          sucursalId: ProductData.data.inventarios[0]?.sucursalId ?? "",
+          imagen: null,
+        };
+  const form = draftForm ?? baseForm;
+  const imagePath = ProductData?.data?.imagenPath;
+  const imagePreview = localImagePreview
+    ?? (imagePath
+      ? `${settings.URL.replace(/\/$/, "")}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`
+      : null);
 
   const goBack = () => {
     navigate("/Product-Management");
@@ -115,7 +102,7 @@ export default function FormProduct() {
   const onChangeField =
     (field: keyof FormProducts) =>
     (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      setForm((prev) => ({ ...prev, [field]: event.target.value }));
+      setDraftForm((prev) => ({ ...(prev ?? form), [field]: event.target.value }));
     };
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -123,8 +110,8 @@ export default function FormProduct() {
     if (!file) return;
 
     setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-    setForm((prev) => ({ ...prev, imagen: file }));
+    setLocalImagePreview(URL.createObjectURL(file));
+    setDraftForm((prev) => ({ ...(prev ?? form), imagen: file }));
   };
 
   const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
@@ -133,8 +120,8 @@ export default function FormProduct() {
     try {
       const wasProcessed =
         isEditMode && id
-          ? await updateProductMutation({ id, credentials: form })
-          : await createProductMutation(form);
+          ? await updateProductMutation({ id, credentials: draftForm ?? baseForm })
+          : await createProductMutation(draftForm ?? baseForm);
 
       if (wasProcessed) {
         setNotification({

@@ -1,10 +1,10 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { Sucursal } from "../../../interfaces/SucursalInterface";
+import type { Sucursal } from "../../../interfaces/Sucursales/SucursalInterface";
 import { faPenToSquare, faPowerOff } from "@fortawesome/free-solid-svg-icons";
 
 interface Props {
   sucursales: Sucursal[];
-  statusMutation: any;
+  toggleStatus: (id: string) => void;
   tienePermiso: (permiso: string) => boolean;
   goToForm: (sucursal: Sucursal) => void;
   isLoading: boolean;
@@ -14,7 +14,7 @@ interface Props {
 
 export default function TableSucursalesData({
   sucursales,
-  statusMutation,
+  toggleStatus,
   tienePermiso,
   goToForm,
   isLoading,
@@ -82,7 +82,7 @@ export default function TableSucursalesData({
                   : "text-[#24e775] hover:text-[#008444]"
               } `}
               aria-label={`Cambiar estado de ${s.nombre}`}
-              onClick={() => statusMutation.mutate(s.id)}
+              onClick={() => toggleStatus(s.id)}
             >
               <FontAwesomeIcon icon={faPowerOff} />
             </button>

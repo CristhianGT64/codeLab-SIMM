@@ -174,8 +174,14 @@ export default function CatalogoCuentasContablesManagement() {
     : [];
 
   const filteredTree = useMemo(
-    () => filterTree(arbol, search, estadoFiltro, naturalezaFiltro),
-    [arbol, estadoFiltro, naturalezaFiltro, search],
+    () =>
+      filterTree(
+        Array.isArray(catalogoQuery.data?.data) ? catalogoQuery.data.data : [],
+        search,
+        estadoFiltro,
+        naturalezaFiltro,
+      ),
+    [catalogoQuery.data, estadoFiltro, naturalezaFiltro, search],
   );
 
   const openCreateModal = (nivel: NivelCatalogoContable = "elemento") => {

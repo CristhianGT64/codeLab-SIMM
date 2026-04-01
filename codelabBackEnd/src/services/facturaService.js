@@ -3,8 +3,8 @@ import prisma from "../infra/prisma/prismaClient.js";
 import facturaRepository from "../repositories/facturaRepository.js";
 import productoRepository from "../repositories/productoRepository.js";
 import inventarioRepository from "../repositories/inventarioRepository.js";
-import clienteRepository from "../repositories/clientRepository.js";
-import ventaRepository from "../repositories/ventaRepository.js";
+import clienteRepository from "../repositories/Clientes/clientRepository.js";
+import ventaRepository from "../repositories/ventas/ventaRepository.js";
 
 const facturaService = {
 

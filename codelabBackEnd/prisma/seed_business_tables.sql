@@ -5,13 +5,16 @@ BEGIN;
 -- Requiere que primero se ejecute el seed_required actualizado.
 
 -- 1) Catálogos de facturación
-INSERT INTO public."TipoCliente" (id, nombre) VALUES
-  (100, 'Mayorista'),
-  (1, 'Natural'),
-  (2, 'Jurídico'),
-  (101, 'Contado')
+INSERT INTO public."TipoCliente" (id, nombre, descripcion, condicion_pago, disponible) VALUES
+  (100, 'Mayorista', 'Cliente que compra en grandes volúmenes', 'Crédito 30 días', true),
+  (1, 'Minorista', 'Cliente que compra al detalle', 'Contado', true),
+  (2, 'Crédito', 'Cliente con línea de crédito aprobada', 'Crédito 15 días', true),
+  (101, 'Contado', 'Cliente que paga al momento de la compra', 'Contado', true)
 ON CONFLICT (id) DO UPDATE SET
-  nombre = EXCLUDED.nombre;
+  nombre = EXCLUDED.nombre,
+  descripcion = EXCLUDED.descripcion,
+  condicion_pago = EXCLUDED.condicion_pago,
+  disponible = EXCLUDED.disponible;
 
 INSERT INTO public."TiposDocumentos" (id_tipo_documento, numero, nombre, disponible) VALUES
   (1, 1, 'Factura', true)
@@ -333,6 +336,10 @@ SELECT setval('public."DetalleVenta_id_seq"',
 SELECT setval('public."Facturas_id_seq"',
   COALESCE((SELECT MAX(id) FROM public."Facturas"), 1),
   COALESCE((SELECT MAX(id) IS NOT NULL FROM public."Facturas"), false)
+);
+SELECT setval('public."DetalleFactura_id_seq"',
+  COALESCE((SELECT MAX(id) FROM public."DetalleFactura"), 1),
+  COALESCE((SELECT MAX(id) IS NOT NULL FROM public."DetalleFactura"), false)
 );
 SELECT setval('public."MovimientoInventario_id_seq"',
   COALESCE((SELECT MAX(id) FROM public."MovimientoInventario"), 1),

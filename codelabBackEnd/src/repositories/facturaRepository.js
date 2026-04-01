@@ -11,9 +11,33 @@ const facturaRepository = {
 
   // Crear múltiples detalles de factura
   async createDetalleFacturaMany(detalles, tx = prisma) {
-    return await tx.detalleFactura.createMany({
-      data: detalles
-    });
+    try {
+      return await tx.detalleFactura.createMany({
+        data: detalles
+      });
+    } catch (error) {
+      const isDetalleFacturaIdConflict =
+        error?.code === "P2002" &&
+        Array.isArray(error?.meta?.target) &&
+        error.meta.target.includes("id");
+
+      if (!isDetalleFacturaIdConflict) {
+        throw error;
+      }
+
+      // Repair the sequence if seed data inserted explicit ids and left it behind.
+      await tx.$executeRaw`
+        SELECT setval(
+          pg_get_serial_sequence('"DetalleFactura"', 'id'),
+          COALESCE((SELECT MAX(id) FROM "DetalleFactura"), 1),
+          COALESCE((SELECT MAX(id) IS NOT NULL FROM "DetalleFactura"), false)
+        )
+      `;
+
+      return await tx.detalleFactura.createMany({
+        data: detalles
+      });
+    }
   },
 
   //  Obtener factura por número formateado

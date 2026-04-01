@@ -2,7 +2,7 @@
  * Este archivo contiene la lógica de negocio, incluyendo validaciones y llamadas al repositorio.
  */
 
-import clientRepository from '../repositories/clientRepository.js';
+import clientRepository from '../../repositories/Clientes/clientRepository.js';
 
 /**
  * Servicio para la lógica de negocio relacionada con clientes.

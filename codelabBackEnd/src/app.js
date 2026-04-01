@@ -5,15 +5,15 @@ import dotenv from 'dotenv';
 
 import productoController from './controllers/productoController.js';
 import categoriaController from './controllers/categoriaController.js';
-import sucursalController from './controllers/sucursalController.js';
+import sucursalController from './controllers/Sucursales/sucursalController.js';
 import authController from './controllers/authController.js';
 import usuarioController from './controllers/usuarioController.js';
-import clientController from './controllers/clientController.js';
+import clientController from './controllers/Clientes/clientController.js';
 import inventarioController from './controllers/inventarioController.js';
 import proveedorController from './controllers/proveedorController.js';
 import configuracionContableController from './controllers/configuracionContableController.js';
 import caiController from './controllers/caiController.js';
-import tipoDocumentoController from './controllers/tipoDocumentoController.js';
+import tipoDocumentoController from './controllers/Tipo de documento/tipoDocumentoController.js';
 
 import elementoContableController from './controllers/elementoContableController.js';
 import clasificacionElementoContableController from './controllers/clasificacionElementoContableController.js';
@@ -28,9 +28,11 @@ import * as permissionController from './controllers/permissionController.js';
 import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
 import * as invoiceTypeController from './controllers/invoiceTypeController.js';
-import ventaController from './controllers/ventaController.js';
+import ventaController from './controllers/ventas/ventaController.js';
 import facturaController from './controllers/facturaController.js';
 import impuestoController from './controllers/impuestoController.js';
+import tipoClienteController from './controllers/Tipos de cliente/tipoClienteController.js';
+
 //Parche: convierte de BigInt a String para que lo soporte Json.
 BigInt.prototype.toJSON = function() {
   return this.toString();
@@ -187,6 +189,13 @@ app.post('/clientes', clientController.createClient);
 app.get('/clientes', clientController.getAllClients);
 app.get('/clientes/:id', clientController.getClientById);
 app.put('/clientes/:id', clientController.updateClient);
+
+// Tipos de Cliente
+app.post('/tipos-cliente', tipoClienteController.createtipodecliente);
+app.get('/tipos-cliente', tipoClienteController.getAlltiposdecliente);
+app.get('/tipos-cliente/:id', tipoClienteController.getByIdtiposdecliente);
+app.put('/tipos-cliente/:id', tipoClienteController.updatetipodecliente);
+app.patch('/tipos-cliente/:id/estado', tipoClienteController.cambiartipodeclienteEstado);
 
 // Tipo de documento por establecimiento
 app.get('/tipos-documento', tipoDocumentoController.getAllTiposDocumento);

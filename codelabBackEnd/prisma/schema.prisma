@@ -178,9 +178,13 @@ model MovimientoInventario {
 }
 
 model TipoCliente {
-  id       BigInt    @id @default(autoincrement())
-  nombre   String    @db.VarChar(100)
-  clientes Cliente[]
+  id              BigInt    @id @default(autoincrement())
+  nombre          String    @db.VarChar(200)
+  descripcion     String?   @db.VarChar(255)
+  condicionPago   String?   @map("condicion_pago") @db.VarChar(100)
+  disponible      Boolean   @default(true)
+  fechaCreacion   DateTime  @default(now()) @map("fecha_creacion")
+  clientes        Cliente[]
 }
 
 model Cliente {

@@ -7,6 +7,10 @@ import type {
 } from "../interfaces/Users/UserInterface";
 import type { FormUserState } from "../interfaces/Users/FormUserInterface";
 
+interface HttpResponseLike {
+  ok: boolean;
+}
+
 interface UserResponse {
   success: boolean;
   data: User;
@@ -162,7 +166,7 @@ export const activateUser = async (id: string): Promise<booleanResponse> => {
 };
 
 const validatePlayload = (
-  response: any,
+  response: HttpResponseLike,
   payload: booleanResponse,
 ): booleanResponse => {
   if (!response.ok) {

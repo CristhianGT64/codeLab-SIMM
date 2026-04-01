@@ -19,8 +19,8 @@ const ITEMS_POR_PAGINA = 6;
 export default function RolesPermisionManagment() {
   const { data: rolesData } = useListRols();
   const { data: permisosData } = useListPermisos();
-  const roles = rolesData?.data ?? [];
-  const Permisos = permisosData?.data ?? [];
+  const roles = useMemo(() => rolesData?.data ?? [], [rolesData?.data]);
+  const permisos = permisosData?.data ?? [];
   const navigate = useNavigate();
   const deleteRolMutation = useDeleteRol();
   const { tienePermiso } = useAuth();
@@ -34,9 +34,9 @@ export default function RolesPermisionManagment() {
       totalRolesSistema: roles.filter(
         (rol) => rol.nombre.toLowerCase() === "administrador",
       ).length,
-      totalPermisos: Permisos.length,
+      totalPermisos: permisos.length,
     }),
-    [roles],
+    [permisos.length, roles],
   );
 
   const filtredRol = useMemo(() => {
