@@ -26,6 +26,16 @@ export function buildCaiService({
         throw buildCaiError('El tipo de documento indicado no existe.', 404);
       }
 
+      const caiAnterior = await caiRepository.findLatestByTipoDocumento(payload.tipoDocumentoId);
+      const finRangoAnterior = caiAnterior?.rangoEmision?.finRango ?? null;
+
+      if (finRangoAnterior !== null && payload.inicioRango <= finRangoAnterior) {
+        throw buildCaiError(
+          `El inicio del nuevo rango debe ser mayor al final del CAI anterior para este tipo de documento. Ultimo final registrado: ${finRangoAnterior.toString()}.`,
+          409,
+        );
+      }
+
       const created = await caiRepository.createWithRange(payload, config);
       return toCaiView(created);
     },
