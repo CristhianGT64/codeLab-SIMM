@@ -2,6 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createVenta } from "../../services/PosService";
 import { toast } from "sonner";
 
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Ocurrio un error inesperado.";
+
 export const useCreateVenta = () => {
   const queryClient = useQueryClient();
 
@@ -13,9 +16,9 @@ export const useCreateVenta = () => {
         queryClient.invalidateQueries({ queryKey: ["product"] });
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Error al registrar la venta", {
-        description: error.message,
+        description: getErrorMessage(error),
       });
     },
   });

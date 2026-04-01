@@ -26,7 +26,7 @@ export default function UserManagement() {
   const inactiveUser = useInactiveUser();
   const activeUser = useActiveUser();
   const { data, isLoading, isError, error } = useUsers();
-  const users = data?.data ?? [];
+  const users = useMemo(() => data?.data ?? [], [data?.data]);
   const tableHeader: string[] = TableUserData;
   const headerAdmin: HeaderAdmin = {
     title: "Gestión de Usuarios",

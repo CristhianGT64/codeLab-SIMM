@@ -36,4 +36,4 @@ export interface CreateClientPayload {
   tipoCliente: ClientType;
 }
 
-export interface UpdateClientPayload extends CreateClientPayload {}
+export type UpdateClientPayload = CreateClientPayload;

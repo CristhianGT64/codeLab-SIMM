@@ -19,7 +19,7 @@ const ClientsManagement = () => {
   const [term, setTerm] = useState("");
   const { tienePermiso } = useAuth();
 
-  const list: Client[] = clients ?? [];
+  const list = useMemo<Client[]>(() => clients ?? [], [clients]);
   const totalClients = list.length;
   const mayoristaCount = list.filter((c) =>
     c.tipoCliente?.toLowerCase().includes("mayor"),

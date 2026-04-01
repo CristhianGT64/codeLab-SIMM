@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type SyntheticEvent } from "react";
+import { useMemo, useState, type SyntheticEvent } from "react";
 import { useNavigate } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -66,7 +66,7 @@ const tituloMetodoInventario: HeaderAdmin = {
 export default function FifoPromConfig() {
   const navigate = useNavigate();
 
-  const [metodoSeleccionado, setMetodoSeleccionado] =
+  const [metodoSeleccionadoManual, setMetodoSeleccionadoManual] =
     useState<MetodoValuacion | null>(null);
   const [notification, setNotification] = useState<NotificationStateInterface>({
     ...NotificacionData,
@@ -89,11 +89,7 @@ export default function FifoPromConfig() {
 
   const metodoActual = metodoResponse?.data?.metodoValuacion;
 
-  useEffect(() => {
-    if (!metodoSeleccionado && metodoActual) {
-      setMetodoSeleccionado(metodoActual);
-    }
-  }, [metodoActual, metodoSeleccionado]);
+  const metodoSeleccionado = metodoSeleccionadoManual ?? metodoActual ?? null;
 
   const opciones =
     opcionesResponse?.data ??
@@ -249,7 +245,7 @@ export default function FifoPromConfig() {
                     <button
                       key={metodo}
                       type="button"
-                      onClick={() => setMetodoSeleccionado(metodo)}
+                      onClick={() => setMetodoSeleccionadoManual(metodo)}
                       className={`relative cursor-pointer rounded-2xl border-2 p-4 text-left transition-colors duration-300 ${
                         isSelected
                           ? "border-[#0aa6a2] bg-[#e8f3f5]"

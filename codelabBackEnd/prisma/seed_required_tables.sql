@@ -298,20 +298,30 @@ ON CONFLICT (id) DO UPDATE SET
   moneda_funcional = EXCLUDED.moneda_funcional;
 
 -- 5b) Naturalezas contables
+DELETE FROM public."SUB_CUENTA_CONTABLE";
+DELETE FROM public."CUENTA_CONTABLE";
+DELETE FROM public."CLASIFICACION_ELEMENTO_CONTABLE";
+DELETE FROM public."ELEMENTO_CONTABLE";
+DELETE FROM public."DICC_NATURALEZA_CUENTA";
+
 INSERT INTO public."DICC_NATURALEZA_CUENTA" (id_naturaleza, uuid_naturaleza, nombre, codigo, disponible) VALUES
-  (1, 'nat-activos', 'Activos', 'A', true),
-  (2, 'nat-pasivos', 'Pasivos', 'P', true),
-  (3, 'nat-patrimonio', 'Patrimonio', 'PT', true)
+  (1, 'ACCREDORA0111', 'Acreedora', 'A', true),
+  (2, 'DEDORA20034', 'Deudora', 'D', true)
 ON CONFLICT (id_naturaleza) DO UPDATE SET
+  uuid_naturaleza = EXCLUDED.uuid_naturaleza,
   nombre = EXCLUDED.nombre,
   codigo = EXCLUDED.codigo,
   disponible = EXCLUDED.disponible;
 
--- 5c) Catálogo de cuentas contables (datos iniciales)
+-- 5c) Catalogo de cuentas contables
+-- Estructura usada: 1 digito elemento, 2 digitos clasificacion, 3 digitos cuenta, 4 digitos subcuenta.
 INSERT INTO public."ELEMENTO_CONTABLE" (id_elemento_contable, uuid_elemento_contable, nombre, disponible, codigo_numerico, id_naturaleza) VALUES
-  (1, 'elem-activos-0001', 'Activos', true, 1, 1),
-  (2, 'elem-pasivos-0002', 'Pasivos', true, 2, 2),
-  (3, 'elem-patrimonio-0003', 'Patrimonio', true, 3, 3)
+  (1, 'elem-activo', 'Activo', true, 1, 2),
+  (2, 'elem-pasivo', 'Pasivo', true, 2, 1),
+  (3, 'elem-patrimonio', 'Patrimonio', true, 3, 1),
+  (4, 'elem-ingresos', 'Ingresos', true, 4, 1),
+  (5, 'elem-gastos', 'Gastos', true, 5, 2),
+  (6, 'elem-costos', 'Costos', true, 6, 2)
 ON CONFLICT (uuid_elemento_contable) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   disponible = EXCLUDED.disponible,
@@ -319,10 +329,20 @@ ON CONFLICT (uuid_elemento_contable) DO UPDATE SET
   id_naturaleza = EXCLUDED.id_naturaleza;
 
 INSERT INTO public."CLASIFICACION_ELEMENTO_CONTABLE" (id_clasificacion_elemento_contable, uuid_clasificacion_contable, nombre, disponible, codigo_numerico, uuid_elemento_contable) VALUES
-  (1, 'clas-corrientes-0001', 'Corrientes', true, 1, 'elem-activos-0001'),
-  (2, 'clas-no-corrientes-0002', 'No Corrientes', true, 2, 'elem-activos-0001'),
-  (3, 'clas-corrientes-pasivos-0003', 'Corrientes', true, 1, 'elem-pasivos-0002'),
-  (4, 'clas-capital-0004', 'Capital', true, 1, 'elem-patrimonio-0003')
+  (1, 'clas-activo-corriente', 'Activo Corriente', true, 11, 'elem-activo'),
+  (2, 'clas-activo-no-corriente', 'Activo No Corriente', true, 12, 'elem-activo'),
+  (3, 'clas-pasivo-corriente', 'Pasivo Corriente', true, 21, 'elem-pasivo'),
+  (4, 'clas-pasivo-no-corriente', 'Pasivo No Corriente', true, 22, 'elem-pasivo'),
+  (5, 'clas-capital', 'Capital', true, 31, 'elem-patrimonio'),
+  (6, 'clas-reservas', 'Reservas', true, 32, 'elem-patrimonio'),
+  (7, 'clas-resultados-acumulados', 'Resultados Acumulados', true, 33, 'elem-patrimonio'),
+  (8, 'clas-ingresos-operacionales', 'Ingresos Operacionales', true, 41, 'elem-ingresos'),
+  (9, 'clas-ingresos-no-operacionales', 'Ingresos No Operacionales', true, 42, 'elem-ingresos'),
+  (10, 'clas-gastos-administracion', 'Gastos de Administracion', true, 51, 'elem-gastos'),
+  (11, 'clas-gastos-venta', 'Gastos de Venta', true, 52, 'elem-gastos'),
+  (12, 'clas-gastos-financieros', 'Gastos Financieros', true, 53, 'elem-gastos'),
+  (13, 'clas-costos-venta', 'Costos de Venta', true, 61, 'elem-costos'),
+  (14, 'clas-costos-produccion', 'Costos de Produccion', true, 62, 'elem-costos')
 ON CONFLICT (uuid_clasificacion_contable) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   disponible = EXCLUDED.disponible,
@@ -330,10 +350,30 @@ ON CONFLICT (uuid_clasificacion_contable) DO UPDATE SET
   uuid_elemento_contable = EXCLUDED.uuid_elemento_contable;
 
 INSERT INTO public."CUENTA_CONTABLE" (id_cuenta_contable, uuid_cuenta_contable, nombre, disponible, uuid_elemento_contable, uuid_clasificacion_contable, codigo_numerico, id_naturaleza) VALUES
-  (1, 'cta-efectivo-equiv-0001', 'Efectivo y Equivalentes', true, 'elem-activos-0001', 'clas-corrientes-0001', 1, 1),
-  (2, 'cta-cuentas-cobrar-0002', 'Cuentas por Cobrar', true, 'elem-activos-0001', 'clas-corrientes-0001', 2, 1),
-  (3, 'cta-ctas-doc-pagar-0003', 'Cuentas y Documentos por Pagar', true, 'elem-pasivos-0002', 'clas-corrientes-pasivos-0003', 3, 2),
-  (4, 'cta-capital-social-0004', 'Capital Social', true, 'elem-patrimonio-0003', 'clas-capital-0004', 4, 3)
+  (1, 'cta-111-efectivo-equivalentes', 'Efectivo y Equivalentes', true, 'elem-activo', 'clas-activo-corriente', 111, 2),
+  (2, 'cta-112-cuentas-cobrar', 'Cuentas por Cobrar', true, 'elem-activo', 'clas-activo-corriente', 112, 2),
+  (3, 'cta-113-inventarios', 'Inventarios', true, 'elem-activo', 'clas-activo-corriente', 113, 2),
+  (4, 'cta-114-impuestos-recuperar', 'Impuestos por Recuperar', true, 'elem-activo', 'clas-activo-corriente', 114, 2),
+  (5, 'cta-115-pagos-anticipados', 'Pagos Anticipados', true, 'elem-activo', 'clas-activo-corriente', 115, 2),
+  (6, 'cta-121-propiedad-planta-equipo', 'Propiedad, Planta y Equipo', true, 'elem-activo', 'clas-activo-no-corriente', 121, 2),
+  (7, 'cta-122-intangibles', 'Activos Intangibles', true, 'elem-activo', 'clas-activo-no-corriente', 122, 2),
+  (8, 'cta-211-cuentas-pagar', 'Cuentas por Pagar', true, 'elem-pasivo', 'clas-pasivo-corriente', 211, 1),
+  (9, 'cta-212-obligaciones-laborales', 'Obligaciones Laborales', true, 'elem-pasivo', 'clas-pasivo-corriente', 212, 1),
+  (10, 'cta-213-obligaciones-tributarias', 'Obligaciones Tributarias', true, 'elem-pasivo', 'clas-pasivo-corriente', 213, 1),
+  (11, 'cta-221-prestamos-largo-plazo', 'Prestamos por Pagar a Largo Plazo', true, 'elem-pasivo', 'clas-pasivo-no-corriente', 221, 1),
+  (12, 'cta-311-capital-social', 'Capital Social', true, 'elem-patrimonio', 'clas-capital', 311, 1),
+  (13, 'cta-321-reservas-capital', 'Reservas de Capital', true, 'elem-patrimonio', 'clas-reservas', 321, 1),
+  (14, 'cta-331-utilidades-acumuladas', 'Utilidades Acumuladas', true, 'elem-patrimonio', 'clas-resultados-acumulados', 331, 1),
+  (15, 'cta-411-ventas', 'Ventas', true, 'elem-ingresos', 'clas-ingresos-operacionales', 411, 1),
+  (16, 'cta-421-otros-ingresos', 'Otros Ingresos', true, 'elem-ingresos', 'clas-ingresos-no-operacionales', 421, 1),
+  (17, 'cta-511-gastos-personal-admin', 'Gastos de Personal Administrativo', true, 'elem-gastos', 'clas-gastos-administracion', 511, 2),
+  (18, 'cta-512-gastos-generales-admin', 'Gastos Generales de Administracion', true, 'elem-gastos', 'clas-gastos-administracion', 512, 2),
+  (19, 'cta-521-gastos-comercializacion', 'Gastos de Comercializacion', true, 'elem-gastos', 'clas-gastos-venta', 521, 2),
+  (20, 'cta-531-gastos-financieros', 'Gastos Financieros', true, 'elem-gastos', 'clas-gastos-financieros', 531, 2),
+  (21, 'cta-611-costo-mercaderia-vendida', 'Costo de Mercaderia Vendida', true, 'elem-costos', 'clas-costos-venta', 611, 2),
+  (22, 'cta-621-materia-prima', 'Materia Prima', true, 'elem-costos', 'clas-costos-produccion', 621, 2),
+  (23, 'cta-622-mano-obra-directa', 'Mano de Obra Directa', true, 'elem-costos', 'clas-costos-produccion', 622, 2),
+  (24, 'cta-623-costos-indirectos-fabricacion', 'Costos Indirectos de Fabricacion', true, 'elem-costos', 'clas-costos-produccion', 623, 2)
 ON CONFLICT (uuid_cuenta_contable) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   disponible = EXCLUDED.disponible,
@@ -343,12 +383,58 @@ ON CONFLICT (uuid_cuenta_contable) DO UPDATE SET
   id_naturaleza = EXCLUDED.id_naturaleza;
 
 INSERT INTO public."SUB_CUENTA_CONTABLE" (id_sub_cuenta_contable, uuid_sub_cuenta_contable, nombre, disponible, uuid_elemento_contable, uuid_clasificacion_contable, uuid_cuenta_contable, codigo_numerico, id_naturaleza) VALUES
-  (1, 'subcta-caja-general-001', 'Caja General', true, 'elem-activos-0001', 'clas-corrientes-0001', 'cta-efectivo-equiv-0001', 1, 1),
-  (2, 'subcta-caja-chica-002', 'Caja Chica', true, 'elem-activos-0001', 'clas-corrientes-0001', 'cta-efectivo-equiv-0001', 2, 1),
-  (3, 'subcta-bancos-003', 'Bancos', true, 'elem-activos-0001', 'clas-corrientes-0001', 'cta-efectivo-equiv-0001', 3, 1),
-  (4, 'subcta-prov-nacionales-004', 'Proveedores Nacionales', true, 'elem-pasivos-0002', 'clas-corrientes-pasivos-0003', 'cta-ctas-doc-pagar-0003', 1, 2),
-  (5, 'subcta-prov-extranjeros-005', 'Proveedores Extranjeros', true, 'elem-pasivos-0002', 'clas-corrientes-pasivos-0003', 'cta-ctas-doc-pagar-0003', 2, 2),
-  (6, 'subcta-capital-autorizado-006', 'Capital Autorizado', true, 'elem-patrimonio-0003', 'clas-capital-0004', 'cta-capital-social-0004', 1, 3)
+  (1, 'subcta-1111-caja-general', 'Caja General', true, 'elem-activo', 'clas-activo-corriente', 'cta-111-efectivo-equivalentes', 1111, 2),
+  (2, 'subcta-1112-bancos', 'Bancos', true, 'elem-activo', 'clas-activo-corriente', 'cta-111-efectivo-equivalentes', 1112, 2),
+  (3, 'subcta-1113-caja-chica', 'Caja Chica', true, 'elem-activo', 'clas-activo-corriente', 'cta-111-efectivo-equivalentes', 1113, 2),
+  (4, 'subcta-1121-clientes', 'Clientes', true, 'elem-activo', 'clas-activo-corriente', 'cta-112-cuentas-cobrar', 1121, 2),
+  (5, 'subcta-1122-documentos-cobrar', 'Documentos por Cobrar', true, 'elem-activo', 'clas-activo-corriente', 'cta-112-cuentas-cobrar', 1122, 2),
+  (6, 'subcta-1123-deudores-varios', 'Deudores Varios', true, 'elem-activo', 'clas-activo-corriente', 'cta-112-cuentas-cobrar', 1123, 2),
+  (7, 'subcta-1131-inventario-mercaderias', 'Inventario de Mercaderias', true, 'elem-activo', 'clas-activo-corriente', 'cta-113-inventarios', 1131, 2),
+  (8, 'subcta-1132-inventario-materia-prima', 'Inventario de Materia Prima', true, 'elem-activo', 'clas-activo-corriente', 'cta-113-inventarios', 1132, 2),
+  (9, 'subcta-1141-isv-credito-fiscal', 'ISV Credito Fiscal', true, 'elem-activo', 'clas-activo-corriente', 'cta-114-impuestos-recuperar', 1141, 2),
+  (10, 'subcta-1151-seguros-anticipado', 'Seguros Pagados por Anticipado', true, 'elem-activo', 'clas-activo-corriente', 'cta-115-pagos-anticipados', 1151, 2),
+  (11, 'subcta-1152-alquileres-anticipado', 'Alquileres Pagados por Anticipado', true, 'elem-activo', 'clas-activo-corriente', 'cta-115-pagos-anticipados', 1152, 2),
+  (12, 'subcta-1211-terrenos', 'Terrenos', true, 'elem-activo', 'clas-activo-no-corriente', 'cta-121-propiedad-planta-equipo', 1211, 2),
+  (13, 'subcta-1212-edificios', 'Edificios', true, 'elem-activo', 'clas-activo-no-corriente', 'cta-121-propiedad-planta-equipo', 1212, 2),
+  (14, 'subcta-1213-mobiliario-equipo', 'Mobiliario y Equipo', true, 'elem-activo', 'clas-activo-no-corriente', 'cta-121-propiedad-planta-equipo', 1213, 2),
+  (15, 'subcta-1214-equipo-computacion', 'Equipo de Computacion', true, 'elem-activo', 'clas-activo-no-corriente', 'cta-121-propiedad-planta-equipo', 1214, 2),
+  (16, 'subcta-1215-vehiculos', 'Vehiculos', true, 'elem-activo', 'clas-activo-no-corriente', 'cta-121-propiedad-planta-equipo', 1215, 2),
+  (17, 'subcta-1221-software', 'Software', true, 'elem-activo', 'clas-activo-no-corriente', 'cta-122-intangibles', 1221, 2),
+  (18, 'subcta-1222-marcas-patentes', 'Marcas y Patentes', true, 'elem-activo', 'clas-activo-no-corriente', 'cta-122-intangibles', 1222, 2),
+  (19, 'subcta-2111-proveedores', 'Proveedores', true, 'elem-pasivo', 'clas-pasivo-corriente', 'cta-211-cuentas-pagar', 2111, 1),
+  (20, 'subcta-2112-documentos-pagar', 'Documentos por Pagar', true, 'elem-pasivo', 'clas-pasivo-corriente', 'cta-211-cuentas-pagar', 2112, 1),
+  (21, 'subcta-2113-acreedores-varios', 'Acreedores Varios', true, 'elem-pasivo', 'clas-pasivo-corriente', 'cta-211-cuentas-pagar', 2113, 1),
+  (22, 'subcta-2121-sueldos-pagar', 'Sueldos por Pagar', true, 'elem-pasivo', 'clas-pasivo-corriente', 'cta-212-obligaciones-laborales', 2121, 1),
+  (23, 'subcta-2122-prestaciones-pagar', 'Prestaciones por Pagar', true, 'elem-pasivo', 'clas-pasivo-corriente', 'cta-212-obligaciones-laborales', 2122, 1),
+  (24, 'subcta-2131-isv-pagar', 'ISV por Pagar', true, 'elem-pasivo', 'clas-pasivo-corriente', 'cta-213-obligaciones-tributarias', 2131, 1),
+  (25, 'subcta-2132-retenciones-pagar', 'Retenciones por Pagar', true, 'elem-pasivo', 'clas-pasivo-corriente', 'cta-213-obligaciones-tributarias', 2132, 1),
+  (26, 'subcta-2211-prestamos-bancarios-lp', 'Prestamos Bancarios a Largo Plazo', true, 'elem-pasivo', 'clas-pasivo-no-corriente', 'cta-221-prestamos-largo-plazo', 2211, 1),
+  (27, 'subcta-2212-hipotecas-pagar', 'Hipotecas por Pagar', true, 'elem-pasivo', 'clas-pasivo-no-corriente', 'cta-221-prestamos-largo-plazo', 2212, 1),
+  (28, 'subcta-3111-capital-suscrito-pagado', 'Capital Suscrito y Pagado', true, 'elem-patrimonio', 'clas-capital', 'cta-311-capital-social', 3111, 1),
+  (29, 'subcta-3112-aportes-socios', 'Aportaciones Adicionales de Socios', true, 'elem-patrimonio', 'clas-capital', 'cta-311-capital-social', 3112, 1),
+  (30, 'subcta-3211-reserva-legal', 'Reserva Legal', true, 'elem-patrimonio', 'clas-reservas', 'cta-321-reservas-capital', 3211, 1),
+  (31, 'subcta-3212-reserva-voluntaria', 'Reserva Voluntaria', true, 'elem-patrimonio', 'clas-reservas', 'cta-321-reservas-capital', 3212, 1),
+  (32, 'subcta-3311-utilidades-anteriores', 'Utilidades de Ejercicios Anteriores', true, 'elem-patrimonio', 'clas-resultados-acumulados', 'cta-331-utilidades-acumuladas', 3311, 1),
+  (33, 'subcta-3312-utilidad-ejercicio', 'Utilidad del Ejercicio', true, 'elem-patrimonio', 'clas-resultados-acumulados', 'cta-331-utilidades-acumuladas', 3312, 1),
+  (34, 'subcta-4111-ventas-mercaderias', 'Ventas de Mercaderias', true, 'elem-ingresos', 'clas-ingresos-operacionales', 'cta-411-ventas', 4111, 1),
+  (35, 'subcta-4112-ventas-servicios', 'Ventas de Servicios', true, 'elem-ingresos', 'clas-ingresos-operacionales', 'cta-411-ventas', 4112, 1),
+  (36, 'subcta-4211-ingresos-financieros', 'Ingresos Financieros', true, 'elem-ingresos', 'clas-ingresos-no-operacionales', 'cta-421-otros-ingresos', 4211, 1),
+  (37, 'subcta-4212-otros-ingresos', 'Otros Ingresos', true, 'elem-ingresos', 'clas-ingresos-no-operacionales', 'cta-421-otros-ingresos', 4212, 1),
+  (38, 'subcta-5111-sueldos-admin', 'Sueldos Administrativos', true, 'elem-gastos', 'clas-gastos-administracion', 'cta-511-gastos-personal-admin', 5111, 2),
+  (39, 'subcta-5112-bonificaciones-admin', 'Bonificaciones Administrativas', true, 'elem-gastos', 'clas-gastos-administracion', 'cta-511-gastos-personal-admin', 5112, 2),
+  (40, 'subcta-5121-alquileres', 'Alquileres', true, 'elem-gastos', 'clas-gastos-administracion', 'cta-512-gastos-generales-admin', 5121, 2),
+  (41, 'subcta-5122-servicios-publicos', 'Servicios Publicos', true, 'elem-gastos', 'clas-gastos-administracion', 'cta-512-gastos-generales-admin', 5122, 2),
+  (42, 'subcta-5123-papeleria-utiles', 'Papeleria y Utiles', true, 'elem-gastos', 'clas-gastos-administracion', 'cta-512-gastos-generales-admin', 5123, 2),
+  (43, 'subcta-5211-publicidad', 'Publicidad y Propaganda', true, 'elem-gastos', 'clas-gastos-venta', 'cta-521-gastos-comercializacion', 5211, 2),
+  (44, 'subcta-5212-fletes-ventas', 'Fletes y Acarreos sobre Ventas', true, 'elem-gastos', 'clas-gastos-venta', 'cta-521-gastos-comercializacion', 5212, 2),
+  (45, 'subcta-5213-comisiones-ventas', 'Comisiones sobre Ventas', true, 'elem-gastos', 'clas-gastos-venta', 'cta-521-gastos-comercializacion', 5213, 2),
+  (46, 'subcta-5311-intereses-bancarios', 'Intereses Bancarios', true, 'elem-gastos', 'clas-gastos-financieros', 'cta-531-gastos-financieros', 5311, 2),
+  (47, 'subcta-5312-comisiones-bancarias', 'Comisiones Bancarias', true, 'elem-gastos', 'clas-gastos-financieros', 'cta-531-gastos-financieros', 5312, 2),
+  (48, 'subcta-6111-costo-mercaderias', 'Costo de Mercaderias', true, 'elem-costos', 'clas-costos-venta', 'cta-611-costo-mercaderia-vendida', 6111, 2),
+  (49, 'subcta-6211-materia-prima-consumida', 'Materia Prima Consumida', true, 'elem-costos', 'clas-costos-produccion', 'cta-621-materia-prima', 6211, 2),
+  (50, 'subcta-6221-mano-obra-directa', 'Mano de Obra Directa', true, 'elem-costos', 'clas-costos-produccion', 'cta-622-mano-obra-directa', 6221, 2),
+  (51, 'subcta-6231-materiales-indirectos', 'Materiales Indirectos', true, 'elem-costos', 'clas-costos-produccion', 'cta-623-costos-indirectos-fabricacion', 6231, 2),
+  (52, 'subcta-6232-servicios-produccion', 'Servicios de Produccion', true, 'elem-costos', 'clas-costos-produccion', 'cta-623-costos-indirectos-fabricacion', 6232, 2)
 ON CONFLICT (uuid_sub_cuenta_contable) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   disponible = EXCLUDED.disponible,
