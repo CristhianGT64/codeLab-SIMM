@@ -334,6 +334,10 @@ SELECT setval('public."Facturas_id_seq"',
   COALESCE((SELECT MAX(id) FROM public."Facturas"), 1),
   COALESCE((SELECT MAX(id) IS NOT NULL FROM public."Facturas"), false)
 );
+SELECT setval('public."DetalleFactura_id_seq"',
+  COALESCE((SELECT MAX(id) FROM public."DetalleFactura"), 1),
+  COALESCE((SELECT MAX(id) IS NOT NULL FROM public."DetalleFactura"), false)
+);
 SELECT setval('public."MovimientoInventario_id_seq"',
   COALESCE((SELECT MAX(id) FROM public."MovimientoInventario"), 1),
   COALESCE((SELECT MAX(id) IS NOT NULL FROM public."MovimientoInventario"), false)
