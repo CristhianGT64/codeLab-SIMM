@@ -28,7 +28,7 @@ import * as permissionController from './controllers/permissionController.js';
 import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
 import * as invoiceTypeController from './controllers/invoiceTypeController.js';
-import ventaController from './controllers/ventaController.js';
+import ventaController from './controllers/ventas/ventaController.js';
 import facturaController from './controllers/facturaController.js';
 import impuestoController from './controllers/impuestoController.js';
 import tipoClienteController from './controllers/Tipos de cliente/tipoClienteController.js';

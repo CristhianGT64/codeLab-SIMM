@@ -14,6 +14,7 @@ export const useCreateVenta = () => {
       if (response.success) {
         toast.success("Venta registrada con éxito");
         queryClient.invalidateQueries({ queryKey: ["product"] });
+        queryClient.invalidateQueries({ queryKey: ["ventas"] });
       }
     },
     onError: (error: unknown) => {
