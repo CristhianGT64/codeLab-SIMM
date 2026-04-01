@@ -2,7 +2,7 @@
  * Este archivo maneja las solicitudes HTTP, llamando al servicio y respondiendo al cliente.
  */
 
-import clientService from '../services/clientService.js';
+import clientService from '../../services/Clientes/clientService.js';
 
 /**
  * Controlador para manejar las solicitudes relacionadas con clientes.

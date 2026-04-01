@@ -1,4 +1,4 @@
-import prisma from '../infra/prisma/prismaClient.js';
+import prisma from '../../infra/prisma/prismaClient.js';
 
 /**
  * Repositorio para interactuar con la base de datos de tipos de documento usando Prisma

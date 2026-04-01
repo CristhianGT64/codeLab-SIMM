@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { Sucursal } from "../../../interfaces/SucursalInterface";
+import type { Sucursal } from "../../../interfaces/Sucursales/SucursalInterface";
 import { faPenToSquare, faPowerOff } from "@fortawesome/free-solid-svg-icons";
 
 interface Props {

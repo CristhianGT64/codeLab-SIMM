@@ -1,4 +1,4 @@
-import prisma from '../infra/prisma/prismaClient.js';
+import prisma from '../../infra/prisma/prismaClient.js';
 
 const clientRepository = {
 
@@ -66,7 +66,7 @@ const clientRepository = {
         tipoClienteId = found.id;
       } else {
         const created = await prisma.tipoCliente.create({
-          data: { nombre },
+          data: { nombre: nombre },
         });
         tipoClienteId = created.id;
       }
@@ -106,7 +106,7 @@ const clientRepository = {
         tipoClienteId = found.id;
       } else {
         const created = await prisma.tipoCliente.create({
-          data: { nombre },
+          data: { nombre: nombre },
         });
         tipoClienteId = created.id;
       }

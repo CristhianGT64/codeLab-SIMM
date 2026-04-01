@@ -1,4 +1,4 @@
-import tipoDocumentoRepository from '../repositories/tipoDocumentoRepository.js';
+import tipoDocumentoRepository from '../../repositories/Tipo de documento/tipoDocumentoRepository.js';
 
 /**
  * Servicio para la lógica de negocio relacionada con tipos de documento
