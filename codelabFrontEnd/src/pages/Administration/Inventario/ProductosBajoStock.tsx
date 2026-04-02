@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import useProductosBajoStock from "../../../hooks/InventarioHooks/useProductosBajoStock";
@@ -46,26 +46,11 @@ export default function ProductosBajoStock() {
     message: "",
   });
 
-  const productosBajoStock = bajoStockData?.data ?? [];
-  const alertas = alertasData?.data ?? [];
-
-  useEffect(() => {
-    if (productosBajoStock.length === 0) {
-      return;
-    }
-
-    setStockMinimos((prev) => {
-      const next = { ...prev };
-
-      productosBajoStock.forEach((item) => {
-        if (next[item.productoId] === undefined) {
-          next[item.productoId] = String(item.stockMinimo);
-        }
-      });
-
-      return next;
-    });
-  }, [productosBajoStock]);
+  const productosBajoStock = useMemo(
+    () => bajoStockData?.data ?? [],
+    [bajoStockData?.data],
+  );
+  const alertas = useMemo(() => alertasData?.data ?? [], [alertasData?.data]);
 
   const alertasPorProducto = useMemo(() => {
     const map = new Map<string, string>();
@@ -87,8 +72,14 @@ export default function ProductosBajoStock() {
   const fin = inicio + ITEMS_POR_PAGINA;
   const itemsPaginados = productosBajoStock.slice(inicio, fin);
 
-  const handleGuardar = async (productoId: string, nombreProducto: string) => {
-    const value = Number(stockMinimos[productoId] ?? "0");
+  const handleGuardar = async (
+    productoId: string,
+    nombreProducto: string,
+    stockMinimoActual: number,
+  ) => {
+    const value = Number(
+      stockMinimos[productoId] ?? String(stockMinimoActual),
+    );
 
     if (!Number.isInteger(value) || value < 0) {
       setNotification({
@@ -161,7 +152,7 @@ export default function ProductosBajoStock() {
           <input
             type="number"
             min="0"
-            value={stockMinimos[item.productoId] ?? item.stockMinimo}
+            value={stockMinimos[item.productoId] ?? String(item.stockMinimo)}
             onChange={(event) =>
               setStockMinimos((prev) => ({
                 ...prev,
@@ -181,7 +172,13 @@ export default function ProductosBajoStock() {
             typeButton="button"
             className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-[#0aa6a2] to-[#4661b0] px-4 text-sm font-semibold text-white hover:from-[#06706d] hover:to-[#334c8b] disabled:cursor-not-allowed disabled:opacity-70"
             icon="fa-solid fa-floppy-disk"
-            onClick={() => handleGuardar(item.productoId, item.producto.nombre)}
+            onClick={() =>
+              handleGuardar(
+                item.productoId,
+                item.producto.nombre,
+                item.stockMinimo,
+              )
+            }
             disabled={isPending}
           />
         </td>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import useDashboardInventario from "../../../hooks/InventarioHooks/useDashboardInventario";
@@ -56,7 +56,7 @@ export default function InventarioOverview() {
   const [fechaFiltro, setFechaFiltro] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const [selectedProductId, setSelectedProductId] = useState("");
-  const [stockMinimoInput, setStockMinimoInput] = useState("0");
+  const [stockMinimoInput, setStockMinimoInput] = useState("");
   const [notification, setNotification] = useState<NotificationState>({
     isVisible: false,
     variant: "success",
@@ -81,30 +81,28 @@ export default function InventarioOverview() {
   const { mutateAsync: updateStockMinimo, isPending: isUpdatingStockMinimo } =
     useUpdateStockMinimo();
 
-  const productos = productData?.data ?? [];
-  const alertas = alertasData?.data ?? [];
-  const productosBajoStock = bajoStockData?.data ?? [];
+  const productos = useMemo(() => productData?.data ?? [], [productData?.data]);
+  const alertas = useMemo(() => alertasData?.data ?? [], [alertasData?.data]);
+  const productosBajoStock = useMemo(
+    () => bajoStockData?.data ?? [],
+    [bajoStockData?.data],
+  );
   const movimientos = useMemo<MovimientoInventarioItem[]>(
     () => historial?.data ?? [],
     [historial?.data],
   );
+  const resolvedSelectedProductId = selectedProductId || productos[0]?.id || "";
 
   const selectedProduct = useMemo(
-    () => productos.find((product) => product.id === selectedProductId) ?? null,
-    [productos, selectedProductId],
+    () =>
+      productos.find((product) => product.id === resolvedSelectedProductId) ??
+      null,
+    [productos, resolvedSelectedProductId],
   );
-
-  useEffect(() => {
-    if (!selectedProductId && productos.length > 0) {
-      setSelectedProductId(productos[0].id);
-    }
-  }, [productos, selectedProductId]);
-
-  useEffect(() => {
-    if (selectedProduct) {
-      setStockMinimoInput(String(selectedProduct.stockMinimo ?? 0));
-    }
-  }, [selectedProduct]);
+  const currentStockMinimoInput =
+    stockMinimoInput === ""
+      ? String(selectedProduct?.stockMinimo ?? 0)
+      : stockMinimoInput;
 
   const movimientosFiltrados = useMemo(() => {
     if (!busqueda.trim()) return movimientos;
@@ -227,7 +225,7 @@ export default function InventarioOverview() {
       return;
     }
 
-    const normalized = Number(stockMinimoInput);
+    const normalized = Number(currentStockMinimoInput);
 
     if (!Number.isInteger(normalized) || normalized < 0) {
       setNotification({
@@ -412,8 +410,15 @@ export default function InventarioOverview() {
             <label className="grid gap-2">
               <span className="text-sm font-semibold text-[#0a4d76]">Producto</span>
               <select
-                value={selectedProductId}
-                onChange={(event) => setSelectedProductId(event.target.value)}
+                value={resolvedSelectedProductId}
+                onChange={(event) => {
+                  const nextProductId = event.target.value;
+                  const nextProduct = productos.find(
+                    (product) => product.id === nextProductId,
+                  );
+                  setSelectedProductId(nextProductId);
+                  setStockMinimoInput(String(nextProduct?.stockMinimo ?? 0));
+                }}
                 className="h-12 rounded-xl border border-[#9adce2] bg-white px-4 text-base text-[#24364d] outline-none focus:border-[#0aa6a2]"
               >
                 {productos.map((product) => (
@@ -450,7 +455,7 @@ export default function InventarioOverview() {
               <input
                 type="number"
                 min="0"
-                value={stockMinimoInput}
+                value={currentStockMinimoInput}
                 onChange={(event) => setStockMinimoInput(event.target.value)}
                 className="h-12 rounded-xl border border-[#9adce2] bg-white px-4 text-base text-[#24364d] outline-none focus:border-[#0aa6a2]"
               />
