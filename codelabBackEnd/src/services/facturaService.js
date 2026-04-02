@@ -73,7 +73,7 @@ const facturaService = {
 
         const tasa = Number(producto.impuesto.tasa);
 
-        const inventario = await inventarioRepository.findStock(item.productoId, sucursalId);
+        const inventario = await inventarioRepository.findStock(item.productoId, sucursalId, tx);
 
         if (!inventario) throw new Error(`Sin inventario para ${producto.nombre}`);
         if (inventario.stockActual < item.cantidad) {
@@ -225,7 +225,8 @@ const facturaService = {
 
         const inventario = await inventarioRepository.findStock(
           d.productoId,
-          sucursalId
+          sucursalId,
+          tx
         );
 
         const stockResultante = inventario.stockActual - d.cantidad;
@@ -244,12 +245,14 @@ const facturaService = {
           }
         });
 
-        await inventarioRepository.decreaseStock(
+        const inventarioActualizado = await inventarioRepository.decreaseStock(
           d.productoId,
           sucursalId,
           d.cantidad,
           tx
         );
+
+        await inventarioRepository.syncAlertaInventarioById(inventarioActualizado.id, tx);
       }
 
       // Actualizar estado de venta

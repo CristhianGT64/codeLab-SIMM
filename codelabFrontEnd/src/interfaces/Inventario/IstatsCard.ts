@@ -1,4 +1,4 @@
-type IconType = "box" | "up" | "down";
+type IconType = "box" | "up" | "down" | "alert";
 
 
 export interface IstatCard {

@@ -10,6 +10,8 @@ const useRegistrarSalida = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventario-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["inventario-historial"] });
+      queryClient.invalidateQueries({ queryKey: ["inventario-bajo-stock"] });
+      queryClient.invalidateQueries({ queryKey: ["inventario-alertas"] });
       queryClient.invalidateQueries({ queryKey: ["product"] });
     },
   });

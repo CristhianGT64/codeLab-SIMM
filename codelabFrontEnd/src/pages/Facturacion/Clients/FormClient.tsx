@@ -1,24 +1,31 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import ButtonsComponet from '../../../components/buttonsComponents/ButtonsComponet';
 import { useCreateClient } from '../../../hooks/ClientesHooks/useCreateClient';
 import { useUpdateClient } from '../../../hooks/ClientesHooks/useUpdateClient';
 import { useClientDetail } from '../../../hooks/ClientesHooks/useClientDetail';
+import useListTiposCliente from '../../../hooks/TiposDeClientesHooks/useListTiposCliente';
 import type { CreateClientPayload } from '../../../interfaces/Clients/ClientInterface';
-import { CLIENT_TYPE_OPTIONS, getClientTypeId, resolveClientType } from '../../../lib/clientTypes';
 
 const FormClient = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = Boolean(id);
   const { data: clientDetail, isLoading: loadingClient } = useClientDetail(id);
+  const { data: tiposResponse } = useListTiposCliente();
+  const tiposDisponibles = useMemo(
+    () => (tiposResponse?.data ?? []).filter((t) => t.disponible),
+    [tiposResponse],
+  );
   const createClient = useCreateClient();
   const updateClient = useUpdateClient();
   const [draftForm, setDraftForm] = useState<CreateClientPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const defaultTipo = tiposDisponibles[0];
+
   const baseForm = useMemo<CreateClientPayload>(() => {
     if (!clientDetail) {
       return {
@@ -27,22 +34,21 @@ const FormClient = () => {
         telefono: '',
         correo: '',
         direccion: '',
-        tipoClienteId: getClientTypeId('Minorista'),
-        tipoCliente: 'Minorista',
+        tipoClienteId: defaultTipo?.id ?? '',
+        tipoCliente: defaultTipo?.nombre ?? '',
       };
     }
 
-    const resolvedType = resolveClientType(clientDetail.tipoCliente, clientDetail.tipoClienteId);
     return {
       nombreCompleto: clientDetail.nombreCompleto,
       identificacion: clientDetail.identificacion,
       telefono: clientDetail.telefono,
       correo: clientDetail.correo,
       direccion: clientDetail.direccion,
-      tipoClienteId: resolvedType.tipoClienteId,
-      tipoCliente: resolvedType.tipoCliente,
+      tipoClienteId: clientDetail.tipoClienteId,
+      tipoCliente: clientDetail.tipoCliente,
     };
-  }, [clientDetail]);
+  }, [clientDetail, defaultTipo]);
   const form = draftForm ?? baseForm;
 
   const isSaving = createClient.status === 'pending' || updateClient.status === 'pending';
@@ -61,11 +67,8 @@ const FormClient = () => {
     }
 
     try {
-      const resolvedType = resolveClientType(form.tipoCliente, form.tipoClienteId);
       const payload: CreateClientPayload = {
         ...form,
-        tipoCliente: resolvedType.tipoCliente,
-        tipoClienteId: resolvedType.tipoClienteId,
       };
 
       if (isEdit && id) {
@@ -75,14 +78,9 @@ const FormClient = () => {
       }
       navigate('/Clients-Management');
     } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        const serverError = err.response?.data ?? err.message;
-        console.error('Error backend crear cliente', serverError);
-        setError(typeof serverError === 'string' ? serverError : JSON.stringify(serverError));
-      } else {
-        console.error('Error creando cliente', err);
-        setError('Error al guardar el cliente. Intenta nuevamente.');
-      }
+      const message = err instanceof Error ? err.message : 'Error al guardar el cliente. Intenta nuevamente.';
+      console.error('Error guardando cliente', err);
+      setError(message);
     }
   };
 
@@ -172,17 +170,20 @@ const FormClient = () => {
             </div>
 
             <div>
-              <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">Tipo de cliente</p>
+              <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">Tipo de cliente <span className="text-[#ff4f4f]">*</span></p>
               <select
-                value={form.tipoCliente}
+                value={form.tipoClienteId}
                 onChange={(e) => {
-                  const value = e.target.value as CreateClientPayload['tipoCliente'];
-                  setDraftForm((prev) => ({ ...(prev ?? form), tipoCliente: value, tipoClienteId: getClientTypeId(value) }));
+                  const selected = tiposDisponibles.find((t) => t.id === e.target.value);
+                  if (selected) {
+                    setDraftForm((prev) => ({ ...(prev ?? form), tipoCliente: selected.nombre, tipoClienteId: selected.id }));
+                  }
                 }}
+                required
                 className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl outline-none focus:border-[#0aa6a2]"
               >
-                {CLIENT_TYPE_OPTIONS.map((option) => (
-                  <option key={option} value={option}>{option}</option>
+                {tiposDisponibles.map((tipo) => (
+                  <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
                 ))}
               </select>
             </div>

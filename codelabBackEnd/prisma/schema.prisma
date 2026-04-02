@@ -59,6 +59,7 @@ model Sucursal {
   establecimientos      Establecimiento[]
   movimientosInventario MovimientoInventario[]
   facturas              Factura[]
+  alertasInventario     AlertaInventario[]
 }
 
 model Usuario {
@@ -106,6 +107,7 @@ model Producto {
   costo               Decimal                @db.Decimal(10, 2)
   precioVenta         Decimal                @map("precio_venta") @db.Decimal(10, 2)
   unidadMedida        String?                @map("unidad_medida") @db.VarChar(50)
+  stockMinimo         Int                    @default(0) @map("stock_minimo")
   estado              EstadoProducto         @default(activo)
   createdAt           DateTime?              @default(now()) @map("created_at")
   updatedAt           DateTime?              @map("updated_at")
@@ -117,6 +119,7 @@ model Producto {
   inventarios         Inventario[]
   movimientos         MovimientoInventario[]
   productoProveedores ProductoProveedor[]
+  alertasInventario   AlertaInventario[]
   detallesFactura DetalleFactura[]
   impuestoId BigInt?
   impuesto   Impuesto? @relation(fields: [impuestoId], references: [id])
@@ -140,8 +143,32 @@ model Inventario {
   sucursalId  BigInt
   producto    Producto @relation(fields: [productoId], references: [id])
   sucursal    Sucursal @relation(fields: [sucursalId], references: [id])
+  alertas     AlertaInventario[]
 
   @@unique([productoId, sucursalId])
+}
+
+model AlertaInventario {
+  id              BigInt   @id @default(autoincrement())
+  productoId       BigInt   @map("producto_id")
+  inventarioId     BigInt   @map("inventario_id")
+  sucursalId       BigInt   @map("sucursal_id")
+  stockActual      Int      @map("stock_actual")
+  stockMinimo      Int      @map("stock_minimo")
+  activa           Boolean  @default(true)
+  mensaje          String   @db.VarChar(255)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  resueltaAt       DateTime? @map("resuelta_at")
+  producto         Producto @relation(fields: [productoId], references: [id])
+  inventario       Inventario @relation(fields: [inventarioId], references: [id])
+  sucursal         Sucursal @relation(fields: [sucursalId], references: [id])
+
+  @@unique([inventarioId])
+  @@index([activa])
+  @@index([productoId])
+  @@index([sucursalId])
+  @@map("alertas_inventario")
 }
 
 model MovimientoInventario {
@@ -182,6 +209,7 @@ model TipoCliente {
   nombre          String    @db.VarChar(200)
   descripcion     String?   @db.VarChar(255)
   condicionPago   String?   @map("condicion_pago") @db.VarChar(100)
+  diasCredito     Int       @default(0) @map("dias_credito")
   disponible      Boolean   @default(true)
   fechaCreacion   DateTime  @default(now()) @map("fecha_creacion")
   clientes        Cliente[]
@@ -194,8 +222,8 @@ model Cliente {
   telefono       String?      @db.VarChar(50)
   correo         String?      @db.VarChar(150)
   direccion      String?      @db.VarChar(255)
-  tipoClienteId  BigInt?
-  tipoCliente    TipoCliente? @relation(fields: [tipoClienteId], references: [id])
+  tipoClienteId  BigInt       
+  tipoCliente    TipoCliente  @relation(fields: [tipoClienteId], references: [id])
   ventas         Venta[]
   facturas       Factura[]
 }

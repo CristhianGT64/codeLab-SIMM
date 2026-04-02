@@ -71,6 +71,7 @@ const tipoClienteRepository = {
         nombre: data.nombre,
         descripcion: data.descripcion || null,
         condicionPago: data.condicionPago || null,
+        diasCredito: data.diasCredito !== undefined ? data.diasCredito : 0,
         disponible: data.disponible !== undefined ? data.disponible : true,
       },
     });
@@ -89,6 +90,7 @@ const tipoClienteRepository = {
     if (data.nombre !== undefined) payload.nombre = data.nombre;
     if (data.descripcion !== undefined) payload.descripcion = data.descripcion;
     if (data.condicionPago !== undefined) payload.condicionPago = data.condicionPago;
+    if (data.diasCredito !== undefined) payload.diasCredito = data.diasCredito;
     if (data.disponible !== undefined) payload.disponible = data.disponible;
 
     return await prisma.tipoCliente.update({

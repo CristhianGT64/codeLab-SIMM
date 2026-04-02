@@ -16,7 +16,7 @@ export interface Client {
   correo: string;
   direccion: string;
   tipoClienteId: string;
-  tipoCliente: ClientType;
+  tipoCliente: string;
 }
 
 export interface ClientDetail extends Client {
@@ -33,7 +33,7 @@ export interface CreateClientPayload {
   correo: string;
   direccion: string;
   tipoClienteId: string;
-  tipoCliente: ClientType;
+  tipoCliente: string;
 }
 
 export type UpdateClientPayload = CreateClientPayload;
