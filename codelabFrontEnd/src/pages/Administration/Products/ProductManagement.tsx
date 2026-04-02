@@ -23,7 +23,10 @@ const ITEMS_POR_PAGINA = 8;
 
 export default function ProductManagement() {
   const { data: listProduct, isLoading, isError, error } = useListProduct();
-  const mockProducts = listProduct?.data ?? [];
+  const mockProducts = useMemo(
+    () => listProduct?.data ?? [],
+    [listProduct?.data],
+  );
   const inactiveProduct = useInactiveProducto();
   const activeProduct = useActivateProducto();
   const { tienePermiso } = useAuth();

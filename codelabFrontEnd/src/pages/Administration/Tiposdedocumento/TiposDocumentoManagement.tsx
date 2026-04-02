@@ -63,8 +63,9 @@ export default function TiposDocumentoManagement() {
 
   const tiposFiltrados = useMemo(() => {
     const term = search.trim().toLowerCase();
+    const tipos = Array.isArray(data?.data) ? data.data : [];
 
-    return tiposDocumento
+    return tipos
       .filter((item) => {
         const codigo = String(item.codigo ?? "").toLowerCase();
         const nombre = String(item.nombre ?? "").toLowerCase();
@@ -88,7 +89,7 @@ export default function TiposDocumentoManagement() {
         return true;
       })
       .sort((a, b) => Number(b.activo) - Number(a.activo));
-  }, [estadoFiltro, search, tiposDocumento]);
+  }, [data, estadoFiltro, search]);
 
   const closeNotification = () => {
     setNotification((prev) => ({ ...prev, isVisible: false }));
@@ -126,7 +127,7 @@ export default function TiposDocumentoManagement() {
           Tipos de Documento
         </h2>
         <p className="text-lg text-[#4661b0] md:text-xl">
-          Configura los tipos de documento para facturacion y operaciones
+          Configura los tipos de documento para facturación y operaciones
         </p>
       </header>
 

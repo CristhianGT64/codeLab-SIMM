@@ -98,6 +98,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "prisma": "^7.4.1"
+    "prisma": "^7.6.0"
   }
 }

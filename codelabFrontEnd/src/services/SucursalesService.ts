@@ -1,4 +1,4 @@
-import type { Sucursal, SucursalResponse } from "../interfaces/SucursalInterface.ts";
+import type { Sucursal, SucursalResponse } from "../interfaces/Sucursales/SucursalInterface.ts";
 import settings from "../lib/settings";
 
 // 1 - Listar todas las sucursales

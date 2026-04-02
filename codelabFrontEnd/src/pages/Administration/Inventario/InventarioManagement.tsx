@@ -55,7 +55,10 @@ export default function InventarioManagement() {
   const { data: historial, isLoading: loadingTable } =
     useHistorialInventario(filters);
 
-  const movimientos: MovimientoInventarioItem[] = historial?.data ?? [];
+  const movimientos = useMemo<MovimientoInventarioItem[]>(
+    () => historial?.data ?? [],
+    [historial?.data],
+  );
 
   // ── Filtrado local por nombre de producto
   const movimientosFiltrados = useMemo(() => {

@@ -22,7 +22,7 @@ import useCreateRol from "../../../hooks/RolesHooks/useCreateRol";
 import useAssignPermissionsToRole from "../../../hooks/RolesHooks/useAssignPermissionsToRole";
 import useReadRolById from "../../../hooks/RolesHooks/useReadRolById";
 import useUpdateRolPermissions from "../../../hooks/RolesHooks/useUpdateRolPermissions";
-import { useEffect, useState, type ChangeEvent, type SyntheticEvent } from "react";
+import { useMemo, useState, type ChangeEvent, type SyntheticEvent } from "react";
 import {
   RolEmpty,
   type FormRol,
@@ -40,7 +40,6 @@ export default function FormRoles() {
   const { mutateAsync: mutationCreateRol, isPending: isCreatingRol } = useCreateRol();
   const { mutateAsync: mutationAssignPermisos, isPending: isAssigning } = useAssignPermissionsToRole();
   const { mutateAsync: mutationUpdatePermisos, isPending: isUpdating } = useUpdateRolPermissions();
-  const [form, setForm] = useState<FormRol>(RolEmpty);
   const { id } = useParams<{
     id: string;
   }>();
@@ -48,7 +47,9 @@ export default function FormRoles() {
   const { data: rolData } = useReadRolById(id ?? "");
   const [notificacion, setNotification] =
     useState<NotificationStateInterface>(NotificacionData);
-  const [permisosSeleccionados, setPermisosSeleccionados] = useState<Set<string>>(new Set());
+  const [draftForm, setDraftForm] = useState<FormRol | null>(null);
+  const [permisosSeleccionados, setPermisosSeleccionados] =
+    useState<Set<string> | null>(null);
 
   const isPending = isCreatingRol || isAssigning || isUpdating;
 
@@ -56,14 +57,17 @@ export default function FormRoles() {
   const textoPending = isEditMode ? "Guardando cambios..." : "Creando rol...";
   const textoSubmit = isPending ? textoPending : botonSubmit.text;
 
-  // llenar formulario y permisos cuando se carga el rol en modo edición
-  useEffect(() => {
-    if (rolData?.data) {
-      const rol = rolData.data;
-      setForm({ nombre: rol.nombre, descripcion: rol.descripcion });
-      setPermisosSeleccionados(new Set(rol.permisos.map((p) => p.id)));
-    }
-  }, [rolData]);
+  const form: FormRol = !rolData?.data
+    ? RolEmpty
+    : {
+        nombre: rolData.data.nombre,
+        descripcion: rolData.data.descripcion,
+      };
+  const formValues = draftForm ?? form;
+  const permisosSeleccionadosValues = useMemo(
+    () => permisosSeleccionados ?? new Set(rolData?.data?.permisos.map((p) => p.id) ?? []),
+    [permisosSeleccionados, rolData?.data?.permisos],
+  );
 
   const permisosConElementos = permisosxCategoria.filter(
     (grupo) => Array.isArray(grupo.permisos) && grupo.permisos.length > 0,
@@ -76,7 +80,7 @@ export default function FormRoles() {
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       >,
     ) => {
-      setForm((prev) => ({ ...prev, [field]: event.target.value }));
+      setDraftForm((prev) => ({ ...(prev ?? formValues), [field]: event.target.value }));
     };
 
   const createRol = async (event: SyntheticEvent<HTMLFormElement>) => {
@@ -86,7 +90,7 @@ export default function FormRoles() {
       if (isEditMode && id) {
         await mutationUpdatePermisos({
           roleId: id,
-          permissions: Array.from(permisosSeleccionados),
+          permissions: Array.from(permisosSeleccionadosValues),
         });
 
         setNotification({ ...notificacionExitoEditarRol });
@@ -96,13 +100,13 @@ export default function FormRoles() {
         return;
       }
 
-      const rolResponse = await mutationCreateRol(form);
+      const rolResponse = await mutationCreateRol(formValues);
       const roleId = rolResponse.data.id;
 
-      if (permisosSeleccionados.size > 0) {
+      if (permisosSeleccionadosValues.size > 0) {
         await mutationAssignPermisos({
           roleId,
-          permissions: Array.from(permisosSeleccionados),
+          permissions: Array.from(permisosSeleccionadosValues),
         });
       }
 
@@ -123,7 +127,7 @@ export default function FormRoles() {
 
   const togglePermiso = (permisoId: string) => {
     setPermisosSeleccionados((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev ?? permisosSeleccionadosValues);
       if (next.has(permisoId)) {
         next.delete(permisoId);
       } else {
@@ -135,7 +139,7 @@ export default function FormRoles() {
 
   const toggleTodos = (ids: string[]) => {
     setPermisosSeleccionados((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev ?? permisosSeleccionadosValues);
       const todosSeleccionados = ids.every((id) => next.has(id));
       if (todosSeleccionados) {
         ids.forEach((id) => next.delete(id));
@@ -175,7 +179,7 @@ export default function FormRoles() {
             <input
               id="nombreRol"
               type="text"
-              value={form.nombre}
+              value={formValues.nombre}
               onChange={onChangeField("nombre")}
               placeholder="Ej: Editor de Contenido"
               className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]"
@@ -190,7 +194,7 @@ export default function FormRoles() {
             <textarea
               id="descripcion"
               rows={3}
-              value={form.descripcion}
+              value={formValues.descripcion}
               onChange={onChangeField("descripcion")}
               placeholder="Describe las funciones y alcance de este rol"
               className="w-full resize-none rounded-2xl border-2 border-[#9adce2] bg-white px-5 py-4 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]"
@@ -209,7 +213,7 @@ export default function FormRoles() {
                 </p>
               </div>
               <span className="text-base font-semibold text-[#0aa6a2]">
-                {permisosSeleccionados.size} de{" "}
+                {permisosSeleccionadosValues.size} de{" "}
                 {permisosConElementos.reduce(
                   (acc, g) => acc + g.permisos.length,
                   0,
@@ -224,7 +228,7 @@ export default function FormRoles() {
                 <CardEligirRoles
                   key={grupo.id}
                   {...grupo}
-                  permisosSeleccionados={permisosSeleccionados}
+                  permisosSeleccionados={permisosSeleccionadosValues}
                   onTogglePermiso={togglePermiso}
                   onToggleTodos={toggleTodos}
                 />

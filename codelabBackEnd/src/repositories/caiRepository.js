@@ -200,6 +200,28 @@ const caiRepository = {
       select: caiDetailSelect,
     });
   },
+
+  async findLatestByTipoDocumento(tipoDocumentoId) {
+    return prisma.cai.findFirst({
+      where: {
+        tipoDocumentoId: BigInt(tipoDocumentoId),
+      },
+      orderBy: [
+        { id: 'desc' },
+      ],
+      select: {
+        id: true,
+        tipoDocumentoId: true,
+        rangoEmision: {
+          select: {
+            id: true,
+            inicioRango: true,
+            finRango: true,
+          },
+        },
+      },
+    });
+  },
 };
 
 export default caiRepository;

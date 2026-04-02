@@ -1,4 +1,4 @@
-import tipoDocumentoService from '../services/tipoDocumentoService.js';
+import tipoDocumentoService from '../../services/Tipo de documento/tipoDocumentoService.js';
 
 /**
  * Controlador para manejar las solicitudes relacionadas con tipos de documento.

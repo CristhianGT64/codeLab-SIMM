@@ -5,7 +5,6 @@ import {
   faEyeSlash,
 } from "@fortawesome/free-solid-svg-icons";
 import {
-  useEffect,
   useState,
   type ChangeEvent,
   type SyntheticEvent,
@@ -41,7 +40,7 @@ export default function FormUser() {
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState<FormUserState>(initialForm);
+  const [draftForm, setDraftForm] = useState<FormUserState | null>(null);
   const [notification, setNotification] = useState<NotificationState>({
     isVisible: false,
     variant: "success",
@@ -67,24 +66,18 @@ export default function FormUser() {
     isPending: isUpdating,
   } = useUpdateUser();
   const isPending = isCreating || isUpdating;
-
-  useEffect(() => {
-    if (!isEditMode) {
-      setForm(initialForm);
-      return;
-    }
-
-    if (userData?.data) {
-      setForm({
-        nombreCompleto: userData.data.nombreCompleto,
-        correo: userData.data.correo,
-        usuario: userData.data.usuario,
-        password: "",
-        rolId: userData.data.rol.id,
-        sucursalId: userData.data.sucursal.id,
-      });
-    }
-  }, [isEditMode, userData]);
+  const baseForm: FormUserState =
+    !isEditMode || !userData?.data
+      ? initialForm
+      : {
+          nombreCompleto: userData.data.nombreCompleto,
+          correo: userData.data.correo,
+          usuario: userData.data.usuario,
+          password: "",
+          rolId: userData.data.rol.id,
+          sucursalId: userData.data.sucursal.id,
+        };
+  const form = draftForm ?? baseForm;
 
   const goBack = () => {
     navigate("/Users-Management");
@@ -93,7 +86,7 @@ export default function FormUser() {
   const onChangeField =
     (field: keyof FormUserState) =>
     (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      setForm((prev) => ({ ...prev, [field]: event.target.value }));
+      setDraftForm((prev) => ({ ...(prev ?? form), [field]: event.target.value }));
     };
 
   const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
@@ -101,8 +94,8 @@ export default function FormUser() {
     try {
       const wasProcessed =
         isEditMode && id
-          ? await updateUserMutation({ id, credentials: form })
-          : await createUserMutation(form);
+          ? await updateUserMutation({ id, credentials: draftForm ?? baseForm })
+          : await createUserMutation(draftForm ?? baseForm);
 
       if (wasProcessed) {
         setNotification({
