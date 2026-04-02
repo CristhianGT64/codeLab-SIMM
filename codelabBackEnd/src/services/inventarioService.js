@@ -217,6 +217,11 @@ const inventarioService = {
         tx
       );
 
+      const alerta = await inventarioRepository.syncAlertaInventarioById(
+        inventario.id,
+        tx
+      );
+
       const movimiento = await inventarioRepository.createMovimiento(
         {
           tipo: 'entrada',
@@ -244,6 +249,7 @@ const inventarioService = {
       return {
         movimiento,
         inventario,
+        alerta,
       };
     });
   },
@@ -353,6 +359,11 @@ const inventarioService = {
         tx
       );
 
+      const alerta = await inventarioRepository.syncAlertaInventarioById(
+        inventario.id,
+        tx
+      );
+
       const movimiento = await inventarioRepository.createMovimiento(
         {
           tipo: 'salida',
@@ -380,6 +391,7 @@ const inventarioService = {
       return {
         movimiento,
         inventario,
+        alerta,
       };
     });
   },
@@ -444,6 +456,16 @@ const inventarioService = {
   async dashboard(query = {}) {
     const { sucursalId } = query;
     return inventarioRepository.getDashboardResumen(sucursalId);
+  },
+
+  async productosBajoStock(query = {}) {
+    const { sucursalId } = query;
+    return inventarioRepository.listProductosBajoStock(sucursalId);
+  },
+
+  async alertasInventario(query = {}) {
+    const { sucursalId } = query;
+    return inventarioRepository.listAlertasActivas(sucursalId);
   },
 
   tiposEntrada() {

@@ -103,6 +103,7 @@ app.post('/productos', uploadProductoImage.single('imagen'), productoController.
 app.get('/productos', productoController.list);
 app.get('/productos/:id', productoController.getById);
 app.put('/productos/:id', uploadProductoImage.single('imagen'), productoController.update);
+app.put('/productos/:id/stock-minimo', productoController.updateStockMinimo);
 app.patch('/productos/:id', productoController.patch);
 app.delete('/productos/:id', productoController.remove);
 
@@ -129,6 +130,8 @@ app.post('/inventario/entrada', inventarioController.registrarEntrada);
 app.post('/inventario/salida', inventarioController.registrarSalida);
 app.get('/inventario/historial', inventarioController.historial);
 app.get('/inventario/historial/:productoId', inventarioController.historialPorProducto);
+app.get('/inventario/productos-bajo-stock', inventarioController.productosBajoStock);
+app.get('/alertas/inventario', inventarioController.alertasInventario);
 
 // Configuración método de inventario
 app.get('/configuracion/metodo-inventario', configuracionContableController.getMetodoInventario);

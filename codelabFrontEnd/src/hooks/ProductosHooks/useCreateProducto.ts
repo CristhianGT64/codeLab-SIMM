@@ -9,6 +9,9 @@ const useCreateProducto = () => {
     mutationFn: createProduct,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product"] });
+      queryClient.invalidateQueries({ queryKey: ["inventario-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["inventario-bajo-stock"] });
+      queryClient.invalidateQueries({ queryKey: ["inventario-alertas"] });
     },
   });
 };

@@ -1,11 +1,13 @@
 import settings from "../lib/settings";
 import type {
+  AlertasInventarioResponse,
   DashboardInventarioResponse,
   HistorialInventarioFilters,
   HistorialInventarioResponse,
   HistorialProductoResponse,
   MotivosSalidaResponse,
   MovimientoInventarioResponse,
+  ProductosBajoStockResponse,
   RegistrarEntradaForm,
   RegistrarSalidaForm,
   TiposEntradaResponse,
@@ -25,8 +27,10 @@ const buildQueryParams = (params: Record<string, string | undefined>) => {
 };
 
 export const getDashboardInventario =
-  async (): Promise<DashboardInventarioResponse> => {
-    const response = await fetch(`${settings.URL}/inventario/dashboard`, {
+  async (sucursalId?: string): Promise<DashboardInventarioResponse> => {
+    const query = buildQueryParams({ sucursalId });
+
+    const response = await fetch(`${settings.URL}/inventario/dashboard${query}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -54,6 +58,51 @@ export const getTiposEntrada = async (): Promise<TiposEntradaResponse> => {
 
   if (!response.ok) {
     throw new Error("No se pudieron obtener los tipos de entrada");
+  }
+
+  return payload;
+};
+
+export const getProductosBajoStock = async (
+  sucursalId?: string,
+): Promise<ProductosBajoStockResponse> => {
+  const query = buildQueryParams({ sucursalId });
+
+  const response = await fetch(
+    `${settings.URL}/inventario/productos-bajo-stock${query}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  const payload = (await response.json()) as ProductosBajoStockResponse;
+
+  if (!response.ok) {
+    throw new Error("No se pudo obtener la lista de productos con bajo inventario");
+  }
+
+  return payload;
+};
+
+export const getAlertasInventario = async (
+  sucursalId?: string,
+): Promise<AlertasInventarioResponse> => {
+  const query = buildQueryParams({ sucursalId });
+
+  const response = await fetch(`${settings.URL}/alertas/inventario${query}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const payload = (await response.json()) as AlertasInventarioResponse;
+
+  if (!response.ok) {
+    throw new Error("No se pudieron obtener las alertas de inventario");
   }
 
   return payload;

@@ -19,9 +19,10 @@ import ClientesTabManagement from '../pages/Facturacion/Clients/ClientesTabManag
 import FormClient from '../pages/Facturacion/Clients/FormClient';
 import ClientDetail from '../pages/Facturacion/Clients/ClientDetail';
 import FormTipoCliente from '../pages/Administration/TiposdeClientes/FormTipoCliente';
-import InventarioManagement from '../pages/Administration/Inventario/InventarioManagement';
+import InventarioManagement from '../pages/Administration/Inventario/InventarioOverview';
 import SalidasInventario from '../pages/Administration/Inventario/SalidasInventario';
 import EntradaInventario from '../pages/Administration/Inventario/EntradaInventario';
+import ProductosBajoStock from '../pages/Administration/Inventario/ProductosBajoStock';
 import FifoPromConfig from '../pages/Administration/configuracion/fifo-prom/FifoPromConfig';
 import ConfiguracionCAI from '../pages/Administration/Facturacion/ConfiguracionCAI';
 import VentasManagement from '../pages/Ventas/VentasManagement';
@@ -90,6 +91,7 @@ const AppRouter = () => (
             <Route path="/Inventario-Management" element={<PermissionGate permiso="Movimientos inventario"><InventarioManagement /></PermissionGate>} />
             <Route path="/Inventario-Management/Salida-Inventario" element={<PermissionGate permiso="Salida inventario"><SalidasInventario /></PermissionGate>} />
             <Route path="/Inventario-Management/Entrada-Inventario" element={<PermissionGate permiso="Entrada inventario"><EntradaInventario /></PermissionGate>} />
+            <Route path="/Inventario-Management/Productos-Bajo-Stock" element={<PermissionGate permiso="Movimientos inventario"><ProductosBajoStock /></PermissionGate>} />
             <Route path="/Configuracion/Inventario/FIFO-PEPS" element={<PermissionGate permiso="Movimientos inventario"><FifoPromConfig /></PermissionGate>} />
 
             {/* Configuración de CAI */}
