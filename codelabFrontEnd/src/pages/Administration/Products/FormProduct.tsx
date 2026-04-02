@@ -85,6 +85,7 @@ export default function FormProduct() {
           precioVenta: ProductData.data.precioVenta,
           unidadMedida: ProductData.data.unidadMedida,
           stockInicial: ProductData.data.inventarios[0]?.stockActual ?? 0,
+          stockMinimo: ProductData.data.stockMinimo ?? 0,
           sucursalId: ProductData.data.inventarios[0]?.sucursalId ?? "",
           imagen: null,
         };
@@ -451,6 +452,21 @@ export default function FormProduct() {
                 min="0"
                 placeholder="0"
                 className={`h-14 w-full rounded-2xl border-2 ${isEditMode ? " border-[#839496] bg-[#949a9b]" : " border-[#9adce2] bg-white"} px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]`}
+              />
+            </div>
+
+            <div>
+              <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
+                Stock MÃ­nimo <span className="text-[#ff4f4f]">*</span>
+              </p>
+              <input
+                value={form.stockMinimo}
+                onChange={onChangeField("stockMinimo")}
+                id="stockMinimo"
+                type="number"
+                min="0"
+                placeholder="0"
+                className="h-14 w-full rounded-2xl border-2 border-[#9adce2] bg-white px-5 text-xl text-[#24364d] outline-none placeholder:text-[#97a0b7] focus:border-[#0aa6a2]"
               />
             </div>
           </div>

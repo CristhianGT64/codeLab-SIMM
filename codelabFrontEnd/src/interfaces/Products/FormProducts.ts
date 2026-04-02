@@ -7,6 +7,7 @@ export interface FormProducts {
   precioVenta: number;
   unidadMedida: string;
   stockInicial: number;
+  stockMinimo: number;
   sucursalId: string;
   imagen: File | null;
 }
@@ -19,6 +20,10 @@ export interface Categoria {
 export interface Inventarios {
   sucursalId: string;
   stockActual: number;
+  sucursal?: {
+    id: string;
+    nombre: string;
+  };
 }
 
 export interface ImpuestoProducto {
@@ -40,6 +45,7 @@ export interface ProductoDto {
   costo: number;
   precioVenta: number;
   unidadMedida: string;
+  stockMinimo: number;
   imagenPath: string | null;
   estado: string;
   categoriaId?: string;
@@ -57,6 +63,12 @@ export interface ProductResponse {
 export interface ProductReadResponse {
       success: boolean;
       data: ProductoDto;
+}
+
+export interface ProductMutationResponse {
+  success: boolean;
+  message: string;
+  data: ProductoDto;
 }
 
 export interface CategoriaProducto {

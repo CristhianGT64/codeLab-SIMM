@@ -55,6 +55,8 @@ export interface DashboardInventarioData {
   stockTotal: number;
   entradasDelDia: number;
   salidasDelDia: number;
+  productosBajoStock: number;
+  alertasActivas: number;
 }
 
 export interface DashboardInventarioResponse {
@@ -121,4 +123,50 @@ export interface HistorialInventarioFilters {
 export interface FiltroTipo {
   valor : string | number
   nombre : string
+}
+
+export interface ProductoBajoStockItem {
+  inventarioId: string;
+  productoId: string;
+  producto: {
+    id: string;
+    nombre: string;
+    sku: string;
+    unidadMedida: string | null;
+    stockMinimo: number;
+  };
+  sucursal: SucursalMini;
+  stockActual: number;
+  stockMinimo: number;
+}
+
+export interface ProductosBajoStockResponse {
+  success: boolean;
+  data: ProductoBajoStockItem[];
+}
+
+export interface AlertaInventarioItem {
+  id: string;
+  inventarioId: string;
+  productoId: string;
+  sucursalId: string;
+  stockActual: number;
+  stockMinimo: number;
+  activa: boolean;
+  mensaje: string;
+  createdAt: string;
+  updatedAt: string;
+  resueltaAt: string | null;
+  producto: {
+    id: string;
+    nombre: string;
+    sku: string;
+    unidadMedida: string | null;
+  };
+  sucursal: SucursalMini;
+}
+
+export interface AlertasInventarioResponse {
+  success: boolean;
+  data: AlertaInventarioItem[];
 }

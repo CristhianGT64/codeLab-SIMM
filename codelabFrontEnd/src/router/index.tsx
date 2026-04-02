@@ -15,12 +15,14 @@ import FormProduct from '../pages/Administration/Products/FormProduct';
 import RolesPermisionManagment from '../pages/Administration/RolesPermission/RolesPermisionManagment';
 import FormRoles from '../pages/Administration/RolesPermission/FormRoles';
 import FormPermissions from '../pages/Administration/RolesPermission/FormPermissions';
-import ClientsManagement from '../pages/Facturacion/Clients/ClientsManagement';
+import ClientesTabManagement from '../pages/Facturacion/Clients/ClientesTabManagement';
 import FormClient from '../pages/Facturacion/Clients/FormClient';
 import ClientDetail from '../pages/Facturacion/Clients/ClientDetail';
-import InventarioManagement from '../pages/Administration/Inventario/InventarioManagement';
+import FormTipoCliente from '../pages/Administration/TiposdeClientes/FormTipoCliente';
+import InventarioManagement from '../pages/Administration/Inventario/InventarioOverview';
 import SalidasInventario from '../pages/Administration/Inventario/SalidasInventario';
 import EntradaInventario from '../pages/Administration/Inventario/EntradaInventario';
+import ProductosBajoStock from '../pages/Administration/Inventario/ProductosBajoStock';
 import FifoPromConfig from '../pages/Administration/configuracion/fifo-prom/FifoPromConfig';
 import ConfiguracionCAI from '../pages/Administration/Facturacion/ConfiguracionCAI';
 import VentasManagement from '../pages/Ventas/VentasManagement';
@@ -65,10 +67,14 @@ const AppRouter = () => (
             <Route path="/Branches-Management/Update-Sucursal/:id" element={<PermissionGate permiso="Editar sucursales"><FormSucursal /></PermissionGate>} />
 
             {/* Clientes */}
-            <Route path="/Clients-Management" element={<PermissionGate permiso="Ver clientes"><ClientsManagement /></PermissionGate>} />
+            <Route path="/Clients-Management" element={<PermissionGate permiso="Ver clientes"><ClientesTabManagement /></PermissionGate>} />
             <Route path="/Clients-Management/Create-Client" element={<PermissionGate permiso="Crear clientes"><FormClient /></PermissionGate>} />
             <Route path="/Clients-Management/Update-Client/:id" element={<PermissionGate permiso="Editar clientes"><FormClient /></PermissionGate>} />
             <Route path="/Clients-Management/Detail-Client/:id" element={<PermissionGate permiso="Ver clientes"><ClientDetail /></PermissionGate>} />
+
+            {/* Tipos de cliente */}
+            <Route path="/Tipos-Cliente-Management/Create" element={<FormTipoCliente />} />
+            <Route path="/Tipos-Cliente-Management/Update/:id" element={<FormTipoCliente />} />
 
             {/* Productos */}
             <Route path="/Product-Management" element={<PermissionGate permiso="Ver productos"><ProductManagement /></PermissionGate>} />
@@ -85,6 +91,7 @@ const AppRouter = () => (
             <Route path="/Inventario-Management" element={<PermissionGate permiso="Movimientos inventario"><InventarioManagement /></PermissionGate>} />
             <Route path="/Inventario-Management/Salida-Inventario" element={<PermissionGate permiso="Salida inventario"><SalidasInventario /></PermissionGate>} />
             <Route path="/Inventario-Management/Entrada-Inventario" element={<PermissionGate permiso="Entrada inventario"><EntradaInventario /></PermissionGate>} />
+            <Route path="/Inventario-Management/Productos-Bajo-Stock" element={<PermissionGate permiso="Movimientos inventario"><ProductosBajoStock /></PermissionGate>} />
             <Route path="/Configuracion/Inventario/FIFO-PEPS" element={<PermissionGate permiso="Movimientos inventario"><FifoPromConfig /></PermissionGate>} />
 
             {/* Configuración de CAI */}
