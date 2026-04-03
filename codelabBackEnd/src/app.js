@@ -97,6 +97,9 @@ app.delete('/categorias/:id', categoriaController.remove);
 
 // Productos
 app.get('/impuestos', impuestoController.list);
+app.get('/configuracion/impuestos', impuestoController.list);
+app.post('/configuracion/impuestos', impuestoController.create);
+app.put('/configuracion/impuestos/:id', impuestoController.update);
 app.get('/productos/unidades', productoController.unidades);
 app.get('/productos/search', productoController.search);
 app.post('/productos', uploadProductoImage.single('imagen'), productoController.create);

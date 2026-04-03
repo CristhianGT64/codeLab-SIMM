@@ -46,6 +46,13 @@ const navBarData: NavBarInterface = {
       permiso: "Ver configuración CAI",
     },
     {
+      text: "Impuestos",
+      icon: "fa-solid fa-percent",
+      url: "/Configuracion/Impuestos",
+      disable: false,
+      permiso: "Ver productos",
+    },
+    {
       text: "Ventas POS",
       icon: "fa-solid fa-cart-shopping",
       url : "/Ventas-Management",
