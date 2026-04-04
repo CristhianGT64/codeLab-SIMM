@@ -24,11 +24,15 @@ import SalidasInventario from '../pages/Administration/Inventario/SalidasInventa
 import EntradaInventario from '../pages/Administration/Inventario/EntradaInventario';
 import ProductosBajoStock from '../pages/Administration/Inventario/ProductosBajoStock';
 import FifoPromConfig from '../pages/Administration/configuracion/fifo-prom/FifoPromConfig';
+import ImpuestosManagement from '../pages/Administration/configuracion/impuestos/ImpuestosManagement';
+import FormImpuesto from '../pages/Administration/configuracion/impuestos/FormImpuesto';
 import ConfiguracionCAI from '../pages/Administration/Facturacion/ConfiguracionCAI';
 import VentasManagement from '../pages/Ventas/VentasManagement';
 import TiposDocumentoManagement from '../pages/Administration/Tiposdedocumento/TiposDocumentoManagement';
 import FormTipoDocumento from '../pages/Administration/Tiposdedocumento/FormTipoDocumento';
 import CatalogoCuentasContablesManagement from '../pages/Administration/CatalogoCuentasContables/CatalogoCuentasContablesManagement';
+import ReportsManagement from '../pages/Administration/Reportes/ReportsManagement';
+import VentasSucursalReport from '../pages/Administration/Reportes/VentasSucursalReport';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -55,6 +59,10 @@ const AppRouter = () => (
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+
+            {/* Reportes */}
+            <Route path="/Reportes-Management" element={<ReportsManagement />} />
+            <Route path="/Reportes-Management/Ventas-Sucursales" element={<VentasSucursalReport />} />
 
             {/* Usuarios */}
             <Route path="/Users-Management" element={<PermissionGate permiso="Ver usuarios"><UserManagement /></PermissionGate>} />
@@ -93,6 +101,9 @@ const AppRouter = () => (
             <Route path="/Inventario-Management/Entrada-Inventario" element={<PermissionGate permiso="Entrada inventario"><EntradaInventario /></PermissionGate>} />
             <Route path="/Inventario-Management/Productos-Bajo-Stock" element={<PermissionGate permiso="Movimientos inventario"><ProductosBajoStock /></PermissionGate>} />
             <Route path="/Configuracion/Inventario/FIFO-PEPS" element={<PermissionGate permiso="Movimientos inventario"><FifoPromConfig /></PermissionGate>} />
+            <Route path="/Configuracion/Impuestos" element={<PermissionGate permiso="Ver productos"><ImpuestosManagement /></PermissionGate>} />
+            <Route path="/Configuracion/Impuestos/Create" element={<PermissionGate permiso="Crear productos"><FormImpuesto /></PermissionGate>} />
+            <Route path="/Configuracion/Impuestos/Update/:id" element={<PermissionGate permiso="Editar productos"><FormImpuesto /></PermissionGate>} />
 
             {/* Configuración de CAI */}
             <Route path="/Configuracion/CAI" element={<PermissionGate permiso="Ver configuración CAI"><ConfiguracionCAI /></PermissionGate>} />

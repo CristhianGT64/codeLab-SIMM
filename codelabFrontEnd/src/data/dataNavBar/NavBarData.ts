@@ -4,6 +4,12 @@ const navBarData: NavBarInterface = {
   nameBuild: "SIMM",
   modules: [
     {
+      text: "Reportes",
+      icon: "fa-solid fa-chart-column",
+      url: "/Reportes-Management",
+      disable: false,
+    },
+    {
       text: "Usuarios",
       icon: "fa-solid fa-users",
       url: "/Users-Management",
@@ -44,6 +50,13 @@ const navBarData: NavBarInterface = {
       url: "/Configuracion/CAI",
       disable: false,
       permiso: "Ver configuración CAI",
+    },
+    {
+      text: "Impuestos",
+      icon: "fa-solid fa-percent",
+      url: "/Configuracion/Impuestos",
+      disable: false,
+      permiso: "Ver productos",
     },
     {
       text: "Ventas POS",

@@ -137,16 +137,27 @@ export default function ProductManagement() {
             />
           </label>
 
-          {tienePermiso("Crear productos") && (
+          <div className="flex flex-wrap items-center gap-3">
             <ButtonsComponet
-              text="Nuevo Producto"
+              text="Impuestos"
               typeButton="button"
-              className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
-              icon="fa-solid fa-plus"
-              onClick={() => navigate("/Product-Management/Create-Product")}
+              className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-[#9adce2] bg-white px-6 text-base font-semibold text-[#4661b0] hover:bg-[#edf8fa] md:text-lg"
+              icon="fa-solid fa-percent"
+              onClick={() => navigate("/Configuracion/Impuestos")}
               disabled={false}
             />
-          )}
+
+            {tienePermiso("Crear productos") && (
+              <ButtonsComponet
+                text="Nuevo Producto"
+                typeButton="button"
+                className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#0aa6a2] to-[#4661b0] hover:from-[#034d4a] hover:to-[#2c3d70] px-6 text-base font-semibold text-white md:text-lg"
+                icon="fa-solid fa-plus"
+                onClick={() => navigate("/Product-Management/Create-Product")}
+                disabled={false}
+              />
+            )}
+          </div>
         </div>
       </div>
 
