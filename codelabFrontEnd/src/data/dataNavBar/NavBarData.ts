@@ -4,6 +4,12 @@ const navBarData: NavBarInterface = {
   nameBuild: "SIMM",
   modules: [
     {
+      text: "Reportes",
+      icon: "fa-solid fa-chart-column",
+      url: "/Reportes-Management",
+      disable: false,
+    },
+    {
       text: "Usuarios",
       icon: "fa-solid fa-users",
       url: "/Users-Management",
