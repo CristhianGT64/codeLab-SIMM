@@ -20,7 +20,10 @@ const catalogoContableService = {
           .sort((a, b) => a.codigoNumerico - b.codigoNumerico)
           .map((clasificacion) => {
 
-            const codigoClasificacion = `${codigoElemento}.${clasificacion.codigoNumerico}`;
+            // 🔧 CORRECCIÓN CLASIFICACIÓN
+            const clasificacionNum = String(clasificacion.codigoNumerico).slice(-1);
+            const codigoClasificacion =
+              `${codigoElemento}.${clasificacionNum}`;
 
             const cuentasClasificacion = cuentas
               .filter(cu =>
@@ -30,16 +33,20 @@ const catalogoContableService = {
               .sort((a, b) => a.codigoNumerico - b.codigoNumerico)
               .map((cuenta) => {
 
+                // 🔧 CORRECCIÓN CUENTA
+                const cuentaNum = String(cuenta.codigoNumerico).slice(-2);
                 const codigoCuenta =
-                  `${codigoClasificacion}.${formatCodigo(cuenta.codigoNumerico)}`;
+                  `${codigoClasificacion}.${cuentaNum}`;
 
                 const subcuentasCuenta = subcuentas
                   .filter(sc => sc.uuidCuentaContable === cuenta.uuidCuentaContable)
                   .sort((a, b) => a.codigoNumerico - b.codigoNumerico)
                   .map((subcuenta) => {
 
+                    // 🔧 CORRECCIÓN SUBCUENTA
+                    const subCuentaNum = String(subcuenta.codigoNumerico).slice(-3);
                     const codigoSubcuenta =
-                      `${codigoCuenta}.${formatCodigo(subcuenta.codigoNumerico, 3)}`;
+                      `${codigoCuenta}.${subCuentaNum}`;
 
                     return {
                       ...subcuenta,

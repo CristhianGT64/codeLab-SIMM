@@ -22,6 +22,8 @@ import cuentaContableController from './controllers/cuentaContableController.js'
 import subCuentaContableController from './controllers/subCuentaContableController.js';
 import diccNaturalezaCuentaController from './controllers/diccNaturalezaCuentaController.js';
 import catalogoContableController from './controllers/catalogoContableController.js';
+import asientoContableController from './controllers/contabilidad/asiento/asientoContableController.js';
+import reglaContableController from './controllers/contabilidad/asiento/reglaContableController.js';
 
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
@@ -280,6 +282,19 @@ app.patch('/subcuentas-contables/:id/estado', subCuentaContableController.patch)
 // Catálogo contable (árbol)
 app.get('/catalogo-contable/arbol', catalogoContableController.arbol);
 app.get('/catalogo-contable/resumen', catalogoContableController.resumen);
+
+// =========================
+// CONTABILIDAD
+// =========================
+
+// Asientos contables
+app.get('/asientos-contables', asientoContableController.list);
+app.get('/asientos-contables/:id', asientoContableController.getById);
+
+// Reglas contables
+app.get('/reglas-contables', reglaContableController.list);
+app.post('/reglas-contables', reglaContableController.create);
+app.put('/reglas-contables/:id', reglaContableController.update);
 
 const swaggerDocument = createSwaggerSpec(registeredRoutes);
 

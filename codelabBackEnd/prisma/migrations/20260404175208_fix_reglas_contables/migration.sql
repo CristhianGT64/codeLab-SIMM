@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "REGLAS_CONTABLES" ADD COLUMN     "subcuenta_impuesto" BIGINT;
+
+-- AddForeignKey
+ALTER TABLE "REGLAS_CONTABLES" ADD CONSTRAINT "REGLAS_CONTABLES_subcuenta_impuesto_fkey" FOREIGN KEY ("subcuenta_impuesto") REFERENCES "SUB_CUENTA_CONTABLE"("id_sub_cuenta_contable") ON DELETE SET NULL ON UPDATE CASCADE;

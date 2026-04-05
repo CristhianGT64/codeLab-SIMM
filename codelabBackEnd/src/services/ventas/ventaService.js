@@ -4,6 +4,8 @@ import detalleVentaRepository from "../../repositories/detalleVentaRepository.js
 import productoRepository from "../../repositories/productoRepository.js";
 import inventarioRepository from "../../repositories/inventarioRepository.js";
 import clienteRepository from "../../repositories/Clientes/clientRepository.js";
+import asientoContableService from "../contabilidad/asiento/asientoContableService.js";
+import inventarioService from "../inventarioService.js";
 
 const parseId = (value, fieldName, { required = false } = {}) => {
   if (value === undefined || value === null || value === "") {
@@ -79,6 +81,8 @@ const ventaService = {
       }
     }
 
+    let subtotalTotal = 0;
+    let impuestoTotal = 0;
     let total = 0;
     const detalles = [];
 
@@ -119,6 +123,9 @@ const ventaService = {
       const subtotal = precioUnitario * cantidad;
       const impuesto = Number((subtotal * tasa).toFixed(2));
 
+      subtotalTotal += subtotal;
+      impuestoTotal += impuesto;
+
       total += subtotal + impuesto;
 
       detalles.push({
@@ -130,6 +137,7 @@ const ventaService = {
     }
 
     return await prisma.$transaction(async (tx) => {
+
       const venta = await ventaRepository.createVenta({
         usuarioId: normalizedUsuarioId,
         sucursalId: normalizedSucursalId,
@@ -145,7 +153,40 @@ const ventaService = {
 
       await detalleVentaRepository.createManyDetalleVenta(detallesVenta, tx);
 
+      const asiento = await asientoContableService.generarAsiento({
+        tipoOperacion: "VENTA",
+        idOperacionOrigen: venta.id,
+        descripcion: "Registro contable de venta",
+        subtotal: subtotalTotal,
+        impuesto: impuestoTotal,
+        total,
+        tx
+      });
+
+      await tx.venta.update({
+        where: { id: venta.id },
+        data: {
+          asientoContableId: asiento.id
+        }
+      });
+
+      for (const detalle of detallesVenta) {
+
+        await inventarioService.registrarSalida({
+          productoId: detalle.productoId,
+          sucursalId: normalizedSucursalId,
+          cantidad: detalle.cantidad,
+          fechaHora: new Date(),
+          motivoSalida: "VENTA",
+          detalleMotivo: "Salida automática por venta",
+          observaciones: "Salida automática por venta",
+          usuarioId: normalizedUsuarioId
+        }, tx);
+
+      }
+
       return venta;
+
     });
   },
 

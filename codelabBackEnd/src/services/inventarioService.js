@@ -1,6 +1,8 @@
 import prisma from '../infra/prisma/prismaClient.js';
 import inventarioRepository from '../repositories/inventarioRepository.js';
 import configuracionContableService from './configuracionContableService.js';
+import asientoContableService from "./contabilidad/asiento/asientoContableService.js";
+
 
 const SUBTIPOS_ENTRADA = ['REABASTECIMIENTO'];
 const MOTIVOS_SALIDA = ['VENTA', 'DANIO', 'CONSUMO_INTERNO', 'AJUSTE', 'OTRO'];
@@ -122,18 +124,22 @@ const inventarioService = {
       fechaHora,
       proveedorId,
       proveedorNombre,
-      tipoEntrada,
       observaciones,
       usuarioId,
     } = body;
 
-    if (!productoId || !sucursalId || !cantidad || !fechaHora || !tipoEntrada) {
+    const tipoEntrada = body.tipoEntrada || "REABASTECIMIENTO";
+
+    if (!productoId || !sucursalId || !cantidad || !fechaHora) {
       const err = new Error('Faltan campos obligatorios: productoId, sucursalId, cantidad, fechaHora, tipoEntrada');
       err.status = 400;
       throw err;
     }
 
-    if (!SUBTIPOS_ENTRADA.includes(String(tipoEntrada))) {
+    if (
+      tipoEntrada !== "PRODUCTO_NUEVO" &&
+      !SUBTIPOS_ENTRADA.includes(String(tipoEntrada))
+    ) {
       const err = new Error('tipoEntrada inválido. Valores permitidos: PRODUCTO_NUEVO, REABASTECIMIENTO');
       err.status = 400;
       throw err;
@@ -246,6 +252,23 @@ const inventarioService = {
         tx
       );
 
+      const asiento = await asientoContableService.generarAsiento({
+        tipoOperacion: "INVENTARIO_ENTRADA",
+        idOperacionOrigen: movimiento.id,
+        descripcion: "Entrada de inventario por compra",
+        subtotal: costoTotal,
+        impuesto: 0,
+        total: costoTotal,
+        tx
+      });
+
+      await tx.movimientoInventario.update({
+        where: { id: movimiento.id },
+        data: {
+          asientoContableId: asiento.id
+        }
+      });
+
       return {
         movimiento,
         inventario,
@@ -254,7 +277,8 @@ const inventarioService = {
     });
   },
 
-  async registrarSalida(body) {
+  async registrarSalida(body, tx = prisma) {
+
     const {
       productoId,
       sucursalId,
@@ -317,7 +341,7 @@ const inventarioService = {
       throw err;
     }
 
-    const inventarioActual = await inventarioRepository.findInventario(productoId, sucursalId);
+    const inventarioActual = await inventarioRepository.findInventario(productoId, sucursalId, tx);
     if (!inventarioActual) {
       const err = new Error('No existe inventario para ese producto en la sucursal indicada.');
       err.status = 400;
@@ -330,7 +354,7 @@ const inventarioService = {
       throw err;
     }
 
-    return prisma.$transaction(async (tx) => {
+    {
       const configMetodo = await configuracionContableService.getMetodoInventario();
       const movimientosPrevios = await inventarioRepository.getMovimientosValuacion(
         productoId,
@@ -341,17 +365,54 @@ const inventarioService = {
 
       const costoFallback = round2(toNumber(producto.costo, 0));
 
-      const valuacionSalida = configMetodo.metodoValuacion === 'PROMEDIO_PONDERADO'
-        ? calcularCostoSalidaPromedio({
-          movimientos: movimientosPrevios,
-          cantidadSalida: Number(cantidad),
-          costoFallback,
-        })
-        : calcularCostoSalidaFIFO({
-          movimientos: movimientosPrevios,
-          cantidadSalida: Number(cantidad),
-          costoFallback,
-        });
+      let valuacionSalida;
+
+      if (motivoSalida === "VENTA") {
+
+        const costoUnitario = round2(toNumber(producto.costo, 0));
+
+        valuacionSalida = {
+          costoUnitario,
+          costoTotal: round2(costoUnitario * Number(cantidad))
+        };
+
+      }
+      else if (!movimientosPrevios || movimientosPrevios.length === 0) {
+
+        const costoUnitario = round2(toNumber(producto.costo, 0));
+
+        valuacionSalida = {
+          costoUnitario,
+          costoTotal: round2(costoUnitario * Number(cantidad))
+        };
+
+      }
+      else {
+
+        valuacionSalida = configMetodo.metodoValuacion === 'PROMEDIO_PONDERADO'
+          ? calcularCostoSalidaPromedio({
+            movimientos: movimientosPrevios,
+            cantidadSalida: Number(cantidad),
+            costoFallback,
+          })
+          : calcularCostoSalidaFIFO({
+            movimientos: movimientosPrevios,
+            cantidadSalida: Number(cantidad),
+            costoFallback,
+          });
+
+      }
+
+      if (!valuacionSalida || valuacionSalida.costoTotal <= 0) {
+
+        const costoUnitarioFallback = round2(toNumber(producto.costo, 0));
+
+        valuacionSalida = {
+          costoUnitario: costoUnitarioFallback,
+          costoTotal: round2(costoUnitarioFallback * Number(cantidad))
+        };
+
+      }
 
       const inventario = await inventarioRepository.updateInventarioSalida(
         inventarioActual.id,
@@ -388,12 +449,47 @@ const inventarioService = {
         tx
       );
 
+      let tipoOperacion = "INVENTARIO_OTRO";
+
+      if (motivoSalida === "VENTA") {
+        tipoOperacion = "VENTA_COSTO";
+      }
+
+      if (motivoSalida === "DANIO") {
+        tipoOperacion = "INVENTARIO_DANIO";
+      }
+
+      if (motivoSalida === "CONSUMO_INTERNO") {
+        tipoOperacion = "INVENTARIO_CONSUMO_INTERNO";
+      }
+
+      if (motivoSalida === "AJUSTE") {
+        tipoOperacion = "INVENTARIO_AJUSTE";
+      }
+
+      const asiento = await asientoContableService.generarAsiento({
+        tipoOperacion,
+        idOperacionOrigen: movimiento.id,
+        descripcion: "Salida de inventario",
+        subtotal: valuacionSalida.costoTotal,
+        impuesto: 0,
+        total: valuacionSalida.costoTotal,
+        tx
+      });
+
+      await tx.movimientoInventario.update({
+        where: { id: movimiento.id },
+        data: {
+          asientoContableId: asiento.id
+        }
+      });
+
       return {
         movimiento,
         inventario,
         alerta,
       };
-    });
+    }
   },
 
   async historial(query = {}) {

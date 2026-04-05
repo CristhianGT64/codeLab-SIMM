@@ -239,9 +239,9 @@ INSERT INTO public."Producto" (id, nombre, sku, costo, precio_venta, unidad_medi
   (2, 'Pantalon', 'SKU-CON-IMG-1772835799', 60.00, 95.00, 'Unidad', 'activo', NULL, NULL, 3, NULL, '/uploads/productos/captura-de-(38)-1772862445275.png'),
   (3, 'Tenis', 'SKU-POSTMAN-022', 100.00, 150.00, 'Unidad', 'activo', NULL, NULL, 3, NULL, NULL),
   (4, 'Calcetines', 'SKU-POSTMAN-02s3', 120.50, 180.00, 'Caja', 'activo', NULL, NULL, 3, NULL, '/uploads/productos/diagrama-sin-tã­tulo.drawio-1772836057412.png'),
-  (5, 'Producto fdgdgf', 'skux', 100.00, 150.00, 'Unidad', 'activo', NULL, NULL, 3, NULL, NULL),
-  (6, 'Producto actualizado', 'CAM-23', 120.50, 180.00, 'Caja', 'activo', NULL, NULL, 3, NULL, NULL),
-  (7, 'Producto', 'OLI-901', 700.00, 900.00, 'Unidad', 'activo', NULL, NULL, 2, NULL, NULL),
+  (5, 'Teclado', 'skux', 100.00, 150.00, 'Unidad', 'activo', NULL, NULL, 3, NULL, NULL),
+  (6, 'Mouse', 'CAM-23', 120.50, 180.00, 'Caja', 'activo', NULL, NULL, 3, NULL, NULL),
+  (7, 'Monitor LED 24', 'OLI-901', 700.00, 900.00, 'Unidad', 'activo', NULL, NULL, 2, NULL, NULL),
   (8, 'Camisa Barca', 'BAR-90', 800.00, 1000.00, 'Unidad', 'activo', NULL, NULL, 2, NULL, NULL),
   (9, 'Camisa Marathon', 'MA-700', 900.00, 2000.00, 'Docena', 'activo', NULL, NULL, 2, NULL, '/uploads/productos/captura-de-(2)-1772862417128.png'),
   (10, 'Buzo azul', 'BUZ-400', 1600.00, 3000.00, 'Paquete', 'activo', NULL, NULL, 3, NULL, '/uploads/productos/captura-de-(129)-1772863288037.png'),
@@ -434,7 +434,10 @@ INSERT INTO public."SUB_CUENTA_CONTABLE" (id_sub_cuenta_contable, uuid_sub_cuent
   (49, 'subcta-6211-materia-prima-consumida', 'Materia Prima Consumida', true, 'elem-costos', 'clas-costos-produccion', 'cta-621-materia-prima', 6211, 2),
   (50, 'subcta-6221-mano-obra-directa', 'Mano de Obra Directa', true, 'elem-costos', 'clas-costos-produccion', 'cta-622-mano-obra-directa', 6221, 2),
   (51, 'subcta-6231-materiales-indirectos', 'Materiales Indirectos', true, 'elem-costos', 'clas-costos-produccion', 'cta-623-costos-indirectos-fabricacion', 6231, 2),
-  (52, 'subcta-6232-servicios-produccion', 'Servicios de Produccion', true, 'elem-costos', 'clas-costos-produccion', 'cta-623-costos-indirectos-fabricacion', 6232, 2)
+  (52, 'subcta-6232-servicios-produccion', 'Servicios de Produccion', true, 'elem-costos', 'clas-costos-produccion', 'cta-623-costos-indirectos-fabricacion', 6232, 2),
+  (53, 'subcta-6112-perdida-inventario', 'Pérdida de Inventario', true, 'elem-costos', 'clas-costos-venta', 'cta-611-costo-mercaderia-vendida', 6112, 2),
+  (54, 'subcta-6113-ajuste-inventario', 'Ajuste de Inventario', true, 'elem-costos', 'clas-costos-venta', 'cta-611-costo-mercaderia-vendida', 6113, 2),
+  (55, 'subcta-5124-gastos-varios', 'Gastos Varios', true, 'elem-gastos', 'clas-gastos-administracion', 'cta-512-gastos-generales-admin', 5124, 2)
 ON CONFLICT (uuid_sub_cuenta_contable) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   disponible = EXCLUDED.disponible,
