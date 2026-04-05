@@ -77,6 +77,7 @@ const getPayloadMessage = (payload: unknown, fallback: string) => {
 
   return asString(payload.message, fallback);
 };
+/* Coment */
 
 const buildHistoryQuery = (filters: FacturaHistorialFilters = {}) => {
   const query = new URLSearchParams();
