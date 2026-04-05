@@ -1,25 +1,33 @@
 import prisma from '../infra/prisma/prismaClient.js';
 
+const productoSelect = {
+  id: true,
+  nombre: true,
+  sku: true,
+  costo: true,
+  precioVenta: true,
+  unidadMedida: true,
+  stockMinimo: true,
+  imagenPath: true,
+  estado: true,
+  categoria: { select: { id: true, nombre: true } },
+  impuesto: { select: { id: true, nombre: true, tasa: true } },
+  inventarios: {
+    select: {
+      sucursalId: true,
+      stockActual: true,
+      sucursal: { select: { id: true, nombre: true } },
+    },
+  },
+  createdAt: true,
+  updatedAt: true,
+};
+
 const productoRepository = {
   list() {
     return prisma.producto.findMany({
       orderBy: { id: 'desc' },
-      select: {
-        id: true,
-        nombre: true,
-        sku: true,
-        costo: true,
-        precioVenta: true,
-        unidadMedida: true,
-        imagenPath: true,
-        estado: true,
-        categoria: { select: { id: true, nombre: true } },
-        impuesto: { select: { id: true, nombre: true, tasa: true } },
-        inventarios: { select: { sucursalId: true, stockActual: true }
-    },
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: productoSelect,
     });
   },
 
@@ -27,27 +35,8 @@ const productoRepository = {
     return prisma.producto.findUnique({
       where: { id },
       select: {
-        id: true,
-        nombre: true,
-        sku: true,
-        costo: true,
-        precioVenta: true,
-        unidadMedida: true,
-        imagenPath: true,
-        estado: true,
         categoriaId: true,
-        impuesto: {
-              select: {
-                id: true,
-                nombre: true,
-                tasa: true
-              }
-            },
-        categoria: { select: { id: true, nombre: true } },
-        impuesto: { select: { id: true, nombre: true, tasa: true } },
-        inventarios: { select: { sucursalId: true, stockActual: true } },
-        createdAt: true,
-        updatedAt: true,
+        ...productoSelect,
       },
     });
   },
@@ -63,18 +52,7 @@ const productoRepository = {
     return prisma.producto.create({
       data,
       select: {
-        id: true,
-        nombre: true,
-        sku: true,
-        costo: true,
-        precioVenta: true,
-        unidadMedida: true,
-        imagenPath: true,
-        estado: true,
-        categoria: { select: { id: true, nombre: true } },
-        impuesto: { select: { id: true, nombre: true, tasa: true } },
-        createdAt: true,
-        updatedAt: true,
+        ...productoSelect,
         ...selectExtra,
       },
     });
@@ -113,9 +91,16 @@ const productoRepository = {
         sku: true,
         precioVenta: true,
         unidadMedida: true,
+        stockMinimo: true,
         imagenUrl: true,
         categoria: {select: {id: true,nombre: true}},
-        impuesto: { select: { id: true, nombre: true, tasa: true } }
+        impuesto: { select: { id: true, nombre: true, tasa: true } },
+        inventarios: {
+          select: {
+            sucursalId: true,
+            stockActual: true,
+          },
+        },
       },
       take: 10
     });
@@ -127,20 +112,7 @@ const productoRepository = {
     return prisma.producto.update({
       where: { id },
       data,
-      select: {
-        id: true,
-        nombre: true,
-        sku: true,
-        costo: true,
-        precioVenta: true,
-        unidadMedida: true,
-        imagenPath: true,
-        estado: true,
-        categoria: { select: { id: true, nombre: true } },
-        impuesto: { select: { id: true, nombre: true, tasa: true } },
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: productoSelect,
     });
   },
 };

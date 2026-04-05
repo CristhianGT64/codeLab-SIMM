@@ -6,7 +6,7 @@ import ButtonsComponet from '../../../components/buttonsComponents/ButtonsCompon
 import useListSucursales from '../../../hooks/SucursalesHooks/useListSucursales';
 import useCreateSucursal from '../../../hooks/SucursalesHooks/useCreateSucursal';
 import useUpdateSucursal from '../../../hooks/SucursalesHooks/useUpdateSucursal';
-import type { Sucursal } from '../../../interfaces/SucursalInterface';
+import type { Sucursal } from '../../../interfaces/Sucursales/SucursalInterface';
 
 interface SucursalFormState {
   nombre: string;

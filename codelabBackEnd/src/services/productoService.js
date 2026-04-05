@@ -1,5 +1,6 @@
 import prisma from '../infra/prisma/prismaClient.js';
 import productoRepository from '../repositories/productoRepository.js';
+import inventarioRepository from '../repositories/inventarioRepository.js';
 
 const UNIDADES_VALIDAS = [
   'Unidad',
@@ -12,6 +13,22 @@ const UNIDADES_VALIDAS = [
   'Docena',
 ];
 
+const parseStockMinimo = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return 0;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    const err = new Error('stockMinimo debe ser un número entero mayor o igual a 0.');
+    err.status = 400;
+    throw err;
+  }
+
+  return parsed;
+};
+
 const productoService = {
   async create(body) {
     const {
@@ -22,6 +39,7 @@ const productoService = {
       precioVenta,
       unidadMedida,
       stockInicial,
+      stockMinimo,
       imagenPath,
       sucursalId,
       impuestoId, 
@@ -49,6 +67,8 @@ const productoService = {
       err.status = 400;
       throw err;
     }
+
+    const stockMinimoFinal = parseStockMinimo(stockMinimo);
 
     if (!UNIDADES_VALIDAS.includes(unidadMedida)) {
       const err = new Error(`unidadMedida inválida. Valores permitidos: ${UNIDADES_VALIDAS.join(', ')}`);
@@ -150,6 +170,7 @@ const productoService = {
           costo,
           precioVenta,
           unidadMedida,
+          stockMinimo: stockMinimoFinal,
           imagenPath: imagenPath || null,
           estado: 'activo',
           categoriaId: BigInt(categoriaId),
@@ -162,6 +183,7 @@ const productoService = {
           costo: true,
           precioVenta: true,
           unidadMedida: true,
+          stockMinimo: true,
           imagenPath: true,
           estado: true,
           categoria: { select: { id: true, nombre: true } },
@@ -201,6 +223,8 @@ const productoService = {
           },
         });
       }
+
+      await inventarioRepository.syncAlertaInventarioById(inventario.id, tx);
 
       return { producto, inventario };
     });
@@ -249,8 +273,30 @@ const productoService = {
     if (body.categoriaId !== undefined) data.categoriaId = BigInt(body.categoriaId);
     if (body.imagenPath !== undefined) data.imagenPath = body.imagenPath;
     if (body.impuestoId !== undefined) data.impuestoId = BigInt(body.impuestoId); 
+    if (body.stockMinimo !== undefined) data.stockMinimo = parseStockMinimo(body.stockMinimo);
 
-    return productoRepository.update(id, data);
+    const updated = await productoRepository.update(id, data);
+    await inventarioRepository.syncAlertasPorProducto(id);
+    return updated;
+  },
+
+  async updateStockMinimo(idParam, stockMinimo) {
+    const id = BigInt(idParam);
+    const current = await productoRepository.findById(id);
+
+    if (!current) {
+      const err = new Error('Producto no encontrado.');
+      err.status = 404;
+      throw err;
+    }
+
+    const updated = await productoRepository.update(id, {
+      stockMinimo: parseStockMinimo(stockMinimo),
+    });
+
+    await inventarioRepository.syncAlertasPorProducto(id);
+
+    return updated;
   },
 
   async patchEstado(idParam, { estado }) {

@@ -87,6 +87,23 @@ const productoController = {
     }
   },
 
+  async updateStockMinimo(req, res, next) {
+    try {
+      const data = await productoService.updateStockMinimo(
+        req.params.id,
+        req.body?.stockMinimo
+      );
+
+      res.json({
+        success: true,
+        message: 'Stock mínimo actualizado correctamente.',
+        data,
+      });
+    } catch (e) {
+      next(e);
+    }
+  },
+
   async patch(req, res, next) {
     try {
       const data = await productoService.patchEstado(req.params.id, req.body);

@@ -2,6 +2,7 @@ import type {
   ProductResponse,
   FormProducts,
   ProductReadResponse,
+  ProductMutationResponse,
 } from "../interfaces/Products/FormProducts";
 import settings from "../lib/settings";
 import type { booleanResponse } from "../interfaces/Users/UserInterface";
@@ -86,6 +87,7 @@ export const createProduct = async (
   formData.append("precioVenta", String(credentials.precioVenta));
   formData.append("unidadMedida", credentials.unidadMedida);
   formData.append("stockInicial", String(credentials.stockInicial));
+  formData.append("stockMinimo", String(credentials.stockMinimo));
   formData.append("sucursalId", credentials.sucursalId);
 
   if (credentials.imagen) {
@@ -127,6 +129,7 @@ export const UpdateProduct = async ({
   formData.append("precioVenta", String(credentials.precioVenta));
   formData.append("unidadMedida", credentials.unidadMedida);
   formData.append("stockInicial", String(credentials.stockInicial));
+  formData.append("stockMinimo", String(credentials.stockMinimo));
   formData.append("sucursalId", credentials.sucursalId);
 
   if (credentials.imagen) {
@@ -165,6 +168,30 @@ export const getProductById = async (
 
   if (!response.ok) {
     throw new Error("No se encontró el producto");
+  }
+
+  return payload;
+};
+
+export const updateProductStockMinimo = async ({
+  id,
+  stockMinimo,
+}: {
+  id: string;
+  stockMinimo: number;
+}): Promise<ProductMutationResponse> => {
+  const response = await fetch(`${settings.URL}/productos/${id}/stock-minimo`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ stockMinimo }),
+  });
+
+  const payload = (await response.json()) as ProductMutationResponse;
+
+  if (!response.ok) {
+    throw new Error(payload.message || "No se pudo actualizar el stock mínimo");
   }
 
   return payload;

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { changeSucursalStatus } from "../../services/SucursalesService";
-import type { SucursalResponse } from "../../interfaces/SucursalInterface";
+import type { SucursalResponse } from "../../interfaces/Sucursales/SucursalInterface";
 
 const useChangeSucursalStatus = () => {
   const queryClient = useQueryClient();

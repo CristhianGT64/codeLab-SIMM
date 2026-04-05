@@ -1,19 +1,115 @@
 import prisma from "../infra/prisma/prismaClient.js";
 
-const facturaRepository = {
+const clienteSelect = {
+  id: true,
+  nombreCompleto: true,
+  identificacion: true,
+};
 
-  //  Crear factura
+const usuarioSelect = {
+  id: true,
+  nombreCompleto: true,
+  usuario: true,
+};
+
+const sucursalSelect = {
+  id: true,
+  nombre: true,
+  direccion: true,
+};
+
+const detalleFacturaSelect = {
+  id: true,
+  productoId: true,
+  cantidad: true,
+  precioUnitario: true,
+  subtotal: true,
+  tasaImpuesto: true,
+  montoImpuesto: true,
+  tipoImpuesto: true,
+  producto: {
+    select: {
+      nombre: true,
+    },
+  },
+};
+
+const facturaInclude = {
+  detalles: {
+    select: detalleFacturaSelect,
+  },
+  cliente: {
+    select: clienteSelect,
+  },
+  usuario: {
+    select: usuarioSelect,
+  },
+  sucursal: {
+    select: sucursalSelect,
+  },
+  venta: {
+    select: {
+      id: true,
+      estado: true,
+    },
+  },
+  numeroFactura: {
+    include: {
+      cai: {
+        include: {
+          rangoEmision: {
+            select: {
+              inicioRango: true,
+              finRango: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+const buildWhere = ({ usuarioId, clienteId, sucursalId, fechaInicio, fechaFin } = {}) => {
+  const where = {};
+
+  if (usuarioId !== undefined) {
+    where.usuarioId = usuarioId;
+  }
+
+  if (clienteId !== undefined) {
+    where.clienteId = clienteId;
+  }
+
+  if (sucursalId !== undefined) {
+    where.sucursalId = sucursalId;
+  }
+
+  if (fechaInicio || fechaFin) {
+    where.fechaEmision = {};
+
+    if (fechaInicio) {
+      where.fechaEmision.gte = fechaInicio;
+    }
+
+    if (fechaFin) {
+      where.fechaEmision.lte = fechaFin;
+    }
+  }
+
+  return where;
+};
+
+const facturaRepository = {
   async createFactura(data, tx = prisma) {
     return await tx.factura.create({
-      data
+      data,
     });
   },
 
-  // Crear múltiples detalles de factura
   async createDetalleFacturaMany(detalles, tx = prisma) {
     try {
       return await tx.detalleFactura.createMany({
-        data: detalles
+        data: detalles,
       });
     } catch (error) {
       const isDetalleFacturaIdConflict =
@@ -25,7 +121,6 @@ const facturaRepository = {
         throw error;
       }
 
-      // Repair the sequence if seed data inserted explicit ids and left it behind.
       await tx.$executeRaw`
         SELECT setval(
           pg_get_serial_sequence('"DetalleFactura"', 'id'),
@@ -35,177 +130,57 @@ const facturaRepository = {
       `;
 
       return await tx.detalleFactura.createMany({
-        data: detalles
+        data: detalles,
       });
     }
   },
 
-  //  Obtener factura por número formateado
   async findFacturaByNumero(numeroFactura) {
     return await prisma.factura.findFirst({
       where: {
-        numeroFactura: {
-          numeroFormateado: numeroFactura
-        }
+        numeroFormateado: numeroFactura,
       },
-      include: {
-        detalles: true,
-        cliente: true,
-        usuario: true,
-        sucursal: true,
-        numeroFactura: true
-      }
+      include: facturaInclude,
     });
   },
-  async findFacturaByNumero(numeroFactura) {
-  return await prisma.factura.findFirst({
-    where: {
-      numeroFormateado: numeroFactura 
-    },
-    include: {
-      detalles: {
-        include: {
-          producto: {
-            select: {
-              nombre: true
-            }
-          }
-        }
-      },
-      cliente: true,
-      usuario: true,
-      sucursal: true,
-      numeroFactura: {
-        include: {
-          cai: {
-              include: {
-                rangoEmision: {
-                  select: {
-                    inicioRango: true,
-                    finRango: true
-                  }
-                }
-              }
-            }
-        }
-      }
-    }
-  });
-},
 
-  //  Listar facturas con filtros
- /*  async findFacturas({ usuarioId, clienteId, sucursalId }) {
-
-    const where = {};
-
-    if (usuarioId) {
-      where.usuarioId = Number(usuarioId);
-    }
-
-    if (clienteId) {
-      where.clienteId = Number(clienteId);
-    }
-
-    if (sucursalId) {
-      where.sucursalId = Number(sucursalId);
-    }
-
+  async findFacturas(filters = {}) {
     return await prisma.factura.findMany({
-      where,
-      include: {
-        cliente: true,
-        usuario: true,
-        sucursal: true,
-        numeroFactura: {
-          include: {
-            cai: {
-              select: {
-                id: true,
-                codigo: true,
-                fechaInicio: true,
-                fechaFin: true
-              }
-            }
-          }
-        }
+      where: buildWhere(filters),
+      include: facturaInclude,
+      orderBy: [
+        { fechaEmision: "desc" },
+        { id: "desc" },
+      ],
+    });
+  },
+
+  async getLastCorrelativo({
+    tipoDocumentoId,
+    establecimientoId,
+    puntoEmisionId,
+    caiId,
+  }) {
+    const result = await prisma.numeroFactura.aggregate({
+      _max: {
+        correlativo: true,
       },
-      orderBy: {
-        id: "desc"
-      }
+      where: {
+        tipoDocumentoId: BigInt(tipoDocumentoId),
+        establecimientoId: BigInt(establecimientoId),
+        puntoEmisionId: BigInt(puntoEmisionId),
+        caiId: BigInt(caiId),
+      },
     });
 
+    return result._max.correlativo ?? 0;
   },
- */
-  async findFacturas({ usuarioId, clienteId, sucursalId }) {
 
-  const where = {};
-
-  if (usuarioId) where.usuarioId = Number(usuarioId);
-  if (clienteId) where.clienteId = Number(clienteId);
-  if (sucursalId) where.sucursalId = Number(sucursalId);
-
-  return await prisma.factura.findMany({
-    where,
-    include: {
-      detalles: {
-        include: {
-          producto: {
-            select: {
-              nombre: true
-            }
-          }
-        }
-      },
-      cliente: true,
-      usuario: true,
-      sucursal: true,
-      numeroFactura: {
-        include: {
-          cai: {
-            include: {
-              rangoEmision: {
-                select: {
-                  inicioRango: true,
-                  finRango: true
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    orderBy: { id: "desc" }
-  });
-},
-  //  Obtener último correlativo
- async getLastCorrelativo({
-  tipoDocumentoId,
-  establecimientoId,
-  puntoEmisionId,
-  caiId
-}) {
-  const result = await prisma.numeroFactura.aggregate({
-    _max: {
-      correlativo: true
-    },
-    where: {
-      tipoDocumentoId: BigInt(tipoDocumentoId),
-      establecimientoId: BigInt(establecimientoId),
-      puntoEmisionId: BigInt(puntoEmisionId),
-      caiId: BigInt(caiId)
-    }
-  });
-console.log("📊 getLastCorrelativo result:", result);
-  return result._max.correlativo ?? 0;
-},
-
-  //  Crear NumeroFactura
   async createNumeroFactura(data, tx = prisma) {
     return await tx.numeroFactura.create({
-      data
+      data,
     });
-  }
-
+  },
 };
 
 export default facturaRepository;

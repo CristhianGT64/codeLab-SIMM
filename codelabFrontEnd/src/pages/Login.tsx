@@ -8,7 +8,6 @@ import useAuth from "../hooks/useAuth";
 export default function Login() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-    const [rememberMe, setRememberMe] = useState(false);
 	const navigate = useNavigate();
 	const loginMutation = useLogin();
 	const { login } = useAuth();
@@ -87,19 +86,6 @@ export default function Login() {
 						)}
 
 						<div className="mt-1 flex items-center justify-between text-[18px] text-[#4b7292]">
-							<label className="inline-flex items-center gap-2 font-semibold">
-								<input
-									type="checkbox"
-									checked={rememberMe}
-									onChange={(event) => setRememberMe(event.target.checked)}
-									disabled={isLoading}
-									className="h-4 w-4 accent-[#3f699b]"
-								/>
-								<span>Recordarme</span>
-							</label>
-							<button type="button" className="cursor-pointer font-medium text-[#2fa6b7] hover:underline">
-								¿Olvidaste tu contraseña?
-							</button>
 						</div>
 
                         <ButtonLogin

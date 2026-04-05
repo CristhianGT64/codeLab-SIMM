@@ -12,6 +12,9 @@ const useUpdateProduct = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["product"] });
       queryClient.invalidateQueries({ queryKey: ["product", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["inventario-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["inventario-bajo-stock"] });
+      queryClient.invalidateQueries({ queryKey: ["inventario-alertas"] });
     },
   });
 };

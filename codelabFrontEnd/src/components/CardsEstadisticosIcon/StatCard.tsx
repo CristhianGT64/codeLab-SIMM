@@ -1,6 +1,6 @@
 import type { IstatCard } from "../../interfaces/Inventario/IstatsCard";
 
-type IconType = "box" | "up" | "down";
+type IconType = "box" | "up" | "down" | "alert";
 
 export default function StatCard(stats : Readonly<IstatCard>) {
     const icons: Record<IconType, React.ReactNode> = {
@@ -20,6 +20,12 @@ export default function StatCard(stats : Readonly<IstatCard>) {
             <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M13 17H5m0 0V9m0 8l8-8 4 4 6-6" />
+            </svg>
+        ),
+        alert: (
+            <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 9v4m0 4h.01M10.29 3.86l-7.54 13.07A1 1 0 0 0 3.61 18h16.78a1 1 0 0 0 .86-1.07L13.71 3.86a1 1 0 0 0-1.72 0z" />
             </svg>
         ),
     };

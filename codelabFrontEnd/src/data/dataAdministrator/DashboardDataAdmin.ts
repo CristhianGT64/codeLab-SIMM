@@ -2,6 +2,15 @@ import type { DashboardInterface } from "../../interfaces/DashboardInterface";
 
 export const DashboardDataAdmin: DashboardInterface[] = [
   {
+    svg: "M3 13.5 8.25 8.25l4.5 4.5 7.5-7.5M3.75 20.25h16.5",
+    title: "Reportes",
+    description: "Modulo de reportes para analizar ventas y rendimiento por sucursal",
+    buttonDescription: "Administrar â†’",
+    colorBorder: "border-[#4a6eb0]",
+    colorSvg: "from-[#109c9a] to-[#4a6eb0]",
+    url: "/Reportes-Management",
+  },
+  {
     svg: "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z",
     title: "Usuarios",
     description: "Gestión de usuarios: Creación, eliminación, edición y más",
@@ -72,6 +81,26 @@ export const DashboardDataAdmin: DashboardInterface[] = [
     colorSvg: "from-[#4a6eb0] to-[#11a2a5]",
     url: "/Configuracion/CAI",
     permiso: "Ver configuración CAI",
+  },
+  {
+    svg: "M7.5 6.75a3.75 3.75 0 1 1 7.5 0a3.75 3.75 0 0 1-7.5 0Zm0 10.5a3.75 3.75 0 1 1 7.5 0a3.75 3.75 0 0 1-7.5 0Zm1.118-7.796l6.764 4.092",
+    title: "Impuestos",
+    description: "Configuración de impuestos para productos y cálculos de venta",
+    buttonDescription: "Administrar →",
+    colorBorder: "border-[#4a6eb0]",
+    colorSvg: "from-[#0aa6a2] to-[#4661b0]",
+    url: "/Configuracion/Impuestos",
+    permiso: "Ver productos",
+  },
+  {
+    svg: "M19.5 14.25v-8.25a2.25 2.25 0 0 0-2.25-2.25h-10.5A2.25 2.25 0 0 0 4.5 6v12A2.25 2.25 0 0 0 6.75 20.25h10.5A2.25 2.25 0 0 0 19.5 18v-3.75Zm-9 0h3m-3 3h6m-6-9h6m-6 3h6",
+    title: "Facturas",
+    description: "Historial de facturas emitidas con filtros, detalle completo y exportacion PDF",
+    buttonDescription: "Administrar â†’",
+    colorBorder: "border-[#4a6eb0]",
+    colorSvg: "from-[#109c9a] to-[#4a6eb0]",
+    url: "/Facturas-Management",
+    permiso: "Revisar Facturas",
   },
   {
     svg: "M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z",
