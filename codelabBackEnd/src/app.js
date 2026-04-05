@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 
 import productoController from './controllers/productoController.js';
 import categoriaController from './controllers/categoriaController.js';
@@ -32,6 +33,7 @@ import ventaController from './controllers/ventas/ventaController.js';
 import facturaController from './controllers/facturaController.js';
 import impuestoController from './controllers/impuestoController.js';
 import tipoClienteController from './controllers/Tipos de cliente/tipoClienteController.js';
+import { createSwaggerSpec } from './docs/swagger.js';
 
 //Parche: convierte de BigInt a String para que lo soporte Json.
 BigInt.prototype.toJSON = function() {
@@ -40,6 +42,22 @@ BigInt.prototype.toJSON = function() {
 
 const app = express();
 dotenv.config();
+const registeredRoutes = [];
+
+['get', 'post', 'put', 'patch', 'delete'].forEach((method) => {
+  const originalMethod = app[method].bind(app);
+
+  app[method] = (routePath, ...handlers) => {
+    if (typeof routePath === 'string' && handlers.length > 0) {
+      registeredRoutes.push({
+        method: method.toUpperCase(),
+        path: routePath,
+      });
+    }
+
+    return originalMethod(routePath, ...handlers);
+  };
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -216,6 +234,7 @@ app.patch('/establecimiento-documento/:id/estado', tipoDocumentoController.patch
 
 // --- RUTAS DE FACTURAS ---
 app.post('/facturas', facturaController.createFactura);
+app.get('/facturas/exportar', facturaController.exportFacturas);
 app.get('/facturas', facturaController.getFacturas);
 app.get('/facturas/:numeroFactura', facturaController.getFacturaByNumero);
 
@@ -262,6 +281,16 @@ app.patch('/subcuentas-contables/:id/estado', subCuentaContableController.patch)
 app.get('/catalogo-contable/arbol', catalogoContableController.arbol);
 app.get('/catalogo-contable/resumen', catalogoContableController.resumen);
 
+const swaggerDocument = createSwaggerSpec(registeredRoutes);
+
+app.get('/openapi.json', (req, res) => {
+  res.json(swaggerDocument);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+  explorer: true,
+}));
+
 // Middleware de errores
 app.use(errorHandler);
 
@@ -269,3 +298,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 export default app;
+

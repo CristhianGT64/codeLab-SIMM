@@ -59,6 +59,13 @@ const navBarData: NavBarInterface = {
       permiso: "Ver productos",
     },
     {
+      text: "Facturas",
+      icon: "fa-solid fa-file-invoice-dollar",
+      url: "/Facturas-Management",
+      disable: false,
+      permiso: "Revisar Facturas",
+    },
+    {
       text: "Ventas POS",
       icon: "fa-solid fa-cart-shopping",
       url : "/Ventas-Management",
