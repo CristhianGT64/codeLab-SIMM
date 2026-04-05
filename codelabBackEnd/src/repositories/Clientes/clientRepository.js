@@ -15,7 +15,9 @@ const clientRepository = {
     return await prisma.cliente.findMany({
       where,
       include: {
-        tipoCliente: true,
+        tipoCliente: {
+          select: { nombre: true },
+        },
       },
     });
   },
@@ -25,7 +27,9 @@ const clientRepository = {
       where: { id: Number(id) },
       include: {
         facturas: true,
-        tipoCliente: true,
+        tipoCliente: {
+          select: { nombre: true },
+        },
       },
     });
   },
