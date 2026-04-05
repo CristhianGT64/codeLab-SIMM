@@ -93,6 +93,16 @@ export const DashboardDataAdmin: DashboardInterface[] = [
     permiso: "Ver productos",
   },
   {
+    svg: "M19.5 14.25v-8.25a2.25 2.25 0 0 0-2.25-2.25h-10.5A2.25 2.25 0 0 0 4.5 6v12A2.25 2.25 0 0 0 6.75 20.25h10.5A2.25 2.25 0 0 0 19.5 18v-3.75Zm-9 0h3m-3 3h6m-6-9h6m-6 3h6",
+    title: "Facturas",
+    description: "Historial de facturas emitidas con filtros, detalle completo y exportacion PDF",
+    buttonDescription: "Administrar â†’",
+    colorBorder: "border-[#4a6eb0]",
+    colorSvg: "from-[#109c9a] to-[#4a6eb0]",
+    url: "/Facturas-Management",
+    permiso: "Revisar Facturas",
+  },
+  {
     svg: "M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z",
     title: "Ventas POS",
     description: "Gestión de ventas en el punto de venta (POS)",

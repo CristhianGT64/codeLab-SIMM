@@ -27,6 +27,7 @@ import FifoPromConfig from '../pages/Administration/configuracion/fifo-prom/Fifo
 import ImpuestosManagement from '../pages/Administration/configuracion/impuestos/ImpuestosManagement';
 import FormImpuesto from '../pages/Administration/configuracion/impuestos/FormImpuesto';
 import ConfiguracionCAI from '../pages/Administration/Facturacion/ConfiguracionCAI';
+import Facturacion from '../pages/Administration/Facturacion/Facturacion';
 import VentasManagement from '../pages/Ventas/VentasManagement';
 import TiposDocumentoManagement from '../pages/Administration/Tiposdedocumento/TiposDocumentoManagement';
 import FormTipoDocumento from '../pages/Administration/Tiposdedocumento/FormTipoDocumento';
@@ -107,6 +108,9 @@ const AppRouter = () => (
 
             {/* Configuración de CAI */}
             <Route path="/Configuracion/CAI" element={<PermissionGate permiso="Ver configuración CAI"><ConfiguracionCAI /></PermissionGate>} />
+
+            {/* Facturas */}
+            <Route path="/Facturas-Management" element={<PermissionGate permiso="Revisar Facturas"><Facturacion /></PermissionGate>} />
 
             {/* Punto de ventas POS */}
             <Route path="/Ventas-Management" element={<PermissionGate permiso="Ver punto de ventas POS"><VentasManagement /></PermissionGate>} />

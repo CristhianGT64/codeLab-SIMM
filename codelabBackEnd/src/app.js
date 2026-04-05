@@ -216,6 +216,7 @@ app.patch('/establecimiento-documento/:id/estado', tipoDocumentoController.patch
 
 // --- RUTAS DE FACTURAS ---
 app.post('/facturas', facturaController.createFactura);
+app.get('/facturas/exportar', facturaController.exportFacturas);
 app.get('/facturas', facturaController.getFacturas);
 app.get('/facturas/:numeroFactura', facturaController.getFacturaByNumero);
 
@@ -269,3 +270,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 export default app;
+
