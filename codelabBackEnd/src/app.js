@@ -288,6 +288,10 @@ app.get('/catalogo-contable/resumen', catalogoContableController.resumen);
 // =========================
 
 // Asientos contables
+app.get('/libro-diario/exportar', asientoContableController.export);
+app.get('/libro-diario', asientoContableController.list);
+app.get('/libro-diario/:id', asientoContableController.getById);
+app.get('/asientos-contables/exportar', asientoContableController.export);
 app.get('/asientos-contables', asientoContableController.list);
 app.get('/asientos-contables/:id', asientoContableController.getById);
 
