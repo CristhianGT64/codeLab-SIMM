@@ -28,7 +28,7 @@ export const notificacionErrorCantidad: NotificationStateInterface = {
 export const notificacionRegistroEntradaExitoso: NotificationStateInterface = {
   isVisible: true,
   variant: "success",
-  title: "Entrada registrada",
+  title: "Entrada registrada - Asiento contable generado",
   message: "La entrada de inventario se registro correctamente.",
 };
 

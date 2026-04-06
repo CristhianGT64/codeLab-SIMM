@@ -153,7 +153,7 @@ export default function SalidasInventario() {
                 setNotification({
                     isVisible: true,
                     variant: "success",
-                    title: "Salida registrada",
+                    title: "Salida registrada - Asiento contable generado",
                     message: "La salida de inventario se registro correctamente.",
                 });
 
