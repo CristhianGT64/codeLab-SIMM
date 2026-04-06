@@ -457,7 +457,7 @@ export default function FormProduct() {
 
             <div>
               <p className="mb-2 block text-xl font-semibold text-[#0a4d76]">
-                Stock MÃ­nimo <span className="text-[#ff4f4f]">*</span>
+                Stock Mínimo <span className="text-[#ff4f4f]">*</span>
               </p>
               <input
                 value={form.stockMinimo}
