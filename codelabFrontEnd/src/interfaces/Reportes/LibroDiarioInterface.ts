@@ -30,7 +30,7 @@ export interface LibroDiarioAsiento {
   detalles: LibroDiarioMovimiento[];
 }
 
-export interface LibroDiarioDetalle extends LibroDiarioAsiento {}
+export type LibroDiarioDetalle = LibroDiarioAsiento;
 
 export interface LibroDiarioResumen {
   totalAsientos: number;
