@@ -11,7 +11,44 @@ const asientoSelect = {
   totalHaber: true,
   balanceado: true,
   fecha: true,
-  detalles: true
+  detalles: {
+    orderBy: {
+      orden: "asc"
+    },
+    select: {
+      id: true,
+      uuidDetalle: true,
+      asientoId: true,
+      subCuentaContableId: true,
+      montoDebe: true,
+      montoHaber: true,
+      descripcion: true,
+      orden: true,
+      subCuentaContable: {
+        select: {
+          id: true,
+          nombre: true,
+          codigoNumerico: true,
+          elementoContable: {
+            select: {
+              codigoNumerico: true
+            }
+          },
+          clasificacionContable: {
+            select: {
+              codigoNumerico: true
+            }
+          },
+          cuentaContable: {
+            select: {
+              nombre: true,
+              codigoNumerico: true
+            }
+          }
+        }
+      }
+    }
+  }
 };
 
 const asientoContableRepository = {
@@ -37,10 +74,28 @@ const asientoContableRepository = {
 
   },
 
-  async findAll() {
+  async findAll(filters = {}) {
+    const where = {};
+
+    if (filters.fechaInicio || filters.fechaFin) {
+      where.fecha = {};
+
+      if (filters.fechaInicio) {
+        where.fecha.gte = filters.fechaInicio;
+      }
+
+      if (filters.fechaFin) {
+        where.fecha.lte = filters.fechaFin;
+      }
+    }
+
     return prisma.asientoContable.findMany({
+      where,
       select: asientoSelect,
-      orderBy: { id: "desc" }
+      orderBy: [
+        { fecha: "asc" },
+        { id: "asc" }
+      ]
     });
   },
 
