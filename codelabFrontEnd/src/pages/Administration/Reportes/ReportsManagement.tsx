@@ -31,6 +31,16 @@ const reportsCards: DashboardInterface[] = [
     colorSvg: "from-[#0b4d77] to-[#109c9a]",
     url: "/Reportes-Management/Libro-Diario",
   },
+  {
+    svg: "M3.75 5.25h16.5m-16.5 6h16.5m-16.5 6h10.5M6 3.75h12A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75Z",
+    title: "Libro Mayor",
+    description:
+      "Consulta movimientos agrupados por cuenta contable, revisa el saldo acumulado y exporta el reporte en PDF.",
+    buttonDescription: "Abrir reporte ->",
+    colorBorder: "border-[#0b4d77]",
+    colorSvg: "from-[#4a6eb0] to-[#0b4d77]",
+    url: "/Reportes-Management/Libro-Mayor",
+  },
 ];
 
 export default function ReportsManagement() {
@@ -49,6 +59,8 @@ export default function ReportsManagement() {
             Este modulo concentra reportes operativos, comerciales y contables.
             Ahora incluye el reporte de ventas por sucursal y la consulta del libro
             diario para revisar asientos contables dentro del periodo seleccionado.
+            Tambien incorpora el libro mayor para analizar movimientos y saldos
+            acumulados por cuenta contable.
           </p>
         </div>
 

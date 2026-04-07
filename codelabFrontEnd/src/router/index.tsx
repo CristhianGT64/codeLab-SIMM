@@ -35,6 +35,7 @@ import CatalogoCuentasContablesManagement from '../pages/Administration/Catalogo
 import ReportsManagement from '../pages/Administration/Reportes/ReportsManagement';
 import VentasSucursalReport from '../pages/Administration/Reportes/VentasSucursalReport';
 import LibroDiarioReport from '../pages/Administration/Reportes/LibroDiarioReport';
+import LibroMayorReport from '../pages/Administration/Reportes/LibroMayorReport';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -66,6 +67,7 @@ const AppRouter = () => (
             <Route path="/Reportes-Management" element={<ReportsManagement />} />
             <Route path="/Reportes-Management/Ventas-Sucursales" element={<VentasSucursalReport />} />
             <Route path="/Reportes-Management/Libro-Diario" element={<LibroDiarioReport />} />
+            <Route path="/Reportes-Management/Libro-Mayor" element={<LibroMayorReport />} />
 
             {/* Usuarios */}
             <Route path="/Users-Management" element={<PermissionGate permiso="Ver usuarios"><UserManagement /></PermissionGate>} />

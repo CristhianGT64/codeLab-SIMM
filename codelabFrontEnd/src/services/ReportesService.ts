@@ -12,6 +12,13 @@ import type {
   LibroDiarioMovimiento,
 } from "../interfaces/Reportes/LibroDiarioInterface";
 import type {
+  LibroMayorCuenta,
+  LibroMayorFilters,
+  LibroMayorMovimiento,
+  LibroMayorResponse,
+  LibroMayorResumen,
+} from "../interfaces/Reportes/LibroMayorInterface";
+import type {
   ReporteVentasSucursalFilters,
   ReporteVentasSucursalItem,
   ReporteVentasSucursalResponse,
@@ -871,4 +878,635 @@ export const exportLibroDiarioPdf = async (filters: LibroDiarioFilters = {}) => 
   }
 
   return buildLibroDiarioPdfFallback(filters);
+};
+
+const LIBRO_MAYOR_UNAVAILABLE_STATUS = new Set([404, 405, 501]);
+const LIBRO_MAYOR_ITEMS_KEYS = ["cuentas", "items", "resultados", "reporte", "libroMayor"];
+const LIBRO_MAYOR_SUMMARY_KEYS = ["resumen", "summary", "totales", "totals"];
+const LIBRO_MAYOR_PERIOD_KEYS = ["periodosContables", "periodos", "periods"];
+
+type LibroMayorMovimientoDraft = Omit<LibroMayorMovimiento, "saldoAcumulado"> & {
+  saldoAcumulado: number | null;
+};
+
+type LibroMayorCuentaDraft = Omit<LibroMayorCuenta, "movimientos" | "saldoFinal"> & {
+  movimientos: LibroMayorMovimientoDraft[];
+};
+
+const hasDefinedValue = (value: unknown) =>
+  value !== undefined
+  && value !== null
+  && !(typeof value === "string" && value.trim().length === 0);
+
+const asNullableNumber = (value: unknown) => (hasDefinedValue(value) ? asNumber(value) : null);
+
+const formatPeriodoContable = (value: string) => {
+  const [year, month] = value.split("-");
+
+  if (!year || !month) {
+    return value;
+  }
+
+  return `${year}-${month.padStart(2, "0")}`;
+};
+
+const resolvePeriodoContable = (value: unknown) => {
+  const raw = asString(value).trim();
+
+  if (/^\d{4}-\d{2}$/.test(raw)) {
+    return formatPeriodoContable(raw);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+    return formatPeriodoContable(raw.slice(0, 7));
+  }
+
+  return "";
+};
+
+const getPeriodoFromIsoDate = (value: string | null) =>
+  value ? value.slice(0, 7) : "";
+
+const getLibroMayorQuery = (filters: LibroMayorFilters = {}) => {
+  const query = new URLSearchParams();
+
+  if (filters.periodoContable) {
+    query.set("periodoContable", filters.periodoContable);
+  }
+
+  if (filters.fechaInicio) {
+    query.set("fechaInicio", filters.fechaInicio);
+  }
+
+  if (filters.fechaFin) {
+    query.set("fechaFin", filters.fechaFin);
+  }
+
+  return query.toString();
+};
+
+const getLibroMayorPath = (filters: LibroMayorFilters = {}) =>
+  filters.cuentaId
+    ? `/reportes/libro-mayor/cuentas/${encodeURIComponent(filters.cuentaId)}`
+    : "/reportes/libro-mayor";
+
+const getLibroMayorItemsSource = (source: unknown) => {
+  if (Array.isArray(source)) {
+    return source;
+  }
+
+  if (!isApiRecord(source)) {
+    return null;
+  }
+
+  const matchedKey = LIBRO_MAYOR_ITEMS_KEYS.find((key) => key in source);
+  return matchedKey ? source[matchedKey] : null;
+};
+
+const getLibroMayorSummarySource = (source: unknown) => {
+  if (!isApiRecord(source)) {
+    return undefined;
+  }
+
+  const matchedKey = LIBRO_MAYOR_SUMMARY_KEYS.find((key) => key in source);
+  return matchedKey ? source[matchedKey] : source;
+};
+
+const getLibroMayorPeriodsSource = (source: unknown) => {
+  if (!isApiRecord(source)) {
+    return [];
+  }
+
+  const matchedKey = LIBRO_MAYOR_PERIOD_KEYS.find((key) => key in source);
+  return matchedKey && Array.isArray(source[matchedKey]) ? source[matchedKey] : [];
+};
+
+const sortPeriodosContables = (periodos: string[]) =>
+  [...new Set(periodos.filter(Boolean).map(formatPeriodoContable))].sort((a, b) => b.localeCompare(a));
+
+const sortLibroMayorMovimientos = (items: LibroMayorMovimientoDraft[]) =>
+  [...items].sort((a, b) => {
+    const aTime = a.fecha ? new Date(a.fecha).getTime() : 0;
+    const bTime = b.fecha ? new Date(b.fecha).getTime() : 0;
+
+    if (aTime !== bTime) {
+      return aTime - bTime;
+    }
+
+    if ((a.numeroAsiento ?? "") !== (b.numeroAsiento ?? "")) {
+      return (a.numeroAsiento ?? "").localeCompare(b.numeroAsiento ?? "");
+    }
+
+    return a.orden - b.orden;
+  });
+
+const finalizeLibroMayorMovimientos = (
+  movimientos: LibroMayorMovimientoDraft[],
+  saldoInicial = 0,
+): LibroMayorMovimiento[] => {
+  let saldo = saldoInicial;
+
+  return sortLibroMayorMovimientos(movimientos).map((movimiento) => {
+    saldo = movimiento.saldoAcumulado ?? saldo + movimiento.debito - movimiento.credito;
+
+    return {
+      ...movimiento,
+      saldoAcumulado: saldo,
+    };
+  });
+};
+
+const mapLibroMayorMovimiento = (value: ApiRecord): LibroMayorMovimientoDraft => ({
+  id: asString(value.id ?? value.uuidDetalle ?? value.uuid_detalle),
+  fecha: normalizeLibroDiarioDate(value.fecha ?? value.fechaContable ?? value.fechaMovimiento),
+  descripcion: asString(value.descripcion ?? value.detalle ?? value.glosa) || null,
+  debito: asNumber(value.debito ?? value.montoDebe ?? value.debe),
+  credito: asNumber(value.credito ?? value.montoHaber ?? value.haber),
+  saldoAcumulado: asNullableNumber(
+    value.saldoAcumulado
+    ?? value.saldo
+    ?? value.balance
+    ?? value.saldo_actual,
+  ),
+  referencia: asString(
+    value.referencia
+    ?? value.documentoReferencia
+    ?? value.tipoOperacion
+    ?? value.tipo_operacion,
+  ) || null,
+  asientoId: asString(
+    value.asientoId
+    ?? value.idAsientoContable
+    ?? value.id_asiento_contable,
+  ) || null,
+  numeroAsiento: asString(value.numeroAsiento ?? value.numero_asiento) || null,
+  orden: asNumber(value.orden ?? value.secuencia ?? value.linea),
+});
+
+const getCuentaMovimientosSource = (value: ApiRecord) => {
+  if (Array.isArray(value.movimientos)) {
+    return value.movimientos;
+  }
+
+  if (Array.isArray(value.detalles)) {
+    return value.detalles;
+  }
+
+  if (Array.isArray(value.items)) {
+    return value.items;
+  }
+
+  return [];
+};
+
+const mapLibroMayorCuenta = (value: ApiRecord): LibroMayorCuenta => {
+  const movimientosBase = asApiRecordArray(getCuentaMovimientosSource(value)).map(mapLibroMayorMovimiento);
+  const saldoInicial = asNumber(value.saldoInicial ?? value.balanceInicial ?? value.saldo_inicial);
+  const movimientos = finalizeLibroMayorMovimientos(movimientosBase, saldoInicial);
+  const totalDebitoCalculado = movimientos.reduce((acc, item) => acc + item.debito, 0);
+  const totalCreditoCalculado = movimientos.reduce((acc, item) => acc + item.credito, 0);
+  const saldoFinal = movimientos.length > 0
+    ? movimientos[movimientos.length - 1].saldoAcumulado
+    : saldoInicial;
+
+  return {
+    cuentaId: asString(
+      value.cuentaId
+      ?? value.idCuentaContable
+      ?? value.idSubCuentaContable
+      ?? value.id_sub_cuenta_contable
+      ?? value.id,
+    ),
+    cuentaCodigo: asString(
+      value.cuentaCodigo
+      ?? value.codigoCuenta
+      ?? value.codigo
+      ?? value.codigoNumerico,
+    ) || "N/A",
+    cuentaNombre: asString(
+      value.cuentaNombre
+      ?? value.nombreCuenta
+      ?? value.nombre
+      ?? value.descripcionCuenta,
+    ) || "Cuenta contable no disponible",
+    naturaleza: asString(value.naturaleza ?? value.tipoNaturaleza) || null,
+    saldoInicial,
+    saldoFinal: asNumber(value.saldoFinal ?? value.balanceFinal ?? value.saldo_final) || saldoFinal,
+    totalDebito:
+      asNumber(value.totalDebito ?? value.totalDebe ?? value.debito ?? value.debe)
+      || totalDebitoCalculado,
+    totalCredito:
+      asNumber(value.totalCredito ?? value.totalHaber ?? value.credito ?? value.haber)
+      || totalCreditoCalculado,
+    movimientos,
+  };
+};
+
+const sortLibroMayorCuentas = (cuentas: LibroMayorCuenta[]) =>
+  [...cuentas].sort((a, b) => {
+    if (a.cuentaCodigo !== b.cuentaCodigo) {
+      return a.cuentaCodigo.localeCompare(b.cuentaCodigo);
+    }
+
+    return a.cuentaNombre.localeCompare(b.cuentaNombre);
+  });
+
+const buildLibroMayorResumen = (
+  cuentas: LibroMayorCuenta[],
+  summarySource?: unknown,
+): LibroMayorResumen => {
+  const source = asApiRecord(summarySource);
+  const totalMovimientosCalculado = cuentas.reduce((acc, cuenta) => acc + cuenta.movimientos.length, 0);
+  const totalDebitoCalculado = cuentas.reduce((acc, cuenta) => acc + cuenta.totalDebito, 0);
+  const totalCreditoCalculado = cuentas.reduce((acc, cuenta) => acc + cuenta.totalCredito, 0);
+  const saldoGlobalCalculado = cuentas.reduce((acc, cuenta) => acc + cuenta.saldoFinal, 0);
+
+  return {
+    totalCuentas:
+      asNumber(source.totalCuentas ?? source.cuentasAnalizadas ?? source.cantidadCuentas)
+      || cuentas.length,
+    totalMovimientos:
+      asNumber(source.totalMovimientos ?? source.movimientos) || totalMovimientosCalculado,
+    totalDebito:
+      asNumber(source.totalDebito ?? source.totalDebe ?? source.debito ?? source.debe)
+      || totalDebitoCalculado,
+    totalCredito:
+      asNumber(source.totalCredito ?? source.totalHaber ?? source.credito ?? source.haber)
+      || totalCreditoCalculado,
+    saldoGlobal:
+      asNumber(source.saldoGlobal ?? source.balanceGlobal ?? source.saldoFinal)
+      || saldoGlobalCalculado,
+  };
+};
+
+const deriveLibroMayorPeriodos = (cuentas: LibroMayorCuenta[]) =>
+  sortPeriodosContables(
+    cuentas.flatMap((cuenta) =>
+      cuenta.movimientos
+        .map((movimiento) => getPeriodoFromIsoDate(movimiento.fecha))
+        .filter(Boolean)),
+  );
+
+const mapLibroMayorResponse = (payload: unknown): LibroMayorResponse | null => {
+  const source = isApiRecord(payload) && "data" in payload ? payload.data : payload;
+  const itemsSource = getLibroMayorItemsSource(source);
+
+  if (itemsSource === null) {
+    return null;
+  }
+
+  const cuentas = sortLibroMayorCuentas(
+    asApiRecordArray(itemsSource)
+      .map(mapLibroMayorCuenta)
+      .filter((cuenta) => Boolean(cuenta.cuentaId) || cuenta.movimientos.length > 0),
+  );
+  const resumen = buildLibroMayorResumen(cuentas, getLibroMayorSummarySource(source));
+  const periodosDisponibles = sortPeriodosContables([
+    ...getLibroMayorPeriodsSource(source).map(resolvePeriodoContable),
+    ...deriveLibroMayorPeriodos(cuentas),
+  ]);
+
+  return {
+    cuentas,
+    resumen,
+    periodosDisponibles,
+  };
+};
+
+const applyLibroMayorFilters = (
+  report: LibroMayorResponse,
+  filters: LibroMayorFilters = {},
+) => {
+  const fechaInicio = parseLibroDiarioDate(filters.fechaInicio);
+  const fechaFin = parseLibroDiarioDate(filters.fechaFin, true);
+  const periodoContable = filters.periodoContable ? formatPeriodoContable(filters.periodoContable) : "";
+  const cuentaId = filters.cuentaId ?? "";
+
+  const cuentas = report.cuentas
+    .filter((cuenta) => !cuentaId || cuenta.cuentaId === cuentaId)
+    .map((cuenta) => {
+      const saldoInicialFiltrado = cuenta.movimientos.reduce((saldo, movimiento) => {
+        const fechaMovimiento = movimiento.fecha ? new Date(movimiento.fecha) : null;
+        const periodoMovimiento = getPeriodoFromIsoDate(movimiento.fecha);
+        const isBeforePeriodo = Boolean(periodoContable && periodoMovimiento < periodoContable);
+        const isBeforeFechaInicio = Boolean(fechaInicio && fechaMovimiento && fechaMovimiento < fechaInicio);
+
+        return isBeforePeriodo || isBeforeFechaInicio
+          ? movimiento.saldoAcumulado
+          : saldo;
+      }, cuenta.saldoInicial);
+
+      const movimientosFiltrados = cuenta.movimientos.filter((movimiento) => {
+        const fechaMovimiento = movimiento.fecha ? new Date(movimiento.fecha) : null;
+
+        if (fechaInicio && (!fechaMovimiento || fechaMovimiento < fechaInicio)) {
+          return false;
+        }
+
+        if (fechaFin && (!fechaMovimiento || fechaMovimiento > fechaFin)) {
+          return false;
+        }
+
+        if (periodoContable && getPeriodoFromIsoDate(movimiento.fecha) !== periodoContable) {
+          return false;
+        }
+
+        return true;
+      });
+
+      const movimientos = finalizeLibroMayorMovimientos(
+        movimientosFiltrados.map((movimiento) => ({
+          ...movimiento,
+          saldoAcumulado: null,
+        })),
+        saldoInicialFiltrado,
+      );
+
+      const totalDebito = movimientos.reduce((acc, item) => acc + item.debito, 0);
+      const totalCredito = movimientos.reduce((acc, item) => acc + item.credito, 0);
+      const saldoFinal = movimientos.length > 0
+        ? movimientos[movimientos.length - 1].saldoAcumulado
+        : cuenta.saldoInicial;
+
+      return {
+        ...cuenta,
+        saldoInicial: saldoInicialFiltrado,
+        totalDebito,
+        totalCredito,
+        saldoFinal,
+        movimientos,
+      };
+    })
+    .filter((cuenta) => cuenta.movimientos.length > 0 || !periodoContable);
+
+  return {
+    cuentas: sortLibroMayorCuentas(cuentas),
+    resumen: buildLibroMayorResumen(cuentas),
+    periodosDisponibles: sortPeriodosContables([
+      ...report.periodosDisponibles,
+      ...deriveLibroMayorPeriodos(cuentas),
+      ...(periodoContable ? [periodoContable] : []),
+    ]),
+  };
+};
+
+const fetchLibroMayorCollection = async (
+  path: string,
+  filters: LibroMayorFilters = {},
+) => {
+  const query = getLibroMayorQuery(filters);
+  const response = await fetch(`${settings.URL}${path}${query ? `?${query}` : ""}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const payload = (await response.json().catch(() => null)) as ApiResponse<unknown> | unknown;
+
+  if (!response.ok) {
+    throw {
+      status: response.status,
+      message: getPayloadMessage(payload) || "No se pudo obtener el libro mayor.",
+    };
+  }
+
+  const mapped = mapLibroMayorResponse(payload);
+
+  if (!mapped) {
+    throw {
+      status: response.status,
+      message: "El formato de respuesta del libro mayor no es valido.",
+    };
+  }
+
+  return applyLibroMayorFilters(mapped, filters);
+};
+
+const buildLibroMayorFallback = async (
+  filters: LibroMayorFilters = {},
+): Promise<LibroMayorResponse> => {
+  const [asientos, cuentaLookup] = await Promise.all([
+    getLibroDiario(),
+    fetchCatalogoContableLookup(),
+  ]);
+  const grouped = new Map<string, LibroMayorCuentaDraft>();
+  const fechaInicio = parseLibroDiarioDate(filters.fechaInicio);
+  const fechaFin = parseLibroDiarioDate(filters.fechaFin, true);
+  const periodoContable = filters.periodoContable ? formatPeriodoContable(filters.periodoContable) : "";
+
+  asientos.forEach((asiento) => {
+    asiento.detalles.forEach((detalle) => {
+      const cuentaId = detalle.subCuentaContableId || "sin-cuenta";
+
+      if (filters.cuentaId && cuentaId !== filters.cuentaId) {
+        return;
+      }
+
+      const fechaAsiento = asiento.fecha ? new Date(asiento.fecha) : null;
+
+      if (fechaInicio && (!fechaAsiento || fechaAsiento < fechaInicio)) {
+        return;
+      }
+
+      if (fechaFin && (!fechaAsiento || fechaAsiento > fechaFin)) {
+        return;
+      }
+
+      if (periodoContable && getPeriodoFromIsoDate(asiento.fecha) !== periodoContable) {
+        return;
+      }
+
+      const lookup = cuentaLookup[cuentaId];
+      const current = grouped.get(cuentaId) ?? {
+        cuentaId,
+        cuentaCodigo: detalle.cuentaContableCodigo || lookup?.codigo || cuentaId,
+        cuentaNombre:
+          detalle.cuentaContableNombre || lookup?.nombre || "Cuenta contable no disponible",
+        naturaleza: null,
+        saldoInicial: 0,
+        totalDebito: 0,
+        totalCredito: 0,
+        movimientos: [],
+      };
+
+      current.movimientos.push({
+        id: detalle.id || `${asiento.id}-${detalle.orden}`,
+        fecha: asiento.fecha,
+        descripcion: detalle.descripcion || asiento.descripcion,
+        debito: detalle.montoDebe,
+        credito: detalle.montoHaber,
+        saldoAcumulado: null,
+        referencia: humanizeLibroMayorFallbackReference(asiento.tipoOperacion),
+        asientoId: asiento.id,
+        numeroAsiento: asiento.numeroAsiento,
+        orden: detalle.orden,
+      });
+      current.totalDebito += detalle.montoDebe;
+      current.totalCredito += detalle.montoHaber;
+      grouped.set(cuentaId, current);
+    });
+  });
+
+  const cuentas = sortLibroMayorCuentas(
+    Array.from(grouped.values()).map((cuenta) => {
+      const movimientos = finalizeLibroMayorMovimientos(cuenta.movimientos, cuenta.saldoInicial);
+      const saldoFinal = movimientos.length > 0
+        ? movimientos[movimientos.length - 1].saldoAcumulado
+        : cuenta.saldoInicial;
+
+      return {
+        ...cuenta,
+        saldoFinal,
+        movimientos,
+      };
+    }),
+  );
+
+  return {
+    cuentas,
+    resumen: buildLibroMayorResumen(cuentas),
+    periodosDisponibles: deriveLibroMayorPeriodos(cuentas),
+  };
+};
+
+const humanizeLibroMayorFallbackReference = (value: string) => {
+  switch (value) {
+    case "VENTA":
+      return "Venta";
+    case "VENTA_COSTO":
+      return "Costo de venta";
+    case "INVENTARIO_ENTRADA":
+      return "Entrada de inventario";
+    case "INVENTARIO_DANIO":
+      return "Salida por danio";
+    case "INVENTARIO_CONSUMO_INTERNO":
+      return "Consumo interno";
+    case "INVENTARIO_AJUSTE":
+      return "Ajuste de inventario";
+    case "INVENTARIO_OTRO":
+      return "Otro movimiento";
+    default:
+      return asString(value) || "Movimiento contable";
+  }
+};
+
+export const getLibroMayorReport = async (
+  filters: LibroMayorFilters = {},
+): Promise<LibroMayorResponse> => {
+  try {
+    return await fetchLibroMayorCollection(getLibroMayorPath(filters), filters);
+  } catch (error) {
+    if (error instanceof TypeError) {
+      return buildLibroMayorFallback(filters);
+    }
+
+    if (
+      isApiRecord(error)
+      && "status" in error
+      && LIBRO_MAYOR_UNAVAILABLE_STATUS.has(asNumber(error.status))
+    ) {
+      return buildLibroMayorFallback(filters);
+    }
+
+    if (isApiRecord(error) && "message" in error) {
+      throw new Error(asString(error.message) || "No se pudo obtener el libro mayor.");
+    }
+
+    throw new Error("No se pudo obtener el libro mayor.");
+  }
+};
+
+const buildLibroMayorPdfLine = (
+  cuenta: LibroMayorCuenta,
+  movimiento: LibroMayorMovimiento,
+) =>
+  [
+    padPdfCell(movimiento.fecha ? formatPdfDate(movimiento.fecha) : "Sin fecha", 12),
+    padPdfCell(movimiento.numeroAsiento || movimiento.referencia || "Referencia", 18),
+    padPdfCell(movimiento.descripcion || cuenta.cuentaNombre, 28),
+    padPdfCell(formatPdfCurrency(movimiento.debito), 14, "right"),
+    padPdfCell(formatPdfCurrency(movimiento.credito), 14, "right"),
+    padPdfCell(formatPdfCurrency(movimiento.saldoAcumulado), 14, "right"),
+  ].join(" ");
+
+const buildLibroMayorPdfFallback = async (filters: LibroMayorFilters = {}) => {
+  const report = await getLibroMayorReport(filters);
+  const generatedAt = new Intl.DateTimeFormat("es-HN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date());
+  const headerLines = [
+    "SIMM - Libro Mayor",
+    `Generado: ${generatedAt}`,
+    `Cuenta: ${filters.cuentaId || "Todas las cuentas"}`,
+    `Periodo contable: ${filters.periodoContable || "Todos"}`,
+    `Rango: ${filters.fechaInicio || "inicio abierto"} a ${filters.fechaFin || "fin abierto"}`,
+    `Cuentas: ${report.resumen.totalCuentas} | Movimientos: ${report.resumen.totalMovimientos}`,
+    `Debito: ${formatPdfCurrency(report.resumen.totalDebito)} | Credito: ${formatPdfCurrency(report.resumen.totalCredito)}`,
+  ];
+  const detailLines = report.cuentas.length > 0
+    ? report.cuentas.flatMap((cuenta) => [
+      "",
+      `Cuenta: ${truncatePdfText(`${cuenta.cuentaCodigo} - ${cuenta.cuentaNombre}`, 96)}`,
+      `Saldo inicial: ${formatPdfCurrency(cuenta.saldoInicial)} | Saldo final: ${formatPdfCurrency(cuenta.saldoFinal)}`,
+      [
+        padPdfCell("Fecha", 12),
+        padPdfCell("Referencia", 18),
+        padPdfCell("Descripcion", 28),
+        padPdfCell("Debito", 14, "right"),
+        padPdfCell("Credito", 14, "right"),
+        padPdfCell("Saldo", 14, "right"),
+      ].join(" "),
+      "------------------------------------------------------------------------------------------------------------------",
+      ...(cuenta.movimientos.length > 0
+        ? cuenta.movimientos.map((movimiento) => buildLibroMayorPdfLine(cuenta, movimiento))
+        : ["Sin movimientos para esta cuenta."]),
+    ])
+    : ["", "No se encontraron movimientos para los filtros seleccionados."];
+  const pages = paginatePdfLines([...headerLines, ...detailLines], 48);
+
+  return {
+    blob: buildPdfBlob(pages),
+    fileName: `libro-mayor-${new Date().toISOString().slice(0, 10)}.pdf`,
+  };
+};
+
+export const exportLibroMayorPdf = async (filters: LibroMayorFilters = {}) => {
+  const query = getLibroMayorQuery(filters);
+  const exportPaths = ["/reportes/libro-mayor/exportar-pdf"];
+
+  for (const path of exportPaths) {
+    try {
+      const response = await fetch(`${settings.URL}${path}${query ? `?${query}` : ""}`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        if (LIBRO_MAYOR_UNAVAILABLE_STATUS.has(response.status)) {
+          continue;
+        }
+
+        const payload = (await response.json().catch(() => null)) as ApiResponse<unknown> | null;
+        throw new Error(
+          getPayloadMessage(payload) || "No se pudo exportar el libro mayor.",
+        );
+      }
+
+      return {
+        blob: await response.blob(),
+        fileName:
+          response.headers.get("Content-Disposition")?.match(/filename="?([^";]+)"?/i)?.[1]
+          ?? "libro-mayor.pdf",
+      };
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        void error;
+      }
+    }
+  }
+
+  return buildLibroMayorPdfFallback(filters);
 };
