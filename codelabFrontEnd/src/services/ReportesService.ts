@@ -348,6 +348,10 @@ const DIARIO_UNAVAILABLE_STATUS = new Set([404, 405, 501]);
 const getLibroDiarioQuery = (filters: LibroDiarioFilters = {}) => {
   const query = new URLSearchParams();
 
+  if (filters.periodoContable) {
+    query.set("periodoContable", filters.periodoContable);
+  }
+
   if (filters.fechaInicio) {
     query.set("fechaInicio", filters.fechaInicio);
   }
@@ -483,6 +487,7 @@ const applyLibroDiarioFilters = (
   asientos: LibroDiarioAsiento[],
   filters: LibroDiarioFilters = {},
 ) => {
+  const periodoContable = filters.periodoContable ? formatPeriodoContable(filters.periodoContable) : "";
   const fechaInicio = parseLibroDiarioDate(filters.fechaInicio);
   const fechaFin = parseLibroDiarioDate(filters.fechaFin, true);
 
@@ -494,6 +499,10 @@ const applyLibroDiarioFilters = (
     }
 
     if (fechaFin && (!fechaAsiento || fechaAsiento > fechaFin)) {
+      return false;
+    }
+
+    if (periodoContable && getPeriodoFromIsoDate(asiento.fecha) !== periodoContable) {
       return false;
     }
 
@@ -760,6 +769,7 @@ const buildLibroDiarioPdfFallback = async (filters: LibroDiarioFilters = {}) => 
   const headerLines = [
     "SIMM - Libro Diario",
     `Generado: ${generatedAt}`,
+    `Periodo contable: ${filters.periodoContable || "Todos"}`,
     `Rango: ${filters.fechaInicio || "inicio abierto"} a ${filters.fechaFin || "fin abierto"}`,
     `Asientos: ${asientos.length}`,
     `Total debe: ${formatPdfCurrency(asientos.reduce((acc, asiento) => acc + asiento.totalDebe, 0))}`,

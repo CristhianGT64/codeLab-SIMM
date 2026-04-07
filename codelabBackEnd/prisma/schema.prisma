@@ -60,6 +60,7 @@ model Sucursal {
   movimientosInventario MovimientoInventario[]
   facturas              Factura[]
   alertasInventario     AlertaInventario[]
+  periodosContables     PeriodoContable[]
 }
 
 model Usuario {
@@ -79,6 +80,7 @@ model Usuario {
   ventas         Venta[]
   facturas       Factura[]
   movimientosInventario MovimientoInventario[]
+  periodosCerrados PeriodoContable[] @relation("PeriodoContableUsuarioCierre")
 }
 
 model Categoria {
@@ -428,11 +430,20 @@ model ConfiguracionSistema {
 
 
 model PeriodoContable {
-  id         BigInt                @id @default(autoincrement())
-  fechaInicio DateTime              @map("fecha_inicio")
-  fechaFin    DateTime              @map("fecha_fin")
-  estado      EstadoPeriodoContable @default(ABIERTO)
-  createdAt   DateTime              @default(now()) @map("created_at")
+  id             BigInt                @id @default(autoincrement())
+  sucursalId     BigInt                @map("sucursal_id")
+  fechaInicio    DateTime              @map("fecha_inicio")
+  fechaFin       DateTime              @map("fecha_fin")
+  estado         EstadoPeriodoContable @default(ABIERTO)
+  fechaCierre    DateTime?             @map("fecha_cierre")
+  usuarioCierreId BigInt?              @map("usuario_cierre")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  sucursal       Sucursal              @relation(fields: [sucursalId], references: [id])
+  usuarioCierre  Usuario?              @relation("PeriodoContableUsuarioCierre", fields: [usuarioCierreId], references: [id])
+
+  @@index([sucursalId])
+  @@index([estado])
+  @@index([sucursalId, fechaInicio, fechaFin])
 
   @@map("periodo_contable")
 }

@@ -2,6 +2,7 @@ import prisma from '../infra/prisma/prismaClient.js';
 import inventarioRepository from '../repositories/inventarioRepository.js';
 import configuracionContableService from './configuracionContableService.js';
 import asientoContableService from "./contabilidad/asiento/asientoContableService.js";
+import periodoContableService from './periodoContableService.js';
 
 
 const SUBTIPOS_ENTRADA = ['REABASTECIMIENTO'];
@@ -184,6 +185,12 @@ const inventarioService = {
       throw err;
     }
 
+    await periodoContableService.assertPeriodoAbierto({
+      sucursalId,
+      fecha,
+      actionLabel: 'registrar entradas de inventario',
+    });
+
     let proveedorIdFinal = null;
 
     if (proveedorId !== undefined && proveedorId !== null && proveedorId !== '') {
@@ -259,6 +266,8 @@ const inventarioService = {
         subtotal: costoTotal,
         impuesto: 0,
         total: costoTotal,
+        sucursalId,
+        fecha,
         tx
       });
 
@@ -340,6 +349,13 @@ const inventarioService = {
       err.status = 400;
       throw err;
     }
+
+    await periodoContableService.assertPeriodoAbierto({
+      sucursalId,
+      fecha,
+      tx,
+      actionLabel: 'registrar salidas de inventario',
+    });
 
     const inventarioActual = await inventarioRepository.findInventario(productoId, sucursalId, tx);
     if (!inventarioActual) {
@@ -474,6 +490,8 @@ const inventarioService = {
         subtotal: valuacionSalida.costoTotal,
         impuesto: 0,
         total: valuacionSalida.costoTotal,
+        sucursalId,
+        fecha,
         tx
       });
 

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Outlet, Route, Routes } from 'react-router';
+import { BrowserRouter as Router, Navigate, Outlet, Route, Routes } from 'react-router';
 import Dashboard from '../pages/Administration/Dashboard';
 import Login from '../pages/Login';
 import NavBar from '../components/NavBar';
@@ -36,6 +36,7 @@ import ReportsManagement from '../pages/Administration/Reportes/ReportsManagemen
 import VentasSucursalReport from '../pages/Administration/Reportes/VentasSucursalReport';
 import LibroDiarioReport from '../pages/Administration/Reportes/LibroDiarioReport';
 import LibroMayorReport from '../pages/Administration/Reportes/LibroMayorReport';
+import PeriodosContablesManagement from '../pages/Administration/Reportes/PeriodosContablesManagement';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -68,6 +69,8 @@ const AppRouter = () => (
             <Route path="/Reportes-Management/Ventas-Sucursales" element={<VentasSucursalReport />} />
             <Route path="/Reportes-Management/Libro-Diario" element={<LibroDiarioReport />} />
             <Route path="/Reportes-Management/Libro-Mayor" element={<LibroMayorReport />} />
+            <Route path="/Reportes-Management/Periodos-Contables" element={<Navigate to="/Periodos-Contables-Management" replace />} />
+            <Route path="/Periodos-Contables-Management" element={<PeriodosContablesManagement />} />
 
             {/* Usuarios */}
             <Route path="/Users-Management" element={<PermissionGate permiso="Ver usuarios"><UserManagement /></PermissionGate>} />

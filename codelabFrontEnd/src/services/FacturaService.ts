@@ -235,13 +235,15 @@ export const createFactura = async (
     body: JSON.stringify(request),
   });
 
-  const payload = (await response.json()) as FacturaResponse;
+  const payload = (await response.json()) as FacturaResponse | ApiResponse<unknown>;
 
   if (!response.ok) {
-    throw new Error("No se pudo generar la factura");
+    throw new Error(
+      getPayloadMessage(payload, "No se pudo generar la factura."),
+    );
   }
 
-  return payload;
+  return payload as FacturaResponse;
 };
 
 export const listFacturas = async (

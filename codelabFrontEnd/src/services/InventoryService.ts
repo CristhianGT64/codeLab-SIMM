@@ -137,10 +137,25 @@ export const registrarEntrada = async (
   });
 
   const payload =
-    (await response.json()) as MovimientoInventarioResponse | { success?: boolean };
+    (await response.json()) as MovimientoInventarioResponse | { success?: boolean; message?: string; error?: { message?: string } };
 
   if (!response.ok) {
-    throw new Error("No se pudo registrar la entrada");
+    throw new Error(
+      typeof payload === "object"
+        && payload !== null
+        && "error" in payload
+        && typeof payload.error === "object"
+        && payload.error !== null
+        && "message" in payload.error
+        && typeof payload.error.message === "string"
+        ? payload.error.message
+        : typeof payload === "object"
+          && payload !== null
+          && "message" in payload
+          && typeof payload.message === "string"
+          ? payload.message
+          : "No se pudo registrar la entrada",
+    );
   }
 
   return Boolean(payload?.success);
@@ -158,10 +173,25 @@ export const registrarSalida = async (
   });
 
   const payload =
-    (await response.json()) as MovimientoInventarioResponse | { success?: boolean };
+    (await response.json()) as MovimientoInventarioResponse | { success?: boolean; message?: string; error?: { message?: string } };
 
   if (!response.ok) {
-    throw new Error("No se pudo registrar la salida");
+    throw new Error(
+      typeof payload === "object"
+        && payload !== null
+        && "error" in payload
+        && typeof payload.error === "object"
+        && payload.error !== null
+        && "message" in payload.error
+        && typeof payload.error.message === "string"
+        ? payload.error.message
+        : typeof payload === "object"
+          && payload !== null
+          && "message" in payload
+          && typeof payload.message === "string"
+          ? payload.message
+          : "No se pudo registrar la salida",
+    );
   }
 
   return Boolean(payload?.success);

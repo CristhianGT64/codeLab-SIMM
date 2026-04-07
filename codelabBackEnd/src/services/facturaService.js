@@ -6,6 +6,7 @@ import inventarioRepository from "../repositories/inventarioRepository.js";
 import clientRepository from "../repositories/Clientes/clientRepository.js";
 import ventaRepository from "../repositories/ventas/ventaRepository.js";
 import buildFacturaHistoryPdf from "./facturaPdfService.js";
+import periodoContableService from "./periodoContableService.js";
 
 const parseId = (value, fieldName) => {
   if (value === undefined || value === null || value === "") {
@@ -64,6 +65,13 @@ const facturaService = {
     return await prisma.$transaction(async (tx) => {
       if (!usuarioId) throw new Error("usuarioId es requerido");
       if (!sucursalId) throw new Error("sucursalId es requerido");
+
+      await periodoContableService.assertPeriodoAbierto({
+        sucursalId,
+        fecha: new Date(),
+        tx,
+        actionLabel: "emitir la factura",
+      });
 
       if ((!items || items.length === 0) && !ventaId) {
         throw new Error("Debe enviar items o ventaId");

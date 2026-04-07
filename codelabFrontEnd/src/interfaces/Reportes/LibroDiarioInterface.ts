@@ -1,4 +1,5 @@
 export interface LibroDiarioFilters {
+  periodoContable?: string;
   fechaInicio?: string;
   fechaFin?: string;
 }
