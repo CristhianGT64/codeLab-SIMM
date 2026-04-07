@@ -15,6 +15,10 @@ type ApiRecord = Record<string, unknown>;
 type ApiResponse<T> = {
   success: boolean;
   data: T;
+  message?: string;
+  error?: {
+    message?: string;
+  };
 };
 
 const isApiRecord = (value: unknown): value is ApiRecord =>
@@ -26,12 +30,12 @@ const asApiRecord = (value: unknown): ApiRecord =>
 const asApiRecordArray = (value: unknown): ApiRecord[] =>
   Array.isArray(value) ? value.map(asApiRecord) : [];
 
-const asString = (value: unknown): string =>
+const asString = (value: unknown, fallback = ""): string =>
   typeof value === "string"
     ? value
     : typeof value === "number" || typeof value === "bigint"
       ? String(value)
-      : "";
+      : fallback;
 
 const asNullableString = (value: unknown): string | null => {
   const normalized = asString(value);
@@ -49,6 +53,18 @@ const asNumber = (value: unknown): number => {
   }
 
   return 0;
+};
+
+const getPayloadMessage = (payload: unknown, fallback: string) => {
+  if (!isApiRecord(payload)) {
+    return fallback;
+  }
+
+  if (isApiRecord(payload.error) && payload.error.message) {
+    return asString(payload.error.message, fallback);
+  }
+
+  return asString(payload.message, fallback);
 };
 
 const mapVentaCliente = (value: unknown): VentaClienteResumen | null => {
@@ -164,13 +180,13 @@ export const createVenta = async (
     body: JSON.stringify(request),
   });
 
-  const payload = (await response.json()) as SaleResponse;
+  const payload = (await response.json()) as SaleResponse | ApiResponse<unknown>;
 
   if (!response.ok) {
-    throw new Error("No se pudo registrar la venta");
+    throw new Error(getPayloadMessage(payload, "No se pudo registrar la venta"));
   }
 
-  return payload;
+  return payload as SaleResponse;
 };
 
 export const listVentas = async (usuarioId?: string): Promise<VentaHistorialItem[]> => {

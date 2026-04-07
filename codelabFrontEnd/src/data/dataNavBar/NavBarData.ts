@@ -93,6 +93,12 @@ const navBarData: NavBarInterface = {
       disable: false,
       permiso: "Ver cuentas contables",
     },
+    {
+      text: "Per. Contables",
+      icon: "fa-solid fa-calendar-days",
+      url: "/Periodos-Contables-Management",
+      disable: false,
+    },
   ],
   nameUser: "Administrador",
 };

@@ -1,6 +1,7 @@
 import prisma from '../../../infra/prisma/prismaClient.js';
 import asientoContableRepository from '../../../repositories/contabilidad/asiento/asientoContableRepository.js';
 import reglaContableRepository from '../../../repositories/contabilidad/asiento/reglaContableRepository.js';
+import periodoContableService from '../../periodoContableService.js';
 
 const PAGE_WIDTH = 612;
 const PAGE_HEIGHT = 792;
@@ -257,8 +258,18 @@ const asientoContableService = {
     subtotal,
     impuesto,
     total,
+    sucursalId,
+    fecha = new Date(),
     tx
   }) {
+
+    if (sucursalId) {
+      await periodoContableService.assertPeriodoAbierto({
+        sucursalId,
+        fecha,
+        tx: tx || prisma,
+      });
+    }
 
     const reglas = await reglaContableRepository.findByOperacion(tipoOperacion);
 

@@ -6,6 +6,7 @@ import inventarioRepository from "../../repositories/inventarioRepository.js";
 import clienteRepository from "../../repositories/Clientes/clientRepository.js";
 import asientoContableService from "../contabilidad/asiento/asientoContableService.js";
 import inventarioService from "../inventarioService.js";
+import periodoContableService from "../periodoContableService.js";
 
 const parseId = (value, fieldName, { required = false } = {}) => {
   if (value === undefined || value === null || value === "") {
@@ -65,6 +66,12 @@ const ventaService = {
     const normalizedUsuarioId = parseId(usuarioId, "usuarioId", { required: true });
     const normalizedSucursalId = parseId(sucursalId, "sucursalId", { required: true });
     const normalizedClienteId = parseId(clienteId, "clienteId");
+
+    await periodoContableService.assertPeriodoAbierto({
+      sucursalId: normalizedSucursalId,
+      fecha: new Date(),
+      actionLabel: "registrar la venta",
+    });
 
     if (!Array.isArray(productos) || productos.length === 0) {
       const error = new Error("La venta debe contener productos");
@@ -160,6 +167,8 @@ const ventaService = {
         subtotal: subtotalTotal,
         impuesto: impuestoTotal,
         total,
+        sucursalId: normalizedSucursalId,
+        fecha: venta.createdAt || new Date(),
         tx
       });
 

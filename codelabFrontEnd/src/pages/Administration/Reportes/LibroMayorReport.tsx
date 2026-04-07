@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
 import useCatalogoContableArbol from "../../../hooks/CatalogoCuentasContablesHooks/useCatalogoContableArbol";
+import useListPeriodosContables from "../../../hooks/PeriodosContablesHooks/useListPeriodosContables";
 import useLibroMayor from "../../../hooks/ReportesHooks/useLibroMayor";
 import type {
   ClasificacionContable,
@@ -30,6 +31,10 @@ import type {
   LibroMayorResponse,
 } from "../../../interfaces/Reportes/LibroMayorInterface";
 import { exportLibroMayorPdf } from "../../../services/ReportesService";
+import {
+  formatPeriodoContableLabel,
+  getRangeFromPeriodoClave,
+} from "../../../utils/periodosContables";
 
 const ITEMS_POR_PAGINA = 3;
 
@@ -57,6 +62,14 @@ type CuentaOption = {
   label: string;
 };
 
+type PeriodoFilterOption = {
+  id: string;
+  label: string;
+  fechaInicio: string;
+  fechaFin: string;
+  periodoClave: string;
+};
+
 const formatCurrency = (value: number) =>
   `L ${Number(value || 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -81,23 +94,6 @@ const formatDate = (value: string | null) => {
   }).format(parsed);
 };
 
-const formatPeriodoLabel = (periodo: string) => {
-  if (!/^\d{4}-\d{2}$/.test(periodo)) {
-    return periodo;
-  }
-
-  const parsed = new Date(`${periodo}-01T00:00:00`);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return periodo;
-  }
-
-  return new Intl.DateTimeFormat("es-HN", {
-    month: "long",
-    year: "numeric",
-  }).format(parsed);
-};
-
 const getTodayInputValue = () => {
   const today = new Date();
   const year = today.getFullYear();
@@ -107,6 +103,23 @@ const getTodayInputValue = () => {
 };
 
 const getMonthStart = (value: string) => `${value.slice(0, 8)}01`;
+const formatInputDate = (value: string) => value.slice(0, 10);
+
+const buildFallbackPeriodOption = (periodoClave: string): PeriodoFilterOption | null => {
+  const range = getRangeFromPeriodoClave(periodoClave);
+
+  if (!range) {
+    return null;
+  }
+
+  return {
+    id: `fallback:${periodoClave}`,
+    label: formatPeriodoContableLabel(periodoClave),
+    fechaInicio: range.fechaInicio,
+    fechaFin: range.fechaFin,
+    periodoClave,
+  };
+};
 
 const flattenCuentaOptions = (catalogo: ElementoContable[] = []) =>
   catalogo.reduce<CuentaOption[]>((acc, elemento) => {
@@ -280,19 +293,32 @@ const AccountGroupCard = ({ cuenta }: { cuenta: LibroMayorCuenta }) => (
 export default function LibroMayorReport() {
   const today = useMemo(() => getTodayInputValue(), []);
   const [cuentaId, setCuentaId] = useState("");
-  const [periodoContable, setPeriodoContable] = useState("");
+  const [selectedPeriodoId, setSelectedPeriodoId] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
 
-  const invalidDateRange = Boolean(fechaInicio && fechaFin && fechaInicio > fechaFin);
+  const periodosQuery = useListPeriodosContables();
+  const selectedPeriodo = useMemo(
+    () =>
+      (periodosQuery.data?.data ?? []).find((periodo) => periodo.id === selectedPeriodoId)
+      ?? null,
+    [periodosQuery.data?.data, selectedPeriodoId],
+  );
+  const effectiveFechaInicio = selectedPeriodo ? formatInputDate(selectedPeriodo.fechaInicio) : fechaInicio;
+  const effectiveFechaFin = selectedPeriodo ? formatInputDate(selectedPeriodo.fechaFin) : fechaFin;
+  const invalidDateRange = Boolean(
+    effectiveFechaInicio
+    && effectiveFechaFin
+    && effectiveFechaInicio > effectiveFechaFin,
+  );
   const filters = useMemo<LibroMayorFilters>(() => ({
     ...(cuentaId ? { cuentaId } : {}),
-    ...(periodoContable ? { periodoContable } : {}),
-    ...(fechaInicio ? { fechaInicio } : {}),
-    ...(fechaFin ? { fechaFin } : {}),
-  }), [cuentaId, periodoContable, fechaInicio, fechaFin]);
+    ...(selectedPeriodo?.periodoClave ? { periodoContable: selectedPeriodo.periodoClave } : {}),
+    ...(effectiveFechaInicio ? { fechaInicio: effectiveFechaInicio } : {}),
+    ...(effectiveFechaFin ? { fechaFin: effectiveFechaFin } : {}),
+  }), [cuentaId, effectiveFechaFin, effectiveFechaInicio, selectedPeriodo?.periodoClave]);
 
   const reportQuery = useLibroMayor(filters, !invalidDateRange);
   const catalogoQuery = useCatalogoContableArbol();
@@ -306,13 +332,27 @@ export default function LibroMayorReport() {
     [cuentaId, cuentaOptions],
   );
   const report = reportQuery.data ?? emptyReport;
-  const periodOptions = useMemo(
-    () =>
-      [...new Set([
-        ...(periodoContable ? [periodoContable] : []),
-        ...report.periodosDisponibles,
-      ])].sort((a, b) => b.localeCompare(a)),
-    [periodoContable, report.periodosDisponibles],
+  const periodOptions = useMemo<PeriodoFilterOption[]>(() => {
+    const catalogOptions = (periodosQuery.data?.data ?? []).map((periodo) => ({
+      id: periodo.id,
+      label: periodo.periodoClave
+        ? `${periodo.sucursalNombre} - ${formatPeriodoContableLabel(periodo.periodoClave)}`
+        : `${periodo.sucursalNombre} - ${formatInputDate(periodo.fechaInicio)} a ${formatInputDate(periodo.fechaFin)}`,
+      fechaInicio: formatInputDate(periodo.fechaInicio),
+      fechaFin: formatInputDate(periodo.fechaFin),
+      periodoClave: periodo.periodoClave,
+    }));
+    const fallbackOptions = report.periodosDisponibles
+      .map(buildFallbackPeriodOption)
+      .filter((value): value is PeriodoFilterOption => Boolean(value))
+      .filter((option) =>
+        !catalogOptions.some((catalogOption) => catalogOption.periodoClave === option.periodoClave));
+
+    return [...catalogOptions, ...fallbackOptions].sort((a, b) => b.fechaInicio.localeCompare(a.fechaInicio));
+  }, [periodosQuery.data?.data, report.periodosDisponibles]);
+  const selectedPeriodoOption = useMemo(
+    () => periodOptions.find((option) => option.id === selectedPeriodoId) ?? null,
+    [periodOptions, selectedPeriodoId],
   );
 
   const totalPaginas = Math.ceil(report.cuentas.length / ITEMS_POR_PAGINA);
@@ -329,6 +369,7 @@ export default function LibroMayorReport() {
 
   const applyDateRange = (start: string, end: string) => {
     setPaginaActual(1);
+    setSelectedPeriodoId("");
     setFechaInicio(start);
     setFechaFin(end);
   };
@@ -336,7 +377,7 @@ export default function LibroMayorReport() {
   const resetFilters = () => {
     setPaginaActual(1);
     setCuentaId("");
-    setPeriodoContable("");
+    setSelectedPeriodoId("");
     setFechaInicio("");
     setFechaFin("");
   };
@@ -446,17 +487,17 @@ export default function LibroMayorReport() {
               <label className="flex flex-col gap-3 xl:col-span-2">
                 <span className="text-base font-semibold text-[#0b4d77]">Periodo contable</span>
                 <select
-                  value={periodoContable}
+                  value={selectedPeriodoId}
                   onChange={(event) => {
                     setPaginaActual(1);
-                    setPeriodoContable(event.target.value);
+                    setSelectedPeriodoId(event.target.value);
                   }}
                   className="rounded-2xl border border-[#cddaea] bg-white px-4 py-4 text-lg text-[#1f3f70] outline-none"
                 >
                   <option value="">Todos los periodos</option>
                   {periodOptions.map((periodo) => (
-                    <option key={periodo} value={periodo}>
-                      {formatPeriodoLabel(periodo)}
+                    <option key={periodo.id} value={periodo.id}>
+                      {periodo.label}
                     </option>
                   ))}
                 </select>
@@ -470,9 +511,10 @@ export default function LibroMayorReport() {
                   <FontAwesomeIcon icon={faCalendarDays} className="text-xl" />
                   <input
                     type="date"
-                    value={fechaInicio}
+                    value={effectiveFechaInicio}
                     onChange={(event) => {
                       setPaginaActual(1);
+                      setSelectedPeriodoId("");
                       setFechaInicio(event.target.value);
                     }}
                     className="w-full bg-transparent text-lg outline-none"
@@ -486,9 +528,10 @@ export default function LibroMayorReport() {
                   <FontAwesomeIcon icon={faCalendarDays} className="text-xl" />
                   <input
                     type="date"
-                    value={fechaFin}
+                    value={effectiveFechaFin}
                     onChange={(event) => {
                       setPaginaActual(1);
+                      setSelectedPeriodoId("");
                       setFechaFin(event.target.value);
                     }}
                     className="w-full bg-transparent text-lg outline-none"
@@ -500,12 +543,12 @@ export default function LibroMayorReport() {
             <div className="mt-6 flex flex-wrap gap-3">
               <FilterTag
                 label="Hoy"
-                isActive={fechaInicio === today && fechaFin === today}
+                isActive={!selectedPeriodoId && fechaInicio === today && fechaFin === today}
                 onClick={() => applyDateRange(today, today)}
               />
               <FilterTag
                 label="Este mes"
-                isActive={fechaInicio === getMonthStart(today) && fechaFin === today}
+                isActive={!selectedPeriodoId && fechaInicio === getMonthStart(today) && fechaFin === today}
                 onClick={() => applyDateRange(getMonthStart(today), today)}
               />
               <FilterTag
@@ -515,7 +558,7 @@ export default function LibroMayorReport() {
               />
               <FilterTag
                 label="Sin rango"
-                isActive={!fechaInicio && !fechaFin}
+                isActive={!selectedPeriodoId && !fechaInicio && !fechaFin}
                 onClick={() => applyDateRange("", "")}
               />
             </div>
@@ -528,6 +571,14 @@ export default function LibroMayorReport() {
 
             {catalogoQuery.isLoading && (
               <p className="mt-5 text-base text-[#4661b0]">Cargando catalogo de cuentas contables...</p>
+            )}
+            {periodosQuery.isLoading && (
+              <p className="mt-3 text-base text-[#4661b0]">Cargando catalogo de periodos contables...</p>
+            )}
+            {periodosQuery.isError && (
+              <p className="mt-3 text-base text-[#b54747]">
+                {periodosQuery.error?.message || "No se pudieron cargar los periodos contables."}
+              </p>
             )}
           </div>
 
@@ -552,13 +603,13 @@ export default function LibroMayorReport() {
               <div className="rounded-2xl bg-white/10 p-4">
                 <p className="text-sm text-white/75">Periodo contable</p>
                 <p className="mt-2 text-xl font-semibold">
-                  {periodoContable ? formatPeriodoLabel(periodoContable) : "Todos"}
+                  {selectedPeriodoOption?.label || "Todos"}
                 </p>
               </div>
               <div className="rounded-2xl bg-white/10 p-4">
                 <p className="text-sm text-white/75">Rango consultado</p>
                 <p className="mt-2 text-xl font-semibold">
-                  {fechaInicio || "Inicio abierto"} a {fechaFin || "Fin abierto"}
+                  {effectiveFechaInicio || "Inicio abierto"} a {effectiveFechaFin || "Fin abierto"}
                 </p>
               </div>
               <div className="rounded-2xl bg-white/10 p-4">

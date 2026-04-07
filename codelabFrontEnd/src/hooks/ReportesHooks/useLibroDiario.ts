@@ -13,6 +13,7 @@ const useLibroDiario = (
     queryKey: [
       "reportes",
       "libro-diario",
+      filters.periodoContable ?? "",
       filters.fechaInicio ?? "",
       filters.fechaFin ?? "",
     ],
