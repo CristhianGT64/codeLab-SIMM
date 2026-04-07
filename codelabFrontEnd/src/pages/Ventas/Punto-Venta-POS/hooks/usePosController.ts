@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import useReadCaiVigente from "../../../../hooks/CaiHooks/useReadCaiVigente";
 import useListProduct from "../../../../hooks/ProductosHooks/useListProduct";
 import { useCreateVenta } from "../../../../hooks/POSHooks/useCreateVenta";
 import { useCreateFactura } from "../../../../hooks/POSHooks/useCreateFactura";
@@ -17,17 +18,44 @@ import {
   hasCartStockIssues,
   mapApiProductToPosProduct,
 } from "../utils/posUtils";
+import { getCaiPosBlockInfo } from "../../../../utils/caiUtils";
 
 export const usePosController = () => {
   const listProducts = useListProduct();
   const createVentaMutation = useCreateVenta();
   const createFacturaMutation = useCreateFactura();
   const { user, permisos } = useAuth();
+  const { data: caiVigenteData, isLoading: isLoadingCaiVigente } =
+    useReadCaiVigente();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [completedSale, setCompletedSale] = useState<Sale | null>(null);
+  const caiVigente = caiVigenteData?.data;
+  const caiBlockInfo = useMemo(
+    () =>
+      isLoadingCaiVigente
+        ? {
+            title: "POS bloqueado temporalmente",
+            message:
+              "Se está validando el CAI vigente. Espera un momento e inténtalo nuevamente.",
+          }
+        : getCaiPosBlockInfo(caiVigente),
+    [caiVigente, isLoadingCaiVigente],
+  );
+
+  const notifyCaiBlocked = () => {
+    if (!caiBlockInfo) {
+      return false;
+    }
+
+    toast.error(caiBlockInfo.title, {
+      description: caiBlockInfo.message,
+    });
+
+    return true;
+  };
 
   const products = useMemo<Product[]>(
     () =>
@@ -117,6 +145,10 @@ export const usePosController = () => {
   };
 
   const completeSale = () => {
+    if (notifyCaiBlocked()) {
+      return;
+    }
+
     if (cart.length === 0) {
       toast.error("Venta vacia", {
         description: "Debe agregar al menos un producto a la venta",
@@ -137,6 +169,7 @@ export const usePosController = () => {
 
   const confirmSale = async () => {
     if (!user) return;
+    if (notifyCaiBlocked()) return;
 
     const saleRequest = {
       usuarioId: user.id,

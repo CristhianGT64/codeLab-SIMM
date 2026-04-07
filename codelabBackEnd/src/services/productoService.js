@@ -1,6 +1,7 @@
 import prisma from '../infra/prisma/prismaClient.js';
 import productoRepository from '../repositories/productoRepository.js';
 import inventarioRepository from '../repositories/inventarioRepository.js';
+import inventarioService from './inventarioService.js';
 
 const UNIDADES_VALIDAS = [
   'Unidad',
@@ -42,7 +43,7 @@ const productoService = {
       stockMinimo,
       imagenPath,
       sucursalId,
-      impuestoId, 
+      impuestoId,
     } = body;
 
     if (
@@ -53,7 +54,7 @@ const productoService = {
       precioVenta === undefined ||
       !unidadMedida ||
       stockInicial === undefined ||
-      !impuestoId 
+      !impuestoId
     ) {
       const err = new Error(
         'Faltan campos obligatorios: nombre, sku, categoriaId, costo, precioVenta, unidadMedida, stockInicial, impuestoId'
@@ -174,7 +175,7 @@ const productoService = {
           imagenPath: imagenPath || null,
           estado: 'activo',
           categoriaId: BigInt(categoriaId),
-          impuestoId: BigInt(impuestoId), 
+          impuestoId: BigInt(impuestoId),
         },
         select: {
           id: true,
@@ -208,27 +209,26 @@ const productoService = {
         },
       });
 
-      if (Number(stockInicial) > 0) {
-        await tx.movimientoInventario.create({
-          data: {
-            tipo: 'entrada',
-            subtipoEntrada: 'PRODUCTO_NUEVO',
-            cantidad: Number(stockInicial),
-            stockResultante: Number(stockInicial),
-            fechaMovimiento: new Date(),
-            estado: 'completado',
-            referenciaTipo: 'creacion_producto',
-            productoId: producto.id,
-            sucursalId: sucursalFinalId,
-          },
-        });
-      }
-
       await inventarioRepository.syncAlertaInventarioById(inventario.id, tx);
 
       return { producto, inventario };
     });
 
+    if (Number(stockInicial) > 0) {
+
+      await inventarioService.registrarEntrada({
+        productoId: result.producto.id,
+        sucursalId: sucursalFinalId,
+        cantidad: Number(stockInicial),
+        fechaHora: new Date(),
+        proveedorId: 1,
+        tipoEntrada: "PRODUCTO_NUEVO",
+        observaciones: "Inventario inicial al crear producto",
+        usuarioId: null
+      });
+
+    }
+    
     return result;
   },
 
@@ -272,7 +272,7 @@ const productoService = {
     if (body.unidadMedida !== undefined) data.unidadMedida = body.unidadMedida;
     if (body.categoriaId !== undefined) data.categoriaId = BigInt(body.categoriaId);
     if (body.imagenPath !== undefined) data.imagenPath = body.imagenPath;
-    if (body.impuestoId !== undefined) data.impuestoId = BigInt(body.impuestoId); 
+    if (body.impuestoId !== undefined) data.impuestoId = BigInt(body.impuestoId);
     if (body.stockMinimo !== undefined) data.stockMinimo = parseStockMinimo(body.stockMinimo);
 
     const updated = await productoRepository.update(id, data);

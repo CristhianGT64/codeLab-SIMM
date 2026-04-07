@@ -244,37 +244,43 @@ const facturaService = {
         tx,
       );
 
-      for (const detalle of detalles) {
-        const inventario = await inventarioRepository.findStock(
-          detalle.productoId,
-          sucursalId,
-          tx,
-        );
+      if (!ventaId) {
 
-        const stockResultante = inventario.stockActual - detalle.cantidad;
+        for (const detalle of detalles) {
 
-        await tx.movimientoInventario.create({
-          data: {
-            productoId: BigInt(detalle.productoId),
-            sucursalId: BigInt(sucursalId),
-            cantidad: detalle.cantidad,
-            tipo: "salida",
-            motivoSalida: "VENTA",
-            referenciaTipo: "FACTURA",
-            referenciaId: factura.id,
-            fechaMovimiento: new Date(),
-            stockResultante,
-          },
-        });
+          const inventario = await inventarioRepository.findStock(
+            detalle.productoId,
+            sucursalId,
+            tx,
+          );
 
-        const inventarioActualizado = await inventarioRepository.decreaseStock(
-          detalle.productoId,
-          sucursalId,
-          detalle.cantidad,
-          tx,
-        );
+          const stockResultante = inventario.stockActual - detalle.cantidad;
 
-        await inventarioRepository.syncAlertaInventarioById(inventarioActualizado.id, tx);
+          await tx.movimientoInventario.create({
+            data: {
+              productoId: BigInt(detalle.productoId),
+              sucursalId: BigInt(sucursalId),
+              cantidad: detalle.cantidad,
+              tipo: "salida",
+              motivoSalida: "VENTA",
+              referenciaTipo: "FACTURA",
+              referenciaId: factura.id,
+              fechaMovimiento: new Date(),
+              stockResultante,
+            },
+          });
+
+          const inventarioActualizado = await inventarioRepository.decreaseStock(
+            detalle.productoId,
+            sucursalId,
+            detalle.cantidad,
+            tx,
+          );
+
+          await inventarioRepository.syncAlertaInventarioById(inventarioActualizado.id, tx);
+
+        }
+
       }
 
       if (ventaId) {

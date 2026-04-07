@@ -34,6 +34,7 @@ import FormTipoDocumento from '../pages/Administration/Tiposdedocumento/FormTipo
 import CatalogoCuentasContablesManagement from '../pages/Administration/CatalogoCuentasContables/CatalogoCuentasContablesManagement';
 import ReportsManagement from '../pages/Administration/Reportes/ReportsManagement';
 import VentasSucursalReport from '../pages/Administration/Reportes/VentasSucursalReport';
+import LibroDiarioReport from '../pages/Administration/Reportes/LibroDiarioReport';
 
 /**
  * AppLayout: Define la estructura común para las páginas internas.
@@ -64,6 +65,7 @@ const AppRouter = () => (
             {/* Reportes */}
             <Route path="/Reportes-Management" element={<ReportsManagement />} />
             <Route path="/Reportes-Management/Ventas-Sucursales" element={<VentasSucursalReport />} />
+            <Route path="/Reportes-Management/Libro-Diario" element={<LibroDiarioReport />} />
 
             {/* Usuarios */}
             <Route path="/Users-Management" element={<PermissionGate permiso="Ver usuarios"><UserManagement /></PermissionGate>} />

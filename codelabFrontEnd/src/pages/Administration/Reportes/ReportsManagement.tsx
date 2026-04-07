@@ -21,6 +21,16 @@ const reportsCards: DashboardInterface[] = [
     colorSvg: "from-[#109c9a] to-[#4a6eb0]",
     url: "/Reportes-Management/Ventas-Sucursales",
   },
+  {
+    svg: "M4.5 19.5h15m-15-10.5h15m-15-6h15M6.75 3.75h10.5A2.25 2.25 0 0 1 19.5 6v12a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 18V6A2.25 2.25 0 0 1 6.75 3.75Z",
+    title: "Libro Diario",
+    description:
+      "Revisa cronologicamente los asientos contables, consulta su detalle y exporta el reporte en PDF.",
+    buttonDescription: "Abrir reporte ->",
+    colorBorder: "border-[#109c9a]",
+    colorSvg: "from-[#0b4d77] to-[#109c9a]",
+    url: "/Reportes-Management/Libro-Diario",
+  },
 ];
 
 export default function ReportsManagement() {
@@ -36,9 +46,9 @@ export default function ReportsManagement() {
 
         <div className="mb-8 rounded-[30px] bg-white p-6 shadow-[0_12px_34px_rgba(10,64,89,0.10)]">
           <p className="text-lg leading-8 text-[#4661b0]">
-            Este modulo concentra reportes operativos y comerciales. Por ahora ya
-            queda disponible el reporte de ventas por sucursal para comparar el
-            comportamiento de cada punto de venta dentro del periodo seleccionado.
+            Este modulo concentra reportes operativos, comerciales y contables.
+            Ahora incluye el reporte de ventas por sucursal y la consulta del libro
+            diario para revisar asientos contables dentro del periodo seleccionado.
           </p>
         </div>
 
