@@ -16,7 +16,7 @@ const reportsCards: DashboardInterface[] = [
     title: "Ventas por Sucursal",
     description:
       "Consulta ventas, transacciones e ingreso generado por cada sucursal en un periodo.",
-    buttonDescription: "Abrir reporte →",
+    buttonDescription: "Abrir reporte ->",
     colorBorder: "border-[#4a6eb0]",
     colorSvg: "from-[#109c9a] to-[#4a6eb0]",
     url: "/Reportes-Management/Ventas-Sucursales",
@@ -41,6 +41,16 @@ const reportsCards: DashboardInterface[] = [
     colorSvg: "from-[#4a6eb0] to-[#0b4d77]",
     url: "/Reportes-Management/Libro-Mayor",
   },
+  {
+    svg: "M6 4.5h12A1.5 1.5 0 0 1 19.5 6v12A1.5 1.5 0 0 1 18 19.5H6A1.5 1.5 0 0 1 4.5 18V6A1.5 1.5 0 0 1 6 4.5Zm2.25 4.5h7.5m-7.5 3h7.5m-7.5 3h4.5",
+    title: "Ajustes de Inventario",
+    description:
+      "Revisa perdidas, deterioros y sobrantes por producto, calcula su impacto y exporta el reporte en PDF.",
+    buttonDescription: "Abrir reporte ->",
+    colorBorder: "border-[#109c9a]",
+    colorSvg: "from-[#0b4d77] to-[#109c9a]",
+    url: "/Reportes-Management/Ajustes-Inventario",
+  },
 ];
 
 export default function ReportsManagement() {
@@ -57,14 +67,13 @@ export default function ReportsManagement() {
         <div className="mb-8 rounded-[30px] bg-white p-6 shadow-[0_12px_34px_rgba(10,64,89,0.10)]">
           <p className="text-lg leading-8 text-[#4661b0]">
             Este modulo concentra reportes operativos, comerciales y contables.
-            Ahora incluye el reporte de ventas por sucursal y la consulta del libro
-            diario para revisar asientos contables dentro del periodo seleccionado.
-            Tambien incorpora el libro mayor para analizar movimientos y saldos
-            acumulados por cuenta contable.
+            Ahora incluye el reporte de ventas por sucursal, el reporte de ajustes
+            de inventario, la consulta del libro diario y el libro mayor para
+            revisar saldos acumulados por cuenta contable.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           {reportsCards.map((reportCard) => (
             <LinkCard key={reportCard.url} {...reportCard} />
           ))}

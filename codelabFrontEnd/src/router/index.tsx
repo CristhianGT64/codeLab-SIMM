@@ -34,6 +34,7 @@ import FormTipoDocumento from '../pages/Administration/Tiposdedocumento/FormTipo
 import CatalogoCuentasContablesManagement from '../pages/Administration/CatalogoCuentasContables/CatalogoCuentasContablesManagement';
 import ReportsManagement from '../pages/Administration/Reportes/ReportsManagement';
 import VentasSucursalReport from '../pages/Administration/Reportes/VentasSucursalReport';
+import AjustesInventarioReport from '../pages/Administration/Reportes/AjustesInventarioReport';
 import LibroDiarioReport from '../pages/Administration/Reportes/LibroDiarioReport';
 import LibroMayorReport from '../pages/Administration/Reportes/LibroMayorReport';
 import PeriodosContablesManagement from '../pages/Administration/Reportes/PeriodosContablesManagement';
@@ -67,6 +68,7 @@ const AppRouter = () => (
             {/* Reportes */}
             <Route path="/Reportes-Management" element={<ReportsManagement />} />
             <Route path="/Reportes-Management/Ventas-Sucursales" element={<VentasSucursalReport />} />
+            <Route path="/Reportes-Management/Ajustes-Inventario" element={<AjustesInventarioReport />} />
             <Route path="/Reportes-Management/Libro-Diario" element={<LibroDiarioReport />} />
             <Route path="/Reportes-Management/Libro-Mayor" element={<LibroMayorReport />} />
             <Route path="/Reportes-Management/Periodos-Contables" element={<Navigate to="/Periodos-Contables-Management" replace />} />
@@ -138,6 +140,9 @@ const AppRouter = () => (
 );
 
 export default AppRouter;
+
+
+
 
 
 

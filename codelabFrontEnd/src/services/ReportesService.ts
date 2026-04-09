@@ -1520,3 +1520,200 @@ export const exportLibroMayorPdf = async (filters: LibroMayorFilters = {}) => {
 
   return buildLibroMayorPdfFallback(filters);
 };
+
+type AjusteInventarioReportFilters = import("../interfaces/Reportes/AjustesInventarioReportInterface").AjusteInventarioReportFilters;
+type AjusteInventarioReportItem = import("../interfaces/Reportes/AjustesInventarioReportInterface").AjusteInventarioReportItem;
+type AjusteInventarioReportResponse = import("../interfaces/Reportes/AjustesInventarioReportInterface").AjusteInventarioReportResponse;
+type AjusteInventarioReportResumen = import("../interfaces/Reportes/AjustesInventarioReportInterface").AjusteInventarioReportResumen;
+type TipoAjusteInventario = import("../interfaces/Reportes/AjustesInventarioReportInterface").TipoAjusteInventario;
+
+const AJUSTE_TIPOS = new Set<TipoAjusteInventario>(["PERDIDA", "DETERIORO", "SOBRANTE"]);
+
+const buildAjustesInventarioQuery = (filters: AjusteInventarioReportFilters = {}) => {
+  const query = new URLSearchParams();
+
+  if (filters.productoId) query.set("productoId", filters.productoId);
+  if (filters.fechaInicio) query.set("fechaInicio", filters.fechaInicio);
+  if (filters.fechaFin) query.set("fechaFin", filters.fechaFin);
+  if (filters.tipoAjuste) query.set("tipoAjuste", filters.tipoAjuste);
+
+  return query.toString();
+};
+
+const toTipoAjusteInventario = (value: unknown): TipoAjusteInventario => {
+  const normalized = asString(value).toUpperCase();
+  return AJUSTE_TIPOS.has(normalized as TipoAjusteInventario)
+    ? (normalized as TipoAjusteInventario)
+    : "PERDIDA";
+};
+
+const getTipoAjusteLabel = (tipoAjuste: TipoAjusteInventario) => {
+  switch (tipoAjuste) {
+    case "DETERIORO":
+      return "Deterioro";
+    case "SOBRANTE":
+      return "Sobrante";
+    case "PERDIDA":
+    default:
+      return "Perdida";
+  }
+};
+
+const buildAjusteResumen = (
+  source: ApiRecord,
+  items: AjusteInventarioReportItem[],
+): AjusteInventarioReportResumen => {
+  const resumenBase: AjusteInventarioReportResumen = {
+    totalRegistros: asNumber(source.totalRegistros) || items.length,
+    totalCantidadAjustada:
+      asNumber(source.totalCantidadAjustada)
+      || items.reduce((acc, item) => acc + item.cantidadAjustada, 0),
+    impactoTotal:
+      asNumber(source.impactoTotal)
+      || items.reduce((acc, item) => acc + item.impactoEconomico, 0),
+    impactoNegativoTotal:
+      asNumber(source.impactoNegativoTotal)
+      || items.filter((item) => item.impactoEconomico < 0).reduce((acc, item) => acc + item.impactoEconomico, 0),
+    impactoPositivoTotal:
+      asNumber(source.impactoPositivoTotal)
+      || items.filter((item) => item.impactoEconomico > 0).reduce((acc, item) => acc + item.impactoEconomico, 0),
+    porTipo: {
+      PERDIDA: { cantidadAjustes: 0, impactoEconomico: 0 },
+      DETERIORO: { cantidadAjustes: 0, impactoEconomico: 0 },
+      SOBRANTE: { cantidadAjustes: 0, impactoEconomico: 0 },
+    },
+  };
+
+  const sourcePorTipo = asApiRecord(source.porTipo);
+
+  (["PERDIDA", "DETERIORO", "SOBRANTE"] as TipoAjusteInventario[]).forEach((tipoAjuste) => {
+    const bucketSource = asApiRecord(sourcePorTipo[tipoAjuste]);
+    const filteredItems = items.filter((item) => item.tipoAjuste === tipoAjuste);
+
+    resumenBase.porTipo[tipoAjuste] = {
+      cantidadAjustes: asNumber(bucketSource.cantidadAjustes) || filteredItems.length,
+      impactoEconomico:
+        asNumber(bucketSource.impactoEconomico)
+        || filteredItems.reduce((acc, item) => acc + item.impactoEconomico, 0),
+    };
+  });
+
+  return resumenBase;
+};
+
+const mapAjusteInventarioItem = (value: ApiRecord): AjusteInventarioReportItem => {
+  const tipoAjuste = toTipoAjusteInventario(value.tipoAjuste);
+  const producto = asApiRecord(value.producto);
+  const sucursal = asApiRecord(value.sucursal);
+  const usuario = asApiRecord(value.usuario);
+
+  return {
+    id: asString(value.id),
+    productoId: asString(value.productoId ?? producto.id),
+    producto: {
+      id: asString(producto.id),
+      nombre: asString(producto.nombre) || "Producto sin nombre",
+      sku: asString(producto.sku) || "N/A",
+      unidadMedida: asString(producto.unidadMedida) || null,
+    },
+    sucursal: {
+      id: asString(sucursal.id),
+      nombre: asString(sucursal.nombre) || "Sucursal N/A",
+    },
+    usuario: asString(usuario.id)
+      ? {
+          id: asString(usuario.id),
+          nombreCompleto: asString(usuario.nombreCompleto) || "Usuario no disponible",
+          usuario: asString(usuario.usuario) || "N/A",
+        }
+      : null,
+    tipoMovimiento: asString(value.tipoMovimiento) === "entrada" ? "entrada" : "salida",
+    cantidadAjustada: asNumber(value.cantidadAjustada),
+    tipoAjuste,
+    tipoAjusteLabel: asString(value.tipoAjusteLabel) || getTipoAjusteLabel(tipoAjuste),
+    fechaAjuste: asString(value.fechaAjuste),
+    costoUnitario: asNumber(value.costoUnitario),
+    impactoEconomico: asNumber(value.impactoEconomico),
+    impactoEconomicoAbsoluto:
+      asNumber(value.impactoEconomicoAbsoluto)
+      || Math.abs(asNumber(value.impactoEconomico)),
+    detalleMotivo: asString(value.detalleMotivo) || null,
+    observaciones: asString(value.observaciones) || null,
+    stockResultante: asNumber(value.stockResultante),
+    referenciaTipo: asString(value.referenciaTipo) || null,
+  };
+};
+
+const mapAjustesInventarioReport = (payload: unknown): AjusteInventarioReportResponse => {
+  const source = asApiRecord(payload);
+  const items = asApiRecordArray(source.items).map(mapAjusteInventarioItem);
+  const resumen = buildAjusteResumen(asApiRecord(source.resumen), items);
+  const filtrosAplicados = asApiRecord(source.filtrosAplicados);
+  const tipoFiltro = asString(filtrosAplicados.tipoAjuste).toUpperCase();
+
+  return {
+    items,
+    resumen,
+    filtrosAplicados: {
+      productoId: asString(filtrosAplicados.productoId) || null,
+      fechaInicio: asString(filtrosAplicados.fechaInicio) || null,
+      fechaFin: asString(filtrosAplicados.fechaFin) || null,
+      tipoAjuste: AJUSTE_TIPOS.has(tipoFiltro as TipoAjusteInventario)
+        ? (tipoFiltro as TipoAjusteInventario)
+        : null,
+    },
+  };
+};
+
+export const getAjustesInventarioReport = async (
+  filters: AjusteInventarioReportFilters = {},
+): Promise<AjusteInventarioReportResponse> => {
+  const query = buildAjustesInventarioQuery(filters);
+  const response = await fetch(
+    `${settings.URL}/reportes/ajustes-inventario${query ? `?${query}` : ""}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  const payload = (await response.json()) as ApiResponse<unknown>;
+
+  if (!response.ok) {
+    throw new Error(
+      getPayloadMessage(payload) || "No se pudo obtener el reporte de ajustes de inventario.",
+    );
+  }
+
+  return mapAjustesInventarioReport(
+    isApiRecord(payload) && "data" in payload ? payload.data : payload,
+  );
+};
+
+export const exportAjustesInventarioPdf = async (
+  filters: AjusteInventarioReportFilters = {},
+) => {
+  const query = buildAjustesInventarioQuery(filters);
+  const response = await fetch(
+    `${settings.URL}/reportes/ajustes-inventario/pdf${query ? `?${query}` : ""}`,
+    {
+      method: "GET",
+    },
+  );
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as ApiResponse<unknown> | null;
+    throw new Error(
+      getPayloadMessage(payload) || "No se pudo exportar el reporte de ajustes de inventario.",
+    );
+  }
+
+  return {
+    blob: await response.blob(),
+    fileName:
+      response.headers.get("Content-Disposition")?.match(/filename="?([^";]+)"?/i)?.[1]
+      ?? "ajustes-inventario.pdf",
+  };
+};

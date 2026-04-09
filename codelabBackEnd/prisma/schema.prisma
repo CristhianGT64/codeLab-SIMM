@@ -191,6 +191,7 @@ model MovimientoInventario {
   observaciones           String?
   stockResultante         Int                       @map("stock_resultante")
   subtipoEntrada          SubtipoEntradaInventario? @map("subtipo_entrada")
+  tipoAjuste              TipoAjusteInventario?     @map("tipo_ajuste")
   metodoValuacionAplicado MetodoValuacion?          @map("metodo_valuacion_aplicado")
   costoUnitario           Decimal?                  @map("costo_unitario") @db.Decimal(10, 2)
   costoTotal              Decimal?                  @map("costo_total") @db.Decimal(12, 2)
@@ -643,6 +644,12 @@ enum MotivoSalidaInventario {
 enum SubtipoEntradaInventario {
   PRODUCTO_NUEVO
   REABASTECIMIENTO
+}
+
+enum TipoAjusteInventario {
+  PERDIDA
+  DETERIORO
+  SOBRANTE
 }
 
 enum EstadoPeriodoContable {
