@@ -1,12 +1,12 @@
 import prisma from '../infra/prisma/prismaClient.js';
 import inventarioRepository from '../repositories/inventarioRepository.js';
 import configuracionContableService from './configuracionContableService.js';
-import asientoContableService from "./contabilidad/asiento/asientoContableService.js";
+import asientoContableService from './contabilidad/asiento/asientoContableService.js';
 import periodoContableService from './periodoContableService.js';
-
 
 const SUBTIPOS_ENTRADA = ['REABASTECIMIENTO'];
 const MOTIVOS_SALIDA = ['VENTA', 'DANIO', 'CONSUMO_INTERNO', 'AJUSTE', 'OTRO'];
+const TIPOS_AJUSTE = ['PERDIDA', 'DETERIORO', 'SOBRANTE'];
 
 const toNumber = (value, fallback = 0) => {
   const parsed = Number(value);
@@ -14,6 +14,13 @@ const toNumber = (value, fallback = 0) => {
 };
 
 const round2 = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
+
+const normalizeInventoryAdjustmentType = (value) =>
+  String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toUpperCase();
 
 const buildFifoLayers = (movimientos, costoFallback) => {
   const capas = [];
@@ -129,7 +136,7 @@ const inventarioService = {
       usuarioId,
     } = body;
 
-    const tipoEntrada = body.tipoEntrada || "REABASTECIMIENTO";
+    const tipoEntrada = body.tipoEntrada || 'REABASTECIMIENTO';
 
     if (!productoId || !sucursalId || !cantidad || !fechaHora) {
       const err = new Error('Faltan campos obligatorios: productoId, sucursalId, cantidad, fechaHora, tipoEntrada');
@@ -138,23 +145,23 @@ const inventarioService = {
     }
 
     if (
-      tipoEntrada !== "PRODUCTO_NUEVO" &&
-      !SUBTIPOS_ENTRADA.includes(String(tipoEntrada))
+      tipoEntrada !== 'PRODUCTO_NUEVO'
+      && !SUBTIPOS_ENTRADA.includes(String(tipoEntrada))
     ) {
-      const err = new Error('tipoEntrada inválido. Valores permitidos: PRODUCTO_NUEVO, REABASTECIMIENTO');
+      const err = new Error('tipoEntrada invalido. Valores permitidos: PRODUCTO_NUEVO, REABASTECIMIENTO');
       err.status = 400;
       throw err;
     }
 
     if (!Number.isInteger(Number(cantidad)) || Number(cantidad) <= 0) {
-      const err = new Error('La cantidad debe ser un número entero mayor que 0.');
+      const err = new Error('La cantidad debe ser un numero entero mayor que 0.');
       err.status = 400;
       throw err;
     }
 
     const fecha = new Date(fechaHora);
     if (Number.isNaN(fecha.getTime())) {
-      const err = new Error('fechaHora no tiene un formato válido.');
+      const err = new Error('fechaHora no tiene un formato valido.');
       err.status = 400;
       throw err;
     }
@@ -167,7 +174,7 @@ const inventarioService = {
     }
 
     if (producto.estado !== 'activo') {
-      const err = new Error('El producto está inactivo.');
+      const err = new Error('El producto esta inactivo.');
       err.status = 400;
       throw err;
     }
@@ -180,7 +187,7 @@ const inventarioService = {
     }
 
     if (!sucursal.activa) {
-      const err = new Error('La sucursal está inactiva.');
+      const err = new Error('La sucursal esta inactiva.');
       err.status = 400;
       throw err;
     }
@@ -202,7 +209,7 @@ const inventarioService = {
       }
 
       if (!proveedor.disponible) {
-        const err = new Error('El proveedor está inactivo.');
+        const err = new Error('El proveedor esta inactivo.');
         err.status = 400;
         throw err;
       }
@@ -227,12 +234,12 @@ const inventarioService = {
         productoId,
         sucursalId,
         cantidad,
-        tx
+        tx,
       );
 
       const alerta = await inventarioRepository.syncAlertaInventarioById(
         inventario.id,
-        tx
+        tx,
       );
 
       const movimiento = await inventarioRepository.createMovimiento(
@@ -240,7 +247,10 @@ const inventarioService = {
           tipo: 'entrada',
           subtipoEntrada: tipoEntrada,
           motivoSalida: null,
-          detalleMotivo: tipoEntrada === 'PRODUCTO_NUEVO' ? 'Primera entrada del producto' : 'Reabastecimiento de inventario',
+          tipoAjuste: null,
+          detalleMotivo: tipoEntrada === 'PRODUCTO_NUEVO'
+            ? 'Primera entrada del producto'
+            : 'Reabastecimiento de inventario',
           observaciones: observaciones ? String(observaciones).trim() : null,
           cantidad: Number(cantidad),
           stockResultante: inventario.stockActual,
@@ -253,29 +263,29 @@ const inventarioService = {
           referenciaId: null,
           productoId: BigInt(productoId),
           sucursalId: BigInt(sucursalId),
-          usuarioId: usuarioId,
+          usuarioId,
           proveedorId: proveedorIdFinal,
         },
-        tx
+        tx,
       );
 
       const asiento = await asientoContableService.generarAsiento({
-        tipoOperacion: "INVENTARIO_ENTRADA",
+        tipoOperacion: 'INVENTARIO_ENTRADA',
         idOperacionOrigen: movimiento.id,
-        descripcion: "Entrada de inventario por compra",
+        descripcion: 'Entrada de inventario por compra',
         subtotal: costoTotal,
         impuesto: 0,
         total: costoTotal,
         sucursalId,
         fecha,
-        tx
+        tx,
       });
 
       await tx.movimientoInventario.update({
         where: { id: movimiento.id },
         data: {
-          asientoContableId: asiento.id
-        }
+          asientoContableId: asiento.id,
+        },
       });
 
       return {
@@ -287,7 +297,6 @@ const inventarioService = {
   },
 
   async registrarSalida(body, tx = prisma) {
-
     const {
       productoId,
       sucursalId,
@@ -306,20 +315,56 @@ const inventarioService = {
     }
 
     if (!MOTIVOS_SALIDA.includes(String(motivoSalida))) {
-      const err = new Error('motivoSalida inválido. Valores permitidos: VENTA, DANIO, CONSUMO_INTERNO, AJUSTE, OTRO');
+      const err = new Error('motivoSalida invalido. Valores permitidos: VENTA, DANIO, CONSUMO_INTERNO, AJUSTE, OTRO');
+      err.status = 400;
+      throw err;
+    }
+
+    const rawTipoAjuste = body.tipoAjuste;
+    const tipoAjusteNormalizado =
+      rawTipoAjuste === undefined || rawTipoAjuste === null || rawTipoAjuste === ''
+        ? null
+        : normalizeInventoryAdjustmentType(rawTipoAjuste);
+
+    if (tipoAjusteNormalizado && !TIPOS_AJUSTE.includes(tipoAjusteNormalizado)) {
+      const err = new Error('tipoAjuste invalido. Valores permitidos: PERDIDA, DETERIORO, SOBRANTE');
+      err.status = 400;
+      throw err;
+    }
+
+    let tipoAjusteMovimiento = null;
+
+    if (motivoSalida === 'DANIO') {
+      if (tipoAjusteNormalizado && tipoAjusteNormalizado !== 'DETERIORO') {
+        const err = new Error('Las salidas por DANIO solo permiten tipoAjuste DETERIORO.');
+        err.status = 400;
+        throw err;
+      }
+
+      tipoAjusteMovimiento = 'DETERIORO';
+    } else if (motivoSalida === 'AJUSTE') {
+      if (tipoAjusteNormalizado === 'SOBRANTE') {
+        const err = new Error('Las salidas de inventario no permiten tipoAjuste SOBRANTE.');
+        err.status = 400;
+        throw err;
+      }
+
+      tipoAjusteMovimiento = tipoAjusteNormalizado || 'PERDIDA';
+    } else if (tipoAjusteNormalizado) {
+      const err = new Error('tipoAjuste solo se permite cuando motivoSalida es AJUSTE o DANIO.');
       err.status = 400;
       throw err;
     }
 
     if (!Number.isInteger(Number(cantidad)) || Number(cantidad) <= 0) {
-      const err = new Error('La cantidad debe ser un número entero mayor que 0.');
+      const err = new Error('La cantidad debe ser un numero entero mayor que 0.');
       err.status = 400;
       throw err;
     }
 
     const fecha = new Date(fechaHora);
     if (Number.isNaN(fecha.getTime())) {
-      const err = new Error('fechaHora no tiene un formato válido.');
+      const err = new Error('fechaHora no tiene un formato valido.');
       err.status = 400;
       throw err;
     }
@@ -332,7 +377,7 @@ const inventarioService = {
     }
 
     if (producto.estado !== 'activo') {
-      const err = new Error('El producto está inactivo.');
+      const err = new Error('El producto esta inactivo.');
       err.status = 400;
       throw err;
     }
@@ -345,7 +390,7 @@ const inventarioService = {
     }
 
     if (!sucursal.activa) {
-      const err = new Error('La sucursal está inactiva.');
+      const err = new Error('La sucursal esta inactiva.');
       err.status = 400;
       throw err;
     }
@@ -370,148 +415,144 @@ const inventarioService = {
       throw err;
     }
 
-    {
-      const configMetodo = await configuracionContableService.getMetodoInventario();
-      const movimientosPrevios = await inventarioRepository.getMovimientosValuacion(
-        productoId,
-        sucursalId,
-        fecha,
-        tx
-      );
+    const configMetodo = await configuracionContableService.getMetodoInventario();
+    const movimientosPrevios = await inventarioRepository.getMovimientosValuacion(
+      productoId,
+      sucursalId,
+      fecha,
+      tx,
+    );
 
-      const costoFallback = round2(toNumber(producto.costo, 0));
+    const costoFallback = round2(toNumber(producto.costo, 0));
 
-      let valuacionSalida;
+    let valuacionSalida;
 
-      if (motivoSalida === "VENTA") {
+    if (motivoSalida === 'VENTA') {
+      const costoUnitario = round2(toNumber(producto.costo, 0));
 
-        const costoUnitario = round2(toNumber(producto.costo, 0));
+      valuacionSalida = {
+        costoUnitario,
+        costoTotal: round2(costoUnitario * Number(cantidad)),
+      };
+    } else if (!movimientosPrevios || movimientosPrevios.length === 0) {
+      const costoUnitario = round2(toNumber(producto.costo, 0));
 
-        valuacionSalida = {
-          costoUnitario,
-          costoTotal: round2(costoUnitario * Number(cantidad))
-        };
-
-      }
-      else if (!movimientosPrevios || movimientosPrevios.length === 0) {
-
-        const costoUnitario = round2(toNumber(producto.costo, 0));
-
-        valuacionSalida = {
-          costoUnitario,
-          costoTotal: round2(costoUnitario * Number(cantidad))
-        };
-
-      }
-      else {
-
-        valuacionSalida = configMetodo.metodoValuacion === 'PROMEDIO_PONDERADO'
-          ? calcularCostoSalidaPromedio({
+      valuacionSalida = {
+        costoUnitario,
+        costoTotal: round2(costoUnitario * Number(cantidad)),
+      };
+    } else {
+      valuacionSalida = configMetodo.metodoValuacion === 'PROMEDIO_PONDERADO'
+        ? calcularCostoSalidaPromedio({
             movimientos: movimientosPrevios,
             cantidadSalida: Number(cantidad),
             costoFallback,
           })
-          : calcularCostoSalidaFIFO({
+        : calcularCostoSalidaFIFO({
             movimientos: movimientosPrevios,
             cantidadSalida: Number(cantidad),
             costoFallback,
           });
+    }
 
-      }
+    if (!valuacionSalida || valuacionSalida.costoTotal <= 0) {
+      const costoUnitarioFallback = round2(toNumber(producto.costo, 0));
 
-      if (!valuacionSalida || valuacionSalida.costoTotal <= 0) {
-
-        const costoUnitarioFallback = round2(toNumber(producto.costo, 0));
-
-        valuacionSalida = {
-          costoUnitario: costoUnitarioFallback,
-          costoTotal: round2(costoUnitarioFallback * Number(cantidad))
-        };
-
-      }
-
-      const inventario = await inventarioRepository.updateInventarioSalida(
-        inventarioActual.id,
-        cantidad,
-        tx
-      );
-
-      const alerta = await inventarioRepository.syncAlertaInventarioById(
-        inventario.id,
-        tx
-      );
-
-      const movimiento = await inventarioRepository.createMovimiento(
-        {
-          tipo: 'salida',
-          subtipoEntrada: null,
-          motivoSalida,
-          detalleMotivo: String(detalleMotivo).trim(),
-          observaciones: observaciones ? String(observaciones).trim() : null,
-          cantidad: Number(cantidad),
-          stockResultante: inventario.stockActual,
-          metodoValuacionAplicado: configMetodo.metodoValuacion,
-          costoUnitario: valuacionSalida.costoUnitario,
-          costoTotal: valuacionSalida.costoTotal,
-          fechaMovimiento: fecha,
-          estado: 'completado',
-          referenciaTipo: 'movimiento_manual',
-          referenciaId: null,
-          productoId: BigInt(productoId),
-          sucursalId: BigInt(sucursalId),
-          usuarioId: usuarioId,
-          proveedorId: null,
-        },
-        tx
-      );
-
-      let tipoOperacion = "INVENTARIO_OTRO";
-
-      if (motivoSalida === "VENTA") {
-        tipoOperacion = "VENTA_COSTO";
-      }
-
-      if (motivoSalida === "DANIO") {
-        tipoOperacion = "INVENTARIO_DANIO";
-      }
-
-      if (motivoSalida === "CONSUMO_INTERNO") {
-        tipoOperacion = "INVENTARIO_CONSUMO_INTERNO";
-      }
-
-      if (motivoSalida === "AJUSTE") {
-        tipoOperacion = "INVENTARIO_AJUSTE";
-      }
-
-      const asiento = await asientoContableService.generarAsiento({
-        tipoOperacion,
-        idOperacionOrigen: movimiento.id,
-        descripcion: "Salida de inventario",
-        subtotal: valuacionSalida.costoTotal,
-        impuesto: 0,
-        total: valuacionSalida.costoTotal,
-        sucursalId,
-        fecha,
-        tx
-      });
-
-      await tx.movimientoInventario.update({
-        where: { id: movimiento.id },
-        data: {
-          asientoContableId: asiento.id
-        }
-      });
-
-      return {
-        movimiento,
-        inventario,
-        alerta,
+      valuacionSalida = {
+        costoUnitario: costoUnitarioFallback,
+        costoTotal: round2(costoUnitarioFallback * Number(cantidad)),
       };
     }
+
+    const inventario = await inventarioRepository.updateInventarioSalida(
+      inventarioActual.id,
+      cantidad,
+      tx,
+    );
+
+    const alerta = await inventarioRepository.syncAlertaInventarioById(
+      inventario.id,
+      tx,
+    );
+
+    const movimiento = await inventarioRepository.createMovimiento(
+      {
+        tipo: 'salida',
+        subtipoEntrada: null,
+        motivoSalida,
+        tipoAjuste: tipoAjusteMovimiento,
+        detalleMotivo: String(detalleMotivo).trim(),
+        observaciones: observaciones ? String(observaciones).trim() : null,
+        cantidad: Number(cantidad),
+        stockResultante: inventario.stockActual,
+        metodoValuacionAplicado: configMetodo.metodoValuacion,
+        costoUnitario: valuacionSalida.costoUnitario,
+        costoTotal: valuacionSalida.costoTotal,
+        fechaMovimiento: fecha,
+        estado: 'completado',
+        referenciaTipo: 'movimiento_manual',
+        referenciaId: null,
+        productoId: BigInt(productoId),
+        sucursalId: BigInt(sucursalId),
+        usuarioId,
+        proveedorId: null,
+      },
+      tx,
+    );
+
+    let tipoOperacion = 'INVENTARIO_OTRO';
+
+    if (motivoSalida === 'VENTA') {
+      tipoOperacion = 'VENTA_COSTO';
+    }
+
+    if (motivoSalida === 'DANIO') {
+      tipoOperacion = 'INVENTARIO_DANIO';
+    }
+
+    if (motivoSalida === 'CONSUMO_INTERNO') {
+      tipoOperacion = 'INVENTARIO_CONSUMO_INTERNO';
+    }
+
+    if (motivoSalida === 'AJUSTE') {
+      tipoOperacion = 'INVENTARIO_AJUSTE';
+    }
+
+    const asiento = await asientoContableService.generarAsiento({
+      tipoOperacion,
+      idOperacionOrigen: movimiento.id,
+      descripcion: 'Salida de inventario',
+      subtotal: valuacionSalida.costoTotal,
+      impuesto: 0,
+      total: valuacionSalida.costoTotal,
+      sucursalId,
+      fecha,
+      tx,
+    });
+
+    await tx.movimientoInventario.update({
+      where: { id: movimiento.id },
+      data: {
+        asientoContableId: asiento.id,
+      },
+    });
+
+    return {
+      movimiento,
+      inventario,
+      alerta,
+    };
   },
 
   async historial(query = {}) {
-    const { tipo, productoId, sucursalId, fecha, fechaDesde, fechaHasta } = query;
+    const {
+      tipo,
+      productoId,
+      sucursalId,
+      fecha,
+      fechaDesde,
+      fechaHasta,
+    } = query;
 
     if (tipo && !['entrada', 'salida'].includes(tipo)) {
       const err = new Error('El filtro tipo debe ser "entrada" o "salida".');

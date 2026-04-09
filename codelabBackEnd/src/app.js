@@ -25,6 +25,7 @@ import catalogoContableController from './controllers/catalogoContableController
 import asientoContableController from './controllers/contabilidad/asiento/asientoContableController.js';
 import reglaContableController from './controllers/contabilidad/asiento/reglaContableController.js';
 import periodoContableController from './controllers/periodoContableController.js';
+import ajustesInventarioReportController from './controllers/reportes/ajustesInventarioReportController.js';
 
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
@@ -295,6 +296,10 @@ app.get('/libro-diario/:id', asientoContableController.getById);
 app.get('/asientos-contables/exportar', asientoContableController.export);
 app.get('/asientos-contables', asientoContableController.list);
 app.get('/asientos-contables/:id', asientoContableController.getById);
+
+// Reportes
+app.get('/reportes/ajustes-inventario/pdf', ajustesInventarioReportController.exportPdf);
+app.get('/reportes/ajustes-inventario', ajustesInventarioReportController.list);
 
 // Periodos contables
 app.post('/periodos-contables', periodoContableController.create);
