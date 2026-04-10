@@ -1,4 +1,4 @@
-import prisma from '../infra/prisma/prismaClient.js';
+import prisma, { PRISMA_TRANSACTION_OPTIONS } from '../infra/prisma/prismaClient.js';
 import inventarioRepository from '../repositories/inventarioRepository.js';
 import configuracionContableService from './configuracionContableService.js';
 import asientoContableService from './contabilidad/asiento/asientoContableService.js';
@@ -293,7 +293,7 @@ const inventarioService = {
         inventario,
         alerta,
       };
-    });
+    }, PRISMA_TRANSACTION_OPTIONS);
   },
 
   async registrarSalida(body, tx = prisma) {

@@ -1,4 +1,4 @@
-import prisma from '../infra/prisma/prismaClient.js';
+import prisma, { PRISMA_TRANSACTION_OPTIONS } from '../infra/prisma/prismaClient.js';
 import productoRepository from '../repositories/productoRepository.js';
 import inventarioRepository from '../repositories/inventarioRepository.js';
 import inventarioService from './inventarioService.js';
@@ -212,7 +212,7 @@ const productoService = {
       await inventarioRepository.syncAlertaInventarioById(inventario.id, tx);
 
       return { producto, inventario };
-    });
+    }, PRISMA_TRANSACTION_OPTIONS);
 
     if (Number(stockInicial) > 0) {
 

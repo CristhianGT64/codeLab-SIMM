@@ -447,13 +447,16 @@ ON CONFLICT (uuid_sub_cuenta_contable) DO UPDATE SET
   codigo_numerico = EXCLUDED.codigo_numerico,
   id_naturaleza = EXCLUDED.id_naturaleza;
 
-INSERT INTO public.periodo_contable (id, fecha_inicio, fecha_fin, estado, created_at) VALUES
-  (1, '2025-01-01 00:00:00', '2025-03-31 23:59:59', 'CERRADO', '2026-03-17 07:40:38.827')
+INSERT INTO public.periodo_contable (id, fecha_inicio, fecha_fin, estado, created_at, sucursal_id, fecha_cierre, usuario_cierre) VALUES
+  (1, '2025-01-01 00:00:00', '2025-03-31 23:59:59', 'CERRADO', '2026-03-17 07:40:38.827', 2, NULL, NULL)
 ON CONFLICT (id) DO UPDATE SET
   fecha_inicio = EXCLUDED.fecha_inicio,
   fecha_fin = EXCLUDED.fecha_fin,
   estado = EXCLUDED.estado,
-  created_at = EXCLUDED.created_at;
+  created_at = EXCLUDED.created_at,
+  sucursal_id = EXCLUDED.sucursal_id,
+  fecha_cierre = EXCLUDED.fecha_cierre,
+  usuario_cierre = EXCLUDED.usuario_cierre;
 
 -- Ajuste de secuencias
 SELECT setval('public."CategoriaPermiso_id_seq"',
