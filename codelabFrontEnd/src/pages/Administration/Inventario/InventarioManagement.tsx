@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import useListSucursales from "../../../hooks/SucursalesHooks/useListSucursales";
 import { useNavigate } from "react-router";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import useDashboardInventario from "../../../hooks/InventarioHooks/useDashboardInventario";
@@ -41,6 +42,7 @@ export default function InventarioManagement() {
   const [busqueda, setBusqueda] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState<"" | "entrada" | "salida">("");
   const [fechaFiltro, setFechaFiltro] = useState("");
+  const [sucursalFiltro, setSucursalFiltro] = useState("");
   const navigate = useNavigate();
 
   const [paginaActual, setPaginaActual] = useState(1);
@@ -49,7 +51,12 @@ export default function InventarioManagement() {
   const filters: HistorialInventarioFilters = {
     ...(tipoFiltro && { tipo: tipoFiltro }),
     ...(fechaFiltro && { fecha: fechaFiltro }),
+    ...(sucursalFiltro && { sucursalId: sucursalFiltro }),
   };
+  // Obtener sucursales para el filtro
+  console.log("EJECUTANDO useListSucursales");
+  const { data: sucursalesData, isLoading: loadingSucursales } = useListSucursales();
+  const sucursales = sucursalesData?.data ?? [];
 
   const { data: dashboard, isLoading: loadingDash } = useDashboardInventario();
   const { data: historial, isLoading: loadingTable } =
@@ -97,6 +104,7 @@ export default function InventarioManagement() {
     setBusqueda("");
     setTipoFiltro("");
     setFechaFiltro("");
+    setSucursalFiltro("");
     setPaginaActual(1);
   };
 
@@ -209,7 +217,7 @@ export default function InventarioManagement() {
           />
         )}
 
-        {tienePermiso("Configuracion FIFO/Promedio") && (
+        {tienePermiso(" Configuracion FIFO/Promedio") && (
           <ButtonsComponet
             {...botonFifoPromedio}
             onClick={() => navigate("/Configuracion/Inventario/FIFO-PEPS")}
@@ -273,6 +281,7 @@ export default function InventarioManagement() {
           />
         </div>
 
+
         {/* Tipo */}
         <select
           value={tipoFiltro}
@@ -282,6 +291,22 @@ export default function InventarioManagement() {
           {filtroTipo.map((filtro: FiltroTipo) => (
             <option key={filtro.valor} value={filtro.valor}>
               {filtro.nombre}
+            </option>
+          ))}
+        </select>
+
+        {/* Sucursal */}
+        <select
+          value={sucursalFiltro}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSucursalFiltro(e.target.value)}
+          className="py-2.5 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4661b0]/25"
+        >
+          <option value="">Todas las sucursales</option>
+          {loadingSucursales && <option disabled>Cargando sucursales...</option>}
+          {!loadingSucursales && sucursales.length === 0 && <option disabled>No hay sucursales</option>}
+          {sucursales.map((sucursal) => (
+            <option key={sucursal.id} value={sucursal.id}>
+              {sucursal.nombre}
             </option>
           ))}
         </select>

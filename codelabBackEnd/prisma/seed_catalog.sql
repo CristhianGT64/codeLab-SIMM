@@ -1,14 +1,5 @@
-BEGIN;
 
-INSERT INTO "ELEMENTO_CONTABLE" (id_elemento_contable, uuid_elemento_contable, nombre, disponible, codigo_numerico, id_naturaleza) VALUES
-  (1, 'elem-activos-0001', 'Activos', true, 1, 1),
-  (2, 'elem-pasivos-0002', 'Pasivos', true, 2, 2),
-  (3, 'elem-patrimonio-0003', 'Patrimonio', true, 3, 3)
-ON CONFLICT (uuid_elemento_contable) DO UPDATE SET
-  nombre = EXCLUDED.nombre,
-  disponible = EXCLUDED.disponible,
-  codigo_numerico = EXCLUDED.codigo_numerico,
-  id_naturaleza = EXCLUDED.id_naturaleza;
+BEGIN;
 
 INSERT INTO "CLASIFICACION_ELEMENTO_CONTABLE" (id_clasificacion_elemento_contable, uuid_clasificacion_contable, nombre, disponible, codigo_numerico, uuid_elemento_contable) VALUES
   (1, 'clas-corrientes-0001', 'Corrientes', true, 1, 'elem-activos-0001'),
