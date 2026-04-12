@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import useListSucursales from "../../../hooks/SucursalesHooks/useListSucursales";
 import { useNavigate } from "react-router";
 import HeaderTitleAdmin from "../../../components/headers/HeaderAdmin";
 import useDashboardInventario from "../../../hooks/InventarioHooks/useDashboardInventario";
@@ -49,7 +50,13 @@ type NotificationState = {
 export default function InventarioOverview() {
   const navigate = useNavigate();
   const { user, tienePermiso } = useAuth();
-  const sucursalId = user?.sucursal.id;
+  // Estado para sucursal seleccionada
+  const [sucursalFiltro, setSucursalFiltro] = useState("");
+  // Obtener sucursales para el filtro
+  const { data: sucursalesData, isLoading: loadingSucursales } = useListSucursales();
+  const sucursales = sucursalesData?.data ?? [];
+  // Valor de sucursalId efectivo: si el usuario selecciona una sucursal, usarla; si no, usar la del usuario
+  const sucursalId = sucursalFiltro || user?.sucursal.id || "";
 
   const [busqueda, setBusqueda] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState<"" | "entrada" | "salida">("");
@@ -70,11 +77,8 @@ export default function InventarioOverview() {
     ...(sucursalId && { sucursalId }),
   };
 
-  const { data: dashboard, isLoading: loadingDash } = useDashboardInventario(
-    sucursalId,
-  );
-  const { data: historial, isLoading: loadingTable } =
-    useHistorialInventario(filters);
+  const { data: dashboard, isLoading: loadingDash } = useDashboardInventario(sucursalId);
+  const { data: historial, isLoading: loadingTable } = useHistorialInventario(filters);
   const { data: alertasData } = useAlertasInventario(sucursalId);
   const { data: bajoStockData } = useProductosBajoStock(sucursalId);
   const { data: productData } = useListProduct();
@@ -195,9 +199,20 @@ export default function InventarioOverview() {
         <td className="px-6 py-4 text-[#4661b0]">
           {proveedorOMotivo(movimiento)}
         </td>
+        {/* Costo Unitario y método de valuación */}
+        <td className="px-6 py-4 font-medium text-[#24364d]">
+          {movimiento.costoUnitario ?? "—"}
+          {movimiento.metodoValuacionAplicado && (
+            <div className="text-xs text-[#4661b0] mt-1">
+              {movimiento.metodoValuacionAplicado === "FIFO" ? "FIFO" : "Promedio"}
+            </div>
+          )}
+        </td>
+        {/* Stock Resultante */}
         <td className="px-6 py-4 font-medium text-[#24364d]">
           {movimiento.stockResultante}
         </td>
+        {/* Estado */}
         <td className="px-6 py-4">
           <span className="inline-block rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
             {movimiento.estado}
@@ -560,6 +575,25 @@ export default function InventarioOverview() {
           ))}
         </select>
 
+        {/* Sucursal */}
+        <select
+          value={sucursalFiltro}
+          onChange={(e) => {
+            setSucursalFiltro(e.target.value);
+            setPaginaActual(1);
+          }}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4661b0]/25"
+        >
+          <option value="">Todas las sucursales</option>
+          {loadingSucursales && <option disabled>Cargando sucursales...</option>}
+          {!loadingSucursales && sucursales.length === 0 && <option disabled>No hay sucursales</option>}
+          {sucursales.map((sucursal) => (
+            <option key={sucursal.id} value={sucursal.id}>
+              {sucursal.nombre}
+            </option>
+          ))}
+        </select>
+
         <input
           type="date"
           value={fechaFiltro}
@@ -576,6 +610,7 @@ export default function InventarioOverview() {
             setBusqueda("");
             setTipoFiltro("");
             setFechaFiltro("");
+            setSucursalFiltro("");
             setPaginaActual(1);
           }}
         />

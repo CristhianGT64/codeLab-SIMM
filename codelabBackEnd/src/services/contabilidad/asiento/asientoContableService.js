@@ -336,6 +336,7 @@ const asientoContableService = {
       throw buildError('El asiento no está balanceado.');
     }
 
+
     return asientoContableRepository.create({
       uuidAsientoContable: `asiento-${tipoOperacion.toLowerCase()}-${idOperacionOrigen}`,
       numeroAsiento,
@@ -345,6 +346,7 @@ const asientoContableService = {
       totalDebe,
       totalHaber,
       balanceado: true
+      // id_periodo_contable y id_sucursal removidos para restaurar funcionamiento anterior
     }, detalles, tx);
 
   },

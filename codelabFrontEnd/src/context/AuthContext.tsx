@@ -85,9 +85,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const tienePermiso = useCallback(
     (nombre: string) => {
       const normalizedTarget = normalizePermissionName(nombre);
-      return permisos.some(
-        (permiso) => normalizePermissionName(permiso) === normalizedTarget,
+      console.log("[PERMISO] Buscando:", nombre, "Normalizado:", normalizedTarget);
+      console.log("[PERMISO] Permisos del usuario:", permisos);
+      const result = permisos.some(
+        (permiso) => {
+          const norm = normalizePermissionName(permiso);
+          console.log("Comparando:", norm, "con", normalizedTarget);
+          return norm === normalizedTarget;
+        }
       );
+      console.log("[PERMISO] Resultado:", result);
+      return result;
     },
     [permisos],
   );

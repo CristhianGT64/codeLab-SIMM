@@ -52,6 +52,7 @@ export const tituloTablaInventario: string[] = [
   "Tipo",
   "Cantidad",
   "Proveedor/Motivo",
+  "Costo unitario",
   "Stock Resultante",
   "Estado",
 ];
