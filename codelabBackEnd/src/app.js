@@ -242,6 +242,8 @@ app.get('/facturas/exportar', facturaController.exportFacturas);
 app.get('/facturas', facturaController.getFacturas);
 app.get('/facturas/:numeroFactura', facturaController.getFacturaByNumero);
 
+// --- Reporte Balance General ---
+
 // =========================
 // CATÁLOGO CONTABLE
 // =========================

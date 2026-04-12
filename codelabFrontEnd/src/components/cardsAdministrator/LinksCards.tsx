@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import type { DashboardInterface } from "../../interfaces/DashboardInterface";
 export default function LinkCard(data : Readonly<DashboardInterface>) {
   return (
