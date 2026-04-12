@@ -1,43 +1,79 @@
 import catalogoContableRepository from '../repositories/catalogoContableRepository.js';
 
+function formatCodigo(num, size = 2) {
+  return String(num).padStart(size, '0');
+}
+
 const catalogoContableService = {
   async getArbol() {
     const { elementos, clasificaciones, cuentas, subcuentas } =
       await catalogoContableRepository.getAllData();
 
-    const arbol = elementos.map((elemento) => {
-      const clasificacionesElemento = clasificaciones
-        .filter(c => c.uuidElementoContable === elemento.uuidElementoContable)
-        .map((clasificacion) => {
+    const arbol = elementos
+      .sort((a, b) => a.codigoNumerico - b.codigoNumerico)
+      .map((elemento) => {
 
-          const cuentasClasificacion = cuentas
-            .filter(cu =>
-              cu.uuidElementoContable === elemento.uuidElementoContable &&
-              cu.uuidClasificacionContable === clasificacion.uuidClasificacionContable
-            )
-            .map((cuenta) => {
+        const codigoElemento = `${elemento.codigoNumerico}`;
 
-              const subcuentasCuenta = subcuentas.filter(sc =>
-                sc.uuidCuentaContable === cuenta.uuidCuentaContable
-              );
+        const clasificacionesElemento = clasificaciones
+          .filter(c => c.uuidElementoContable === elemento.uuidElementoContable)
+          .sort((a, b) => a.codigoNumerico - b.codigoNumerico)
+          .map((clasificacion) => {
 
-              return {
-                ...cuenta,
-                subcuentas: subcuentasCuenta,
-              };
-            });
+            // 🔧 CORRECCIÓN CLASIFICACIÓN
+            const clasificacionNum = String(clasificacion.codigoNumerico).slice(-1);
+            const codigoClasificacion =
+              `${codigoElemento}.${clasificacionNum}`;
 
-          return {
-            ...clasificacion,
-            cuentas: cuentasClasificacion,
-          };
-        });
+            const cuentasClasificacion = cuentas
+              .filter(cu =>
+                cu.uuidElementoContable === elemento.uuidElementoContable &&
+                cu.uuidClasificacionContable === clasificacion.uuidClasificacionContable
+              )
+              .sort((a, b) => a.codigoNumerico - b.codigoNumerico)
+              .map((cuenta) => {
 
-      return {
-        ...elemento,
-        clasificaciones: clasificacionesElemento,
-      };
-    });
+                // 🔧 CORRECCIÓN CUENTA
+                const cuentaNum = String(cuenta.codigoNumerico).slice(-2);
+                const codigoCuenta =
+                  `${codigoClasificacion}.${cuentaNum}`;
+
+                const subcuentasCuenta = subcuentas
+                  .filter(sc => sc.uuidCuentaContable === cuenta.uuidCuentaContable)
+                  .sort((a, b) => a.codigoNumerico - b.codigoNumerico)
+                  .map((subcuenta) => {
+
+                    // 🔧 CORRECCIÓN SUBCUENTA
+                    const subCuentaNum = String(subcuenta.codigoNumerico).slice(-3);
+                    const codigoSubcuenta =
+                      `${codigoCuenta}.${subCuentaNum}`;
+
+                    return {
+                      ...subcuenta,
+                      codigoContable: codigoSubcuenta,
+                    };
+                  });
+
+                return {
+                  ...cuenta,
+                  codigoContable: codigoCuenta,
+                  subcuentas: subcuentasCuenta,
+                };
+              });
+
+            return {
+              ...clasificacion,
+              codigoContable: codigoClasificacion,
+              cuentas: cuentasClasificacion,
+            };
+          });
+
+        return {
+          ...elemento,
+          codigoContable: codigoElemento,
+          clasificaciones: clasificacionesElemento,
+        };
+      });
 
     return arbol;
   },

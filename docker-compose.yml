@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16
-    container_name: postgres_db # Se le añadió nombre fijo para evitar confusiones.
+    container_name: postgres # Se le añadió nombre fijo para evitar confusiones.
     restart: always
     ports:
       - "${PORT_POSTGRES}:5432"

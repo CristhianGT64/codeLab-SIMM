@@ -10,7 +10,7 @@ import useAuth from "../../../hooks/useAuth";
 import TableComponent from "../../../components/Table/TableComponent";
 import TableSucursalesData from "../../../data/dataAdministrator/TablesData/TableSucursalesData";
 import { TableSucursalesData as branchHeaders } from "../../../data/dataAdministrator/SucursalesData";
-import type { Sucursal } from "../../../interfaces/SucursalInterface";
+import type { Sucursal } from "../../../interfaces/Sucursales/SucursalInterface";
 import PaginacionComponent from "../../../components/Paginacion/PaginacionComponent";
 
 const ITEMS_POR_PAGINA = 8;
@@ -23,11 +23,9 @@ const Branches = () => {
 
   const [search, setSearch] = useState("");
 
-  const sucursales = (sucursalesQuery.data?.data || []) as any[];
+  const sucursales: Sucursal[] = sucursalesQuery.data?.data ?? [];
   const totalSucursales: number = sucursales.length;
-  const sucursalesActivas: number = sucursales.filter(
-    (s: any) => s.activa,
-  ).length;
+  const sucursalesActivas: number = sucursales.filter((s) => s.activa).length;
   const sucursalesInactivas: number = totalSucursales - sucursalesActivas;
 
   // filtrar y ordenar: las activas arriba, luego inactivas
@@ -41,7 +39,7 @@ const Branches = () => {
     })
     .sort((a, b) => (b.activa === a.activa ? 0 : b.activa ? 1 : -1));
 
-  const goToForm = (sucursal: any = null) => {
+  const goToForm = (sucursal: Sucursal | null = null) => {
     if (sucursal && sucursal.id) {
       navigate(`/Branches-Management/Update-Sucursal/${sucursal.id}`);
     } else {
@@ -127,7 +125,7 @@ const Branches = () => {
         contenidoTabla={
           <TableSucursalesData
             sucursales={sucursalesPaginadas}
-            statusMutation={statusMutation}
+            toggleStatus={statusMutation.mutate}
             tienePermiso={tienePermiso}
             goToForm={goToForm}
             isLoading={sucursalesQuery.isLoading}

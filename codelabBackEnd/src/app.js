@@ -2,18 +2,19 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 
 import productoController from './controllers/productoController.js';
 import categoriaController from './controllers/categoriaController.js';
-import sucursalController from './controllers/sucursalController.js';
+import sucursalController from './controllers/Sucursales/sucursalController.js';
 import authController from './controllers/authController.js';
 import usuarioController from './controllers/usuarioController.js';
-import clientController from './controllers/clientController.js';
+import clientController from './controllers/Clientes/clientController.js';
 import inventarioController from './controllers/inventarioController.js';
 import proveedorController from './controllers/proveedorController.js';
 import configuracionContableController from './controllers/configuracionContableController.js';
 import caiController from './controllers/caiController.js';
-import tipoDocumentoController from './controllers/tipoDocumentoController.js';
+import tipoDocumentoController from './controllers/Tipo de documento/tipoDocumentoController.js';
 
 import elementoContableController from './controllers/elementoContableController.js';
 import clasificacionElementoContableController from './controllers/clasificacionElementoContableController.js';
@@ -21,6 +22,10 @@ import cuentaContableController from './controllers/cuentaContableController.js'
 import subCuentaContableController from './controllers/subCuentaContableController.js';
 import diccNaturalezaCuentaController from './controllers/diccNaturalezaCuentaController.js';
 import catalogoContableController from './controllers/catalogoContableController.js';
+import asientoContableController from './controllers/contabilidad/asiento/asientoContableController.js';
+import reglaContableController from './controllers/contabilidad/asiento/reglaContableController.js';
+import periodoContableController from './controllers/periodoContableController.js';
+import ajustesInventarioReportController from './controllers/reportes/ajustesInventarioReportController.js';
 
 import * as roleController from './controllers/roleController.js';
 import * as permissionCategoryController from './controllers/permissionCategoryController.js';
@@ -28,9 +33,12 @@ import * as permissionController from './controllers/permissionController.js';
 import uploadProductoImage from './middlewares/uploadProductoImage.js';
 import errorHandler from './shared/middlewares/errorHandler.js';
 import * as invoiceTypeController from './controllers/invoiceTypeController.js';
-import ventaController from './controllers/ventaController.js';
+import ventaController from './controllers/ventas/ventaController.js';
 import facturaController from './controllers/facturaController.js';
 import impuestoController from './controllers/impuestoController.js';
+import tipoClienteController from './controllers/Tipos de cliente/tipoClienteController.js';
+import { createSwaggerSpec } from './docs/swagger.js';
+
 //Parche: convierte de BigInt a String para que lo soporte Json.
 BigInt.prototype.toJSON = function() {
   return this.toString();
@@ -38,6 +46,22 @@ BigInt.prototype.toJSON = function() {
 
 const app = express();
 dotenv.config();
+const registeredRoutes = [];
+
+['get', 'post', 'put', 'patch', 'delete'].forEach((method) => {
+  const originalMethod = app[method].bind(app);
+
+  app[method] = (routePath, ...handlers) => {
+    if (typeof routePath === 'string' && handlers.length > 0) {
+      registeredRoutes.push({
+        method: method.toUpperCase(),
+        path: routePath,
+      });
+    }
+
+    return originalMethod(routePath, ...handlers);
+  };
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -95,12 +119,16 @@ app.delete('/categorias/:id', categoriaController.remove);
 
 // Productos
 app.get('/impuestos', impuestoController.list);
+app.get('/configuracion/impuestos', impuestoController.list);
+app.post('/configuracion/impuestos', impuestoController.create);
+app.put('/configuracion/impuestos/:id', impuestoController.update);
 app.get('/productos/unidades', productoController.unidades);
 app.get('/productos/search', productoController.search);
 app.post('/productos', uploadProductoImage.single('imagen'), productoController.create);
 app.get('/productos', productoController.list);
 app.get('/productos/:id', productoController.getById);
 app.put('/productos/:id', uploadProductoImage.single('imagen'), productoController.update);
+app.put('/productos/:id/stock-minimo', productoController.updateStockMinimo);
 app.patch('/productos/:id', productoController.patch);
 app.delete('/productos/:id', productoController.remove);
 
@@ -127,6 +155,8 @@ app.post('/inventario/entrada', inventarioController.registrarEntrada);
 app.post('/inventario/salida', inventarioController.registrarSalida);
 app.get('/inventario/historial', inventarioController.historial);
 app.get('/inventario/historial/:productoId', inventarioController.historialPorProducto);
+app.get('/inventario/productos-bajo-stock', inventarioController.productosBajoStock);
+app.get('/alertas/inventario', inventarioController.alertasInventario);
 
 // Configuración método de inventario
 app.get('/configuracion/metodo-inventario', configuracionContableController.getMetodoInventario);
@@ -188,6 +218,13 @@ app.get('/clientes', clientController.getAllClients);
 app.get('/clientes/:id', clientController.getClientById);
 app.put('/clientes/:id', clientController.updateClient);
 
+// Tipos de Cliente
+app.post('/tipos-cliente', tipoClienteController.createtipodecliente);
+app.get('/tipos-cliente', tipoClienteController.getAlltiposdecliente);
+app.get('/tipos-cliente/:id', tipoClienteController.getByIdtiposdecliente);
+app.put('/tipos-cliente/:id', tipoClienteController.updatetipodecliente);
+app.patch('/tipos-cliente/:id/estado', tipoClienteController.cambiartipodeclienteEstado);
+
 // Tipo de documento por establecimiento
 app.get('/tipos-documento', tipoDocumentoController.getAllTiposDocumento);
 app.get('/tipos-documento/:id', tipoDocumentoController.getTipoDocumentoById);
@@ -201,8 +238,11 @@ app.patch('/establecimiento-documento/:id/estado', tipoDocumentoController.patch
 
 // --- RUTAS DE FACTURAS ---
 app.post('/facturas', facturaController.createFactura);
+app.get('/facturas/exportar', facturaController.exportFacturas);
 app.get('/facturas', facturaController.getFacturas);
 app.get('/facturas/:numeroFactura', facturaController.getFacturaByNumero);
+
+// --- Reporte Balance General ---
 
 // =========================
 // CATÁLOGO CONTABLE
@@ -247,6 +287,44 @@ app.patch('/subcuentas-contables/:id/estado', subCuentaContableController.patch)
 app.get('/catalogo-contable/arbol', catalogoContableController.arbol);
 app.get('/catalogo-contable/resumen', catalogoContableController.resumen);
 
+// =========================
+// CONTABILIDAD
+// =========================
+
+// Asientos contables
+app.get('/libro-diario/exportar', asientoContableController.export);
+app.get('/libro-diario', asientoContableController.list);
+app.get('/libro-diario/:id', asientoContableController.getById);
+app.get('/asientos-contables/exportar', asientoContableController.export);
+app.get('/asientos-contables', asientoContableController.list);
+app.get('/asientos-contables/:id', asientoContableController.getById);
+
+// Reportes
+app.get('/reportes/ajustes-inventario/pdf', ajustesInventarioReportController.exportPdf);
+app.get('/reportes/ajustes-inventario', ajustesInventarioReportController.list);
+
+// Periodos contables
+app.post('/periodos-contables', periodoContableController.create);
+app.get('/periodos-contables', periodoContableController.list);
+app.get('/periodos-contables/:id', periodoContableController.getById);
+app.put('/periodos-contables/:id', periodoContableController.update);
+app.patch('/periodos-contables/:id/cerrar', periodoContableController.cerrar);
+
+// Reglas contables
+app.get('/reglas-contables', reglaContableController.list);
+app.post('/reglas-contables', reglaContableController.create);
+app.put('/reglas-contables/:id', reglaContableController.update);
+
+const swaggerDocument = createSwaggerSpec(registeredRoutes);
+
+app.get('/openapi.json', (req, res) => {
+  res.json(swaggerDocument);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+  explorer: true,
+}));
+
 // Middleware de errores
 app.use(errorHandler);
 
@@ -254,3 +332,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 export default app;
+

@@ -1,128 +1,167 @@
 import facturaService from "../services/facturaService.js";
 
-// Mapeo de informacion de factura, para evitar que envie datos delicados.
-function mapFacturaResponse(f) {
+const getFacturaStatus = (factura) => {
+  const estadoVenta = String(factura?.venta?.estado ?? "").toLowerCase();
+
+  if (estadoVenta === "anulada") {
+    return "anulada";
+  }
+
+  if (estadoVenta === "pendiente") {
+    return "pendiente";
+  }
+
+  return "pagada";
+};
+
+const mapFacturaResponse = (factura) => {
+  const estadoFactura = getFacturaStatus(factura);
+  const totalFactura = Number(factura.total ?? 0);
+
   return {
-    facturaId: f.id,
-    numeroFactura: f.numeroFormateado,
-    fechaEmision: f.fechaEmision,
-
-    cliente: f.cliente ? {
-      nombre: f.cliente.nombreCompleto,
-      identificacion: f.cliente.identificacion
-    } : null,
-
-    usuario: {
-      nombre: f.usuario.nombreCompleto
-    },
-
-    sucursal: {
-      nombre: f.sucursal.nombre,
-      direccion: f.sucursal.direccion
-    },
-
-    detalles: f.detalles?.map(d => ({
-      producto: d.producto?.nombre || "N/A",
-      cantidad: d.cantidad,
-      precioUnitario: Number(d.precioUnitario),
-      subtotal: Number(d.subtotal),
+    facturaId: String(factura.id),
+    numeroFactura: factura.numeroFormateado,
+    fechaEmision: factura.fechaEmision,
+    clienteId: factura.clienteId ? String(factura.clienteId) : null,
+    usuarioId: factura.usuarioId ? String(factura.usuarioId) : null,
+    sucursalId: factura.sucursalId ? String(factura.sucursalId) : null,
+    ventaId: factura.ventaId ? String(factura.ventaId) : null,
+    estadoFactura,
+    saldoPendiente: estadoFactura === "pendiente" ? totalFactura : 0,
+    detallesCount: factura.detalles?.length ?? 0,
+    cliente: factura.cliente
+      ? {
+          nombre: factura.cliente.nombreCompleto,
+          identificacion: factura.cliente.identificacion,
+        }
+      : null,
+    usuario: factura.usuario
+      ? {
+          nombre: factura.usuario.nombreCompleto,
+          usuario: factura.usuario.usuario,
+        }
+      : null,
+    sucursal: factura.sucursal
+      ? {
+          nombre: factura.sucursal.nombre,
+          direccion: factura.sucursal.direccion,
+        }
+      : null,
+    detalles: factura.detalles?.map((detalle) => ({
+      id: String(detalle.id),
+      productoId: String(detalle.productoId),
+      producto: detalle.producto?.nombre || "N/A",
+      cantidad: detalle.cantidad,
+      precioUnitario: Number(detalle.precioUnitario),
+      subtotal: Number(detalle.subtotal),
+      tasaImpuesto: Number(detalle.tasaImpuesto),
+      montoImpuesto: Number(detalle.montoImpuesto),
+      tipoImpuesto: detalle.tipoImpuesto,
     })) || [],
-
     totales: {
-      exento: Number(f.importeExento),
-      gravado15: Number(f.importeGravado15),
-      gravado18: Number(f.importeGravado18),
-      isv15: Number(f.isv15),
-      isv18: Number(f.isv18),
-      total: Number(f.total)
+      exento: Number(factura.importeExento),
+      gravado15: Number(factura.importeGravado15),
+      gravado18: Number(factura.importeGravado18),
+      isv15: Number(factura.isv15),
+      isv18: Number(factura.isv18),
+      total: totalFactura,
     },
-
-    cai: f.numeroFactura?.cai ? {
-      codigo: f.numeroFactura.cai.codigo,
-      fechaLimite: f.numeroFactura.cai.fechaFin,
-    } : null,
-
-    rangoEmision: f.numeroFactura?.cai?.rangoEmision ? {
-      inicio: Number(f.numeroFactura.cai.rangoEmision.inicioRango),
-      fin: Number(f.numeroFactura.cai.rangoEmision.finRango)
-    } : null
-
+    cai: factura.numeroFactura?.cai
+      ? {
+          codigo: factura.numeroFactura.cai.codigo,
+          fechaLimite: factura.numeroFactura.cai.fechaFin,
+        }
+      : null,
+    rangoEmision: factura.numeroFactura?.cai?.rangoEmision
+      ? {
+          inicio: Number(factura.numeroFactura.cai.rangoEmision.inicioRango),
+          fin: Number(factura.numeroFactura.cai.rangoEmision.finRango),
+        }
+      : null,
   };
-}
+};
+
+const getFiltersFromQuery = (query = {}) => ({
+  usuarioId: query.usuarioId,
+  clienteId: query.clienteId,
+  sucursalId: query.sucursalId,
+  fechaInicio: query.fechaInicio,
+  fechaFin: query.fechaFin,
+});
 
 const facturaController = {
-
-  // crear facturas
-async createFactura(req, res, next) {
-  try {
-
-    const { clienteId, usuarioId, sucursalId, items, ventaId } = req.body;
-
-    const facturaCreada = await facturaService.emitFactura({
-      clienteId,
-      usuarioId,
-      sucursalId,
-      items,
-      ventaId
-    });
-
-    const factura = await facturaService.getFacturaByNumero(
-      facturaCreada.numeroFormateado
-    );
-
-    res.json({
-      success: true,
-      data: mapFacturaResponse(factura)
-    });
-
-  } catch (error) {
-    next(error);
-  }
-},
-  // GET facturas
-  async getFacturas(req, res, next) {
+  async createFactura(req, res, next) {
     try {
+      const { clienteId, usuarioId, sucursalId, items, ventaId } = req.body;
 
-      const { usuarioId, clienteId, sucursalId } = req.query;
-
-      const facturas = await facturaService.getFacturas({
-        usuarioId,
+      const facturaCreada = await facturaService.emitFactura({
         clienteId,
-        sucursalId
+        usuarioId,
+        sucursalId,
+        items,
+        ventaId,
       });
 
-      // aplicando mapeo
-      const data = facturas.map(mapFacturaResponse);
+      const factura = await facturaService.getFacturaByNumero(
+        facturaCreada.numeroFormateado,
+      );
 
       res.json({
         success: true,
-        data
+        data: mapFacturaResponse(factura),
       });
-
     } catch (error) {
       next(error);
     }
   },
 
-  // GET /facturas/:numeroFactura para obtener factura por numero
-  async getFacturaByNumero(req, res, next) {
+  async getFacturas(req, res, next) {
     try {
+      const filtros = getFiltersFromQuery(req.query);
+      const facturas = await facturaService.getFacturas(filtros);
 
-      const { numeroFactura } = req.params;
-
-      const factura = await facturaService.getFacturaByNumero(numeroFactura);
-
-      // aplicando mapeo
       res.json({
         success: true,
-        data: mapFacturaResponse(factura)
+        data: facturas.map(mapFacturaResponse),
       });
-
     } catch (error) {
       next(error);
     }
-  }
+  },
 
+  async exportFacturas(req, res, next) {
+    try {
+      const filtros = getFiltersFromQuery(req.query);
+      const facturas = await facturaService.getFacturas(filtros);
+      const data = facturas.map(mapFacturaResponse);
+      const pdfBuffer = facturaService.buildHistorialPdf(data, filtros);
+      const today = new Date().toISOString().slice(0, 10);
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="historial-facturacion-${today}.pdf"`,
+      );
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.send(pdfBuffer);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async getFacturaByNumero(req, res, next) {
+    try {
+      const { numeroFactura } = req.params;
+      const factura = await facturaService.getFacturaByNumero(numeroFactura);
+
+      res.json({
+        success: true,
+        data: mapFacturaResponse(factura),
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 export default facturaController;

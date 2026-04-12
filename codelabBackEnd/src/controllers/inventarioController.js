@@ -70,6 +70,30 @@ const inventarioController = {
     }
   },
 
+  async productosBajoStock(req, res, next) {
+    try {
+      const data = await inventarioService.productosBajoStock(req.query);
+      res.json({
+        success: true,
+        data,
+      });
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async alertasInventario(req, res, next) {
+    try {
+      const data = await inventarioService.alertasInventario(req.query);
+      res.json({
+        success: true,
+        data,
+      });
+    } catch (e) {
+      next(e);
+    }
+  },
+
   async tiposEntrada(req, res, next) {
     try {
       res.json({

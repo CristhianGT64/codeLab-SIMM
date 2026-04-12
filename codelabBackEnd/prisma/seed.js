@@ -6,8 +6,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const SEED_FILES = {
+  catalog: resolve(__dirname, 'seed_catalog.sql'),
   base: resolve(__dirname, 'seed_required_tables.sql'),
   business: resolve(__dirname, 'seed_business_tables.sql'),
+  reglas: resolve(__dirname, 'seed_reglas_contables.sql'),
 };
 
 const mode = (process.argv[2] || 'all').toLowerCase();
@@ -19,23 +21,31 @@ function runSeedFile(filePath, label) {
 }
 
 function main() {
+
+  // if (mode === 'catalog') {
+  //   runSeedFile(SEED_FILES.catalog, 'seed catálogo');
+  //   return;
+  // }
   if (mode === 'base') {
     runSeedFile(SEED_FILES.base, 'seed base');
     return;
   }
-
   if (mode === 'business') {
     runSeedFile(SEED_FILES.business, 'seed negocio');
     return;
   }
-
+  if (mode === 'reglas') {
+    runSeedFile(SEED_FILES.reglas, 'seed contabilidad');
+    return;
+  }
   if (mode === 'all') {
     runSeedFile(SEED_FILES.base, 'seed base');
     runSeedFile(SEED_FILES.business, 'seed negocio');
+    runSeedFile(SEED_FILES.reglas, 'seed contabilidad');
     return;
   }
 
-  console.error('[seed] Modo invalido. Usa: base | business | all');
+  console.error('[seed] Modo invalido. Usa: base | business | reglas | all');
   process.exitCode = 1;
 }
 

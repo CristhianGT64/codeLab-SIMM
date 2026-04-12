@@ -5,13 +5,16 @@ BEGIN;
 -- Requiere que primero se ejecute el seed_required actualizado.
 
 -- 1) Catálogos de facturación
-INSERT INTO public."TipoCliente" (id, nombre) VALUES
-  (100, 'Mayorista'),
-  (1, 'Natural'),
-  (2, 'Jurídico'),
-  (101, 'Contado')
+INSERT INTO public."TipoCliente" (id, nombre, descripcion, condicion_pago, disponible) VALUES
+  (100, 'Mayorista', 'Cliente que compra en grandes volúmenes', 'Crédito 30 días', true),
+  (1, 'Minorista', 'Cliente que compra al detalle', 'Contado', true),
+  (2, 'Crédito', 'Cliente con línea de crédito aprobada', 'Crédito 15 días', true),
+  (101, 'Contado', 'Cliente que paga al momento de la compra', 'Contado', true)
 ON CONFLICT (id) DO UPDATE SET
-  nombre = EXCLUDED.nombre;
+  nombre = EXCLUDED.nombre,
+  descripcion = EXCLUDED.descripcion,
+  condicion_pago = EXCLUDED.condicion_pago,
+  disponible = EXCLUDED.disponible;
 
 INSERT INTO public."TiposDocumentos" (id_tipo_documento, numero, nombre, disponible) VALUES
   (1, 1, 'Factura', true)
@@ -241,7 +244,7 @@ ON CONFLICT (id) DO UPDATE SET
   "tipoImpuesto" = EXCLUDED."tipoImpuesto";
 
 INSERT INTO public."MovimientoInventario" (id, tipo, cantidad, referencia_tipo, referencia_id, created_at, "productoId", "sucursalId", "usuarioId", costo_total, costo_unitario, detalle_motivo, estado, fecha_movimiento, metodo_valuacion_aplicado, motivo_salida, observaciones, "proveedorId", stock_resultante, subtipo_entrada) VALUES
-  (1, 'entrada', 10, 'SEED', 1, '2026-03-11 09:00:00', 1, 2, 2, NULL, NULL, NULL, 'completado', '2026-03-11 09:00:00', NULL, NULL, 'Ingreso inicial por carga semilla', 1, 10, 'PRODUCTO_NUEVO'),
+ (1, 'entrada', 10, 'SEED', 1, '2026-03-11 09:00:00', 1, 2, 2, 500, 50, NULL, 'completado', '2026-03-11 09:00:00', 'FIFO', NULL, 'Ingreso inicial Camisa', 1, 10, 'PRODUCTO_NUEVO'),
   (2, 'salida', 1, 'VENTA', 1, '2026-03-11 10:00:00', 1, 2, 2, NULL, NULL, NULL, 'completado', '2026-03-11 10:00:00', NULL, 'VENTA', 'Salida por venta demo', NULL, 9, NULL),
   (3, 'salida', 1, 'FACTURA', 1, '2026-03-26 01:37:05.762', 101, 2, NULL, NULL, NULL, NULL, 'completado', '2026-03-26 01:37:05.76', NULL, 'VENTA', NULL, NULL, 199, NULL),
   (4, 'salida', 1, 'FACTURA', 2, '2026-03-26 01:37:35.185', 100, 2, NULL, NULL, NULL, NULL, 'completado', '2026-03-26 01:37:35.184', NULL, 'VENTA', NULL, NULL, 49, NULL),
@@ -252,10 +255,22 @@ INSERT INTO public."MovimientoInventario" (id, tipo, cantidad, referencia_tipo, 
   (9, 'salida', 1, 'FACTURA', 7, '2026-03-26 01:55:50.771', 2, 2, NULL, NULL, NULL, NULL, 'completado', '2026-03-26 01:55:50.77', NULL, 'VENTA', NULL, NULL, 8, NULL),
   (10, 'salida', 1, 'FACTURA', 8, '2026-03-26 03:05:52.921', 102, 2, NULL, NULL, NULL, NULL, 'completado', '2026-03-26 03:05:52.92', NULL, 'VENTA', NULL, NULL, 29, NULL),
   (11, 'salida', 1, 'FACTURA', 9, '2026-03-26 03:47:50.882', 101, 2, NULL, NULL, NULL, NULL, 'completado', '2026-03-26 03:47:50.882', NULL, 'VENTA', NULL, NULL, 196, NULL),
-  (12, 'entrada', 30, 'creacion_producto', NULL, '2026-03-26 04:10:31.685', 103, 2, NULL, NULL, NULL, NULL, 'completado', '2026-03-26 04:10:31.682', NULL, NULL, NULL, NULL, 30, 'PRODUCTO_NUEVO'),
-  (13, 'entrada', 29, 'creacion_producto', NULL, '2026-03-26 04:16:14.324', 104, 2, NULL, NULL, NULL, NULL, 'completado', '2026-03-26 04:16:14.324', NULL, NULL, NULL, NULL, 29, 'PRODUCTO_NUEVO'),
+  (12, 'entrada', 30, 'creacion_producto', NULL, '2026-03-26 04:10:31.685', 103, 2, NULL, 30000, 1000, NULL, 'completado', '2026-03-26 04:10:31.682', 'FIFO', NULL, 'Ingreso inicial Laptop', NULL, 30, 'PRODUCTO_NUEVO'),
+  (13, 'entrada', 29, 'creacion_producto', NULL, '2026-03-26 04:16:14.324', 104, 2, NULL, 1450, 50, NULL, 'completado', '2026-03-26 04:16:14.324', 'FIFO', NULL, 'Ingreso inicial Zapatos', NULL, 29, 'PRODUCTO_NUEVO'),
   (14, 'salida', 2, 'FACTURA', 10, '2026-03-26 04:17:05.481', 104, 2, NULL, NULL, NULL, NULL, 'completado', '2026-03-26 04:17:05.478', NULL, 'VENTA', NULL, NULL, 27, NULL),
-  (15, 'salida', 1, 'FACTURA', 10, '2026-03-26 04:17:05.506', 103, 2, NULL, NULL, NULL, NULL, 'completado', '2026-03-26 04:17:05.505', NULL, 'VENTA', NULL, NULL, 29, NULL)
+  (15, 'salida', 1, 'FACTURA', 10, '2026-03-26 04:17:05.506', 103, 2, NULL, NULL, NULL, NULL, 'completado', '2026-03-26 04:17:05.505', NULL, 'VENTA', NULL, NULL, 29, NULL),
+  (16, 'entrada', 20, 'SEED', NULL, NOW(), 2, 2, 2, 1200, 60, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Pantalon', NULL, 20, 'PRODUCTO_NUEVO'),
+  (17, 'entrada', 15, 'SEED', NULL, NOW(), 3, 2, 2, 1500, 100, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Tenis', NULL, 15, 'PRODUCTO_NUEVO'),
+  (18, 'entrada', 25, 'SEED', NULL, NOW(), 4, 2, 2, 3012.5, 120.5, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Calcetines', NULL, 25, 'PRODUCTO_NUEVO'),
+  (19, 'entrada', 12, 'SEED', NULL, NOW(), 5, 2, 2, 1200, 100, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Teclado', NULL, 12, 'PRODUCTO_NUEVO'),
+  (20, 'entrada', 10, 'SEED', NULL, NOW(), 6, 2, 2, 1205, 120.5, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Mouse', NULL, 10, 'PRODUCTO_NUEVO'),
+  (21, 'entrada', 8, 'SEED', NULL, NOW(), 7, 2, 2, 5600, 700, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Monitor', NULL, 8, 'PRODUCTO_NUEVO'),
+  (22, 'entrada', 6, 'SEED', NULL, NOW(), 8, 2, 2, 4800, 800, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Camisa Barca', NULL, 6, 'PRODUCTO_NUEVO'),
+  (23, 'entrada', 5, 'SEED', NULL, NOW(), 9, 2, 2, 4500, 900, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Camisa Marathon', NULL, 5, 'PRODUCTO_NUEVO'),
+  (24, 'entrada', 4, 'SEED', NULL, NOW(), 10, 2, 2, 6400, 1600, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Buzo azul', NULL, 4, 'PRODUCTO_NUEVO'),
+  (25, 'entrada', 50, 'SEED', NULL, NOW(), 100, 2, 2, 4250, 85, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Audifonos', NULL, 50, 'PRODUCTO_NUEVO'),
+  (26, 'entrada', 200, 'SEED', NULL, NOW(), 101, 2, 2, 3000, 15, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Jabón', NULL, 200, 'PRODUCTO_NUEVO'),
+  (27, 'entrada', 30, 'SEED', NULL, NOW(), 102, 2, 2, 750, 25, NULL, 'completado', NOW(), 'FIFO', NULL, 'Ingreso inicial Gorra', NULL, 30, 'PRODUCTO_NUEVO')
 ON CONFLICT (id) DO UPDATE SET
   tipo = EXCLUDED.tipo,
   cantidad = EXCLUDED.cantidad,
@@ -333,6 +348,10 @@ SELECT setval('public."DetalleVenta_id_seq"',
 SELECT setval('public."Facturas_id_seq"',
   COALESCE((SELECT MAX(id) FROM public."Facturas"), 1),
   COALESCE((SELECT MAX(id) IS NOT NULL FROM public."Facturas"), false)
+);
+SELECT setval('public."DetalleFactura_id_seq"',
+  COALESCE((SELECT MAX(id) FROM public."DetalleFactura"), 1),
+  COALESCE((SELECT MAX(id) IS NOT NULL FROM public."DetalleFactura"), false)
 );
 SELECT setval('public."MovimientoInventario_id_seq"',
   COALESCE((SELECT MAX(id) FROM public."MovimientoInventario"), 1),

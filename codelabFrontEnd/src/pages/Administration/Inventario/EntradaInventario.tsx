@@ -20,6 +20,7 @@ import {
   NotificacionData,
   type NotificationStateInterface,
 } from "../../../interfaces/NotificacionesInterface";
+import { isPeriodoContableClosedError } from "../../../utils/periodosContables";
 import {
   botonCancelarEntrada,
   botonGuardarEntrada,
@@ -133,8 +134,25 @@ export default function EntradaInventario() {
       }
 
       setNotification({ ...notificacionErorrRegistroEntrada });
-    } catch {
-      setNotification({ ...notificacionErorrRegistroEntrada });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Ocurrio un error inesperado al registrar la entrada.";
+
+      setNotification(
+        isPeriodoContableClosedError(errorMessage)
+          ? {
+            isVisible: true,
+            variant: "error",
+            title: "Entrada bloqueada por periodo cerrado",
+            message: errorMessage,
+          }
+          : {
+            ...notificacionErorrRegistroEntrada,
+            message: errorMessage,
+          },
+      );
     }
   };
 

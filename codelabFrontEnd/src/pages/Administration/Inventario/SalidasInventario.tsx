@@ -18,6 +18,7 @@ import useListProduct from "../../../hooks/ProductosHooks/useListProduct";
 import useAuth from "../../../hooks/useAuth";
 import type { RegistrarSalidaForm } from "../../../interfaces/Inventario/InventarioInterface";
 import { NotificacionData, type NotificationStateInterface } from "../../../interfaces/NotificacionesInterface";
+import { isPeriodoContableClosedError } from "../../../utils/periodosContables";
 
 
 type MotivoSalida = "VENTA" | "DANIO" | "CONSUMO_INTERNO" | "AJUSTE" | "OTRO";
@@ -153,7 +154,7 @@ export default function SalidasInventario() {
                 setNotification({
                     isVisible: true,
                     variant: "success",
-                    title: "Salida registrada",
+                    title: "Salida registrada - Asiento contable generado",
                     message: "La salida de inventario se registro correctamente.",
                 });
 
@@ -178,7 +179,9 @@ export default function SalidasInventario() {
             setNotification({
                 isVisible: true,
                 variant: "error",
-                title: "Error al registrar salida",
+                title: isPeriodoContableClosedError(errorMessage)
+                    ? "Salida bloqueada por periodo cerrado"
+                    : "Error al registrar salida",
                 message: errorMessage,
             });
         }

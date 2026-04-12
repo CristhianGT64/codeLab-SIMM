@@ -4,6 +4,12 @@ const navBarData: NavBarInterface = {
   nameBuild: "SIMM",
   modules: [
     {
+      text: "Reportes",
+      icon: "fa-solid fa-chart-column",
+      url: "/Reportes-Management",
+      disable: false,
+    },
+    {
       text: "Usuarios",
       icon: "fa-solid fa-users",
       url: "/Users-Management",
@@ -46,6 +52,20 @@ const navBarData: NavBarInterface = {
       permiso: "Ver configuración CAI",
     },
     {
+      text: "Impuestos",
+      icon: "fa-solid fa-percent",
+      url: "/Configuracion/Impuestos",
+      disable: false,
+      permiso: "Ver productos",
+    },
+    {
+      text: "Facturas",
+      icon: "fa-solid fa-file-invoice-dollar",
+      url: "/Facturas-Management",
+      disable: false,
+      permiso: "Revisar Facturas",
+    },
+    {
       text: "Ventas POS",
       icon: "fa-solid fa-cart-shopping",
       url : "/Ventas-Management",
@@ -72,6 +92,12 @@ const navBarData: NavBarInterface = {
       url: "/Catalogo-Cuentas-Contables",
       disable: false,
       permiso: "Ver cuentas contables",
+    },
+    {
+      text: "Per. Contables",
+      icon: "fa-solid fa-calendar-days",
+      url: "/Periodos-Contables-Management",
+      disable: false,
     },
   ],
   nameUser: "Administrador",

@@ -1,18 +1,8 @@
-import {
-  createContext,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  type ReactNode,
-} from "react";
+import { useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import type { LoginUserData } from "../interfaces/LoginResponse";
-import type { AuthContextType } from "../interfaces/Auth/AuthContextTypeInterface";
 import { getRolById } from "../services/RolesService";
-
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined,
-);
+import type { AuthContextType } from "../interfaces/Auth/AuthContextTypeInterface";
+import { AuthContext } from "./AuthContextInstance";
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -32,7 +22,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [permisos, setPermisos] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchPermisos = async (rolId: string) => {
+  const fetchPermisos = useCallback(async (rolId: string) => {
     try {
       const response = await getRolById(rolId);
       const nombres = response.data.permisos.map((p) => p.nombre);
@@ -42,7 +32,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setPermisos([]);
       localStorage.removeItem(PERMISOS_KEY);
     }
-  };
+  }, []);
 
   // Cargar usuario desde localStorage y refrescar permisos desde API.
   useEffect(() => {
@@ -77,27 +67,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     void initAuth();
-  }, []);
+  }, [fetchPermisos]);
 
-  const login = async (userData: LoginUserData) => {
+  const login = useCallback(async (userData: LoginUserData) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
     await fetchPermisos(userData.rol.id);
-  };
+  }, [fetchPermisos]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     setPermisos([]);
     localStorage.removeItem("user");
     localStorage.removeItem(PERMISOS_KEY);
-  };
+  }, []);
 
   const tienePermiso = useCallback(
     (nombre: string) => {
       const normalizedTarget = normalizePermissionName(nombre);
-      return permisos.some(
-        (permiso) => normalizePermissionName(permiso) === normalizedTarget,
+      console.log("[PERMISO] Buscando:", nombre, "Normalizado:", normalizedTarget);
+      console.log("[PERMISO] Permisos del usuario:", permisos);
+      const result = permisos.some(
+        (permiso) => {
+          const norm = normalizePermissionName(permiso);
+          console.log("Comparando:", norm, "con", normalizedTarget);
+          return norm === normalizedTarget;
+        }
       );
+      console.log("[PERMISO] Resultado:", result);
+      return result;
     },
     [permisos],
   );
@@ -112,7 +110,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       logout,
       tienePermiso,
     }),
-    [user, permisos, isLoading, tienePermiso],
+    [user, permisos, isLoading, login, logout, tienePermiso],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
