@@ -6,7 +6,7 @@ hola
 docker run -d -p 4173:4173 --name codelaberp-container codelaberp:latest
 
 
-Por si toca hacer despliegue en la nube con Azure ACR
+Por si toca hacer despliegue en la nube con Azure ACR z
 az login
 az acr login --name "acrcodelaunah"
 
